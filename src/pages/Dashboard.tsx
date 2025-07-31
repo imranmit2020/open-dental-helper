@@ -60,33 +60,36 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, Dr. Smith. Here's your practice overview.</p>
+          <h1 className="text-4xl font-bold tracking-tight gradient-text">Dashboard</h1>
+          <p className="text-muted-foreground text-lg">Welcome back, Dr. Smith. Here's your practice overview.</p>
         </div>
-        <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:shadow-xl transition-all">
+        <Button variant="gradient" size="lg" className="shadow-glow">
           New Patient
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="relative overflow-hidden">
-              <CardHeader className="pb-2">
+            <Card key={stat.title} className="professional-card hover-lift" style={{ animationDelay: `${index * 100}ms` }}>
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardDescription className="text-sm font-medium">
+                  <CardDescription className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                     {stat.title}
                   </CardDescription>
-                  <Icon className={`h-5 w-5 ${stat.color}`} />
+                  <div className="p-2 rounded-lg bg-gradient-primary">
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="medical-stat-value">{stat.value}</div>
+                <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3 text-success" />
                   {stat.change}
                 </p>
               </CardContent>
@@ -97,39 +100,41 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Schedule */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+        <Card className="lg:col-span-2 professional-card hover-lift">
+          <CardHeader className="border-b border-border/50">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 rounded-lg bg-gradient-primary">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
               Today's Schedule
             </CardTitle>
-            <CardDescription>
-              {upcomingAppointments.length} appointments scheduled
+            <CardDescription className="text-base">
+              {upcomingAppointments.length} appointments scheduled for today
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-4">
               {upcomingAppointments.map((appointment, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-muted-foreground">
+                <div key={index} className="flex items-center justify-between p-4 bg-gradient-card rounded-xl border border-border/30 hover-lift transition-all duration-300">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm font-bold text-primary bg-primary-light px-3 py-1 rounded-lg">
                       {appointment.time}
                     </div>
                     <div>
-                      <div className="font-medium">{appointment.patient}</div>
+                      <div className="font-semibold text-foreground">{appointment.patient}</div>
                       <div className="text-sm text-muted-foreground">{appointment.type}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {appointment.status === "confirmed" ? (
-                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      <CheckCircle2 className="h-5 w-5 text-success" />
                     ) : (
-                      <Clock className="h-4 w-4 text-warning" />
+                      <Clock className="h-5 w-5 text-warning" />
                     )}
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                       appointment.status === "confirmed" 
-                        ? "bg-success/10 text-success" 
-                        : "bg-warning/10 text-warning"
+                        ? "status-success" 
+                        : "status-warning"
                     }`}>
                       {appointment.status}
                     </span>
@@ -141,24 +146,40 @@ export default function Dashboard() {
         </Card>
 
         {/* AI Insights */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-secondary" />
+        <Card className="professional-card hover-lift">
+          <CardHeader className="border-b border-border/50">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 rounded-lg bg-gradient-secondary">
+                <Activity className="h-5 w-5 text-white" />
+              </div>
               AI Insights
             </CardTitle>
-            <CardDescription>
-              Real-time practice analytics
+            <CardDescription className="text-base">
+              Real-time practice analytics powered by AI
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-4">
               {aiInsights.map((insight, index) => (
-                <div key={index} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
-                  {insight.type === "success" && <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />}
-                  {insight.type === "warning" && <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />}
-                  {insight.type === "info" && <TrendingUp className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />}
-                  <div className="text-sm">{insight.message}</div>
+                <div key={index} className="flex gap-4 p-4 bg-gradient-card rounded-xl border border-border/30 hover-lift transition-all duration-300">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {insight.type === "success" && (
+                      <div className="p-1.5 rounded-lg bg-success-light">
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      </div>
+                    )}
+                    {insight.type === "warning" && (
+                      <div className="p-1.5 rounded-lg bg-warning-light">
+                        <AlertCircle className="h-4 w-4 text-warning" />
+                      </div>
+                    )}
+                    {insight.type === "info" && (
+                      <div className="p-1.5 rounded-lg bg-info-light">
+                        <TrendingUp className="h-4 w-4 text-info" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-foreground leading-relaxed">{insight.message}</div>
                 </div>
               ))}
             </div>
@@ -167,33 +188,38 @@ export default function Dashboard() {
       </div>
 
       {/* Practice Health */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Practice Health Score</CardTitle>
-          <CardDescription>Overall practice performance metrics</CardDescription>
+      <Card className="professional-card hover-lift animate-scale-in">
+        <CardHeader className="border-b border-border/50">
+          <CardTitle className="text-2xl font-semibold gradient-text">Practice Health Score</CardTitle>
+          <CardDescription className="text-base">
+            Overall practice performance metrics and KPIs
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Patient Satisfaction</span>
-                <span>96%</span>
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-foreground">Patient Satisfaction</span>
+                <span className="text-2xl font-bold text-success">96%</span>
               </div>
-              <Progress value={96} className="h-2" />
+              <Progress value={96} className="h-3 bg-muted" />
+              <p className="text-xs text-muted-foreground">Excellent patient feedback scores</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Schedule Efficiency</span>
-                <span>89%</span>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-foreground">Schedule Efficiency</span>
+                <span className="text-2xl font-bold text-info">89%</span>
               </div>
-              <Progress value={89} className="h-2" />
+              <Progress value={89} className="h-3 bg-muted" />
+              <p className="text-xs text-muted-foreground">Optimized appointment scheduling</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Revenue Growth</span>
-                <span>112%</span>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-foreground">Revenue Growth</span>
+                <span className="text-2xl font-bold text-primary">112%</span>
               </div>
-              <Progress value={100} className="h-2" />
+              <Progress value={100} className="h-3 bg-muted" />
+              <p className="text-xs text-muted-foreground">Above target performance</p>
             </div>
           </div>
         </CardContent>
