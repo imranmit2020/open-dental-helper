@@ -58,25 +58,25 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-white font-semibold shadow-lg rounded-lg border-2 border-primary/20" 
-      : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 rounded-lg";
+      ? "bg-indigo-600 text-white font-semibold shadow-lg rounded-lg border-2 border-indigo-400/30" 
+      : "text-indigo-800 dark:text-indigo-200 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 hover:text-indigo-900 dark:hover:text-white transition-all duration-200 rounded-lg";
 
   return (
     <Sidebar
       className={isCollapsed ? "w-16" : "w-64"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-background border-r border-border">
+      <SidebarContent className="bg-gradient-to-b from-indigo-50 to-blue-50 dark:from-indigo-900 dark:to-blue-900 border-r border-indigo-200 dark:border-indigo-700">
         {/* Header */}
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-indigo-200 dark:border-indigo-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-lg flex items-center justify-center">
               <Stethoscope className="w-6 h-6 text-white" />
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="font-bold text-lg text-foreground">DentalAI Pro</h1>
-                <p className="text-xs text-muted-foreground">Revolutionary Practice Management</p>
+                <h1 className="font-bold text-lg text-indigo-900 dark:text-indigo-100">DentalAI Pro</h1>
+                <p className="text-xs text-indigo-600 dark:text-indigo-400">Revolutionary Practice Management</p>
               </div>
             )}
           </div>
@@ -84,7 +84,7 @@ export function AppSidebar() {
 
         {/* Patient Management */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+          <SidebarGroupLabel className="text-indigo-700 dark:text-indigo-300 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Patient Care
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -105,7 +105,7 @@ export function AppSidebar() {
 
         {/* Scheduling */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+          <SidebarGroupLabel className="text-indigo-700 dark:text-indigo-300 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Scheduling
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -126,7 +126,7 @@ export function AppSidebar() {
 
         {/* AI Features */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+          <SidebarGroupLabel className="text-indigo-700 dark:text-indigo-300 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             AI Features
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -147,7 +147,7 @@ export function AppSidebar() {
 
         {/* Reports */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+          <SidebarGroupLabel className="text-indigo-700 dark:text-indigo-300 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Analytics
           </SidebarGroupLabel>
           <SidebarGroupContent>
