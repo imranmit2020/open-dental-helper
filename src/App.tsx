@@ -9,6 +9,7 @@ import Patients from "./pages/Patients";
 import Schedule from "./pages/Schedule";
 import AIVoiceNotes from "./pages/AIVoiceNotes";
 import MedicalHistory from "./pages/MedicalHistory";
+import PracticeAnalytics from "./pages/PracticeAnalytics";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/patients" element={<Layout><Patients /></Layout>} />
           <Route path="/patients/history" element={<Layout><MedicalHistory /></Layout>} />
           <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
+          <Route path="/reports" element={<Layout><PracticeAnalytics /></Layout>} />
           <Route path="/ai-voice-notes" element={<Layout><AIVoiceNotes /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
