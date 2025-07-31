@@ -58,8 +58,8 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-primary-foreground font-semibold shadow-lg rounded-lg border-2 border-primary/20" 
-      : "text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg";
+      ? "bg-primary text-white font-semibold shadow-lg rounded-lg border-2 border-primary/20" 
+      : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all duration-200 rounded-lg";
 
   return (
     <Sidebar
