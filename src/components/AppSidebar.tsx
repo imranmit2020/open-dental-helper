@@ -58,7 +58,7 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "data-[active=true]:bg-slate-700 data-[active=true]:text-white bg-slate-700 text-white font-semibold" 
+      ? "data-[active=true]:bg-blue-800 data-[active=true]:text-white bg-blue-800 text-white font-semibold" 
       : "";
 
   return (
