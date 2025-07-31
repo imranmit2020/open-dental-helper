@@ -9,6 +9,7 @@ import Patients from "./pages/Patients";
 import Schedule from "./pages/Schedule";
 import AIVoiceNotes from "./pages/AIVoiceNotes";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
