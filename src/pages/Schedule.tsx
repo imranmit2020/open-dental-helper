@@ -12,6 +12,7 @@ import {
   MapPin,
   Phone
 } from "lucide-react";
+import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -120,10 +121,7 @@ export default function Schedule() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointment Calendar</h1>
           <p className="text-muted-foreground">Manage your daily schedule and appointments</p>
         </div>
-        <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:shadow-xl transition-all">
-          <Plus className="h-4 w-4 mr-2" />
-          New Appointment
-        </Button>
+        <NewAppointmentForm />
       </div>
 
       {/* Calendar Controls */}
