@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import NewPatientForm from "@/components/NewPatientForm";
 import { 
   Search, 
   Plus, 
@@ -18,8 +19,8 @@ import {
 
 export default function Patients() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [patients, setPatients] = useState([
 
-  const patients = [
     {
       id: 1,
       name: "Sarah Johnson",
@@ -72,7 +73,11 @@ export default function Patients() {
       age: 38,
       insurance: "Aetna"
     }
-  ];
+  ]);
+
+  const handlePatientAdded = (newPatient: any) => {
+    setPatients(prev => [...prev, newPatient]);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -108,10 +113,7 @@ export default function Patients() {
           </h1>
           <p className="text-muted-foreground text-lg">Manage your patient records with AI-powered insights</p>
         </div>
-        <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3">
-          <Plus className="h-5 w-5 mr-2" />
-          New Patient
-        </Button>
+        <NewPatientForm onPatientAdded={handlePatientAdded} />
       </div>
 
       {/* Enhanced Search Card */}
