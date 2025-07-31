@@ -84,7 +84,7 @@ export function AppSidebar() {
 
         {/* Patient Management */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
+          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Patient Care
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -105,7 +105,7 @@ export function AppSidebar() {
 
         {/* Scheduling */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
+          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Scheduling
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -126,7 +126,7 @@ export function AppSidebar() {
 
         {/* AI Features */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
+          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             AI Features
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -147,7 +147,7 @@ export function AppSidebar() {
 
         {/* Reports */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
+          <SidebarGroupLabel className="text-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2">
             Analytics
           </SidebarGroupLabel>
           <SidebarGroupContent>
