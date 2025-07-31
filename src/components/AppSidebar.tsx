@@ -58,17 +58,17 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-emerald-600 text-white font-medium shadow-lg" 
-      : "text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300";
+      ? "bg-blue-600 text-white font-medium shadow-lg" 
+      : "text-gray-600 hover:bg-blue-50 hover:text-blue-700";
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-16" : "w-64"} transition-all duration-300 ease-out bg-slate-50 dark:bg-slate-900 border-r border-emerald-200 dark:border-emerald-800`}
+      className={`${isCollapsed ? "w-16" : "w-64"} transition-all duration-300 ease-out bg-white border-r border-blue-200`}
       collapsible="icon"
     >
       <SidebarContent className="h-full">
         {/* Header */}
-        <div className="p-4 border-b border-emerald-200 dark:border-emerald-800 bg-gradient-to-r from-emerald-600 to-teal-600">
+        <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-blue-500 to-indigo-600">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center ring-2 ring-white/30">
               <Stethoscope className="w-6 h-6 text-white" />
@@ -76,7 +76,7 @@ export function AppSidebar() {
             {!isCollapsed && (
               <div>
                 <h1 className="font-semibold text-lg text-white">DentalAI Pro</h1>
-                <p className="text-xs text-emerald-100">Practice Management</p>
+                <p className="text-xs text-blue-100">Practice Management</p>
               </div>
             )}
           </div>
@@ -86,7 +86,7 @@ export function AppSidebar() {
         <div className="flex-1 overflow-y-auto py-2 space-y-6">
           {/* Patient Management */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
+            <SidebarGroupLabel className="text-blue-600 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Patient Care
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
@@ -113,7 +113,7 @@ export function AppSidebar() {
 
           {/* Scheduling */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
+            <SidebarGroupLabel className="text-blue-600 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Scheduling
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
@@ -140,7 +140,7 @@ export function AppSidebar() {
 
           {/* AI Features */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
+            <SidebarGroupLabel className="text-blue-600 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               AI Features
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
@@ -167,7 +167,7 @@ export function AppSidebar() {
 
           {/* Reports */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-emerald-600 dark:text-emerald-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
+            <SidebarGroupLabel className="text-blue-600 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Analytics
             </SidebarGroupLabel>
             <SidebarGroupContent className="px-2">
@@ -194,7 +194,7 @@ export function AppSidebar() {
         </div>
 
         {/* Settings - Bottom */}
-        <div className="border-t border-emerald-200 dark:border-emerald-800 p-2">
+        <div className="border-t border-blue-200 p-2">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
