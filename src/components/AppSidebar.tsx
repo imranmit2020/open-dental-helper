@@ -58,15 +58,15 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-blue-600 text-white font-semibold shadow-lg rounded-lg px-3 py-2 mx-2 mb-1" 
-      : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 rounded-lg px-3 py-2 mx-2 mb-1";
+      ? "data-[active=true]:bg-blue-600 data-[active=true]:text-white bg-blue-600 text-white font-semibold" 
+      : "";
 
   return (
     <Sidebar
       className={isCollapsed ? "w-16" : "w-64"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+      <SidebarContent className="bg-sidebar border-r border-sidebar-border">
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
