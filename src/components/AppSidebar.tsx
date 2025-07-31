@@ -58,129 +58,164 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-gradient-to-r from-primary/90 to-secondary/90 text-white font-bold shadow-xl border border-primary/30 rounded-lg" 
-      : "hover:bg-gradient-to-r hover:from-accent/20 hover:to-muted/30 hover:text-primary transition-all duration-300 rounded-lg hover:shadow-md";
+      ? "bg-gradient-primary text-white font-semibold shadow-elegant border border-primary/20 transition-all duration-300" 
+      : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-300 hover:shadow-md";
 
   return (
     <Sidebar
-      className={isCollapsed ? "w-16" : "w-64"}
+      className={`${isCollapsed ? "w-16" : "w-72"} transition-all duration-300 ease-out`}
       collapsible="icon"
     >
-      <SidebarContent className="bg-gradient-to-b from-card/95 to-muted/50 backdrop-blur-sm border-r border-border/60 shadow-xl">
+      <SidebarContent className="bg-sidebar-background border-r border-sidebar-border shadow-elegant backdrop-blur-sm">
         {/* Header */}
-        <div className="p-4 border-b border-border">
+        <div className="p-6 border-b border-sidebar-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+              <Stethoscope className="w-7 h-7 text-white" />
             </div>
             {!isCollapsed && (
-              <div>
-                <h1 className="font-bold text-lg text-foreground">DentalAI Pro</h1>
-                <p className="text-xs text-muted-foreground">Revolutionary Practice Management</p>
+              <div className="space-y-1">
+                <h1 className="font-bold text-xl text-sidebar-foreground tracking-tight">DentalAI Pro</h1>
+                <p className="text-xs text-sidebar-foreground/60 font-medium">Advanced Practice Management</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Patient Management */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
-            Patient Care
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {patientItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+        {/* Navigation Sections */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-2">
+          {/* Patient Management */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+              Patient Care
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-3">
+              <SidebarMenu className="space-y-1">
+                {patientItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          ${getNavCls({ isActive })}
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Scheduling */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+              Scheduling
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-3">
+              <SidebarMenu className="space-y-1">
+                {schedulingItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          ${getNavCls({ isActive })}
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* AI Features */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+              AI Features
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-3">
+              <SidebarMenu className="space-y-1">
+                {aiItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          ${getNavCls({ isActive })}
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Reports */}
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+              Analytics
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-3">
+              <SidebarMenu className="space-y-1">
+                {reportsItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          ${getNavCls({ isActive })}
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
+
+        {/* Settings - Bottom */}
+        <div className="border-t border-sidebar-border/50 p-3">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                    <NavLink 
+                      to="/settings" 
+                      className={({ isActive }) => `
+                        flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                        ${getNavCls({ isActive })}
+                      `}
+                    >
+                      <Settings className="h-5 w-5 shrink-0" />
+                      {!isCollapsed && <span className="truncate">Settings</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Scheduling */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
-            Scheduling
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {schedulingItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* AI Features */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
-            AI Features
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {aiItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Reports */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground uppercase tracking-wider text-xs font-semibold">
-            Analytics
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {reportsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Settings */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/settings" className={getNavCls}>
-                    <Settings className="h-4 w-4" />
-                    {!isCollapsed && <span>Settings</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
