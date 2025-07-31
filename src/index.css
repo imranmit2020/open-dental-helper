@@ -6,104 +6,104 @@
 
 @layer base {
   :root {
-    /* Core Colors - Warm Purple & Rose Gold */
-    --background: 320 15% 97%;
-    --foreground: 330 20% 15%;
+    /* Core Colors - Professional Dental Practice */
+    --background: 200 25% 98%;
+    --foreground: 210 15% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 330 20% 15%;
+    --card-foreground: 210 15% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 330 20% 15%;
+    --popover-foreground: 210 15% 20%;
     
-    /* Primary - Rich Purple */
-    --primary: 270 75% 55%;
+    /* Primary - Professional Medical Blue */
+    --primary: 210 100% 45%;
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 270 75% 50%;
-    --primary-light: 270 75% 85%;
-    --primary-glow: 270 75% 70%;
+    --primary-hover: 210 100% 40%;
+    --primary-light: 210 100% 90%;
+    --primary-glow: 210 100% 60%;
     
-    /* Secondary - Rose Gold */
-    --secondary: 15 75% 65%;
+    /* Secondary - Fresh Mint Green */
+    --secondary: 165 55% 45%;
     --secondary-foreground: 0 0% 98%;
-    --secondary-light: 15 75% 85%;
+    --secondary-light: 165 55% 85%;
     
     /* Neutral Tones */
-    --muted: 320 15% 94%;
-    --muted-foreground: 330 15% 45%;
-    --accent: 320 30% 92%;
-    --accent-foreground: 330 20% 15%;
+    --muted: 200 25% 96%;
+    --muted-foreground: 210 10% 50%;
+    --accent: 200 30% 94%;
+    --accent-foreground: 210 15% 20%;
     
     /* Status Colors */
-    --destructive: 0 85% 60%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142 76% 36%;
+    --success: 145 70% 40%;
     --success-foreground: 0 0% 98%;
-    --success-light: 142 76% 85%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 25 95% 12%;
-    --warning-light: 38 92% 85%;
-    --info: 210 85% 55%;
+    --success-light: 145 70% 90%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 30 95% 15%;
+    --warning-light: 40 95% 90%;
+    --info: 210 100% 50%;
     --info-foreground: 0 0% 98%;
-    --info-light: 210 85% 85%;
+    --info-light: 210 100% 90%;
     
     /* Border & Input */
-    --border: 320 15% 88%;
-    --input: 320 15% 88%;
-    --ring: 270 75% 55%;
+    --border: 200 25% 88%;
+    --input: 200 25% 88%;
+    --ring: 210 100% 45%;
     
     /* Border Radius */
     --radius: 0.75rem;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 75% 55%), hsl(15 75% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(15 75% 65%), hsl(270 75% 55%));
-    --gradient-subtle: linear-gradient(180deg, hsl(320 15% 97%), hsl(320 15% 94%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(320 15% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 45%), hsl(165 55% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(165 55% 45%), hsl(210 100% 45%));
+    --gradient-subtle: linear-gradient(180deg, hsl(200 25% 98%), hsl(200 25% 96%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(200 25% 98%));
     
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(270 75% 55% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(270 75% 55% / 0.1), 0 2px 4px -1px hsl(270 75% 55% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(270 75% 55% / 0.1), 0 4px 6px -2px hsl(270 75% 55% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(270 75% 55% / 0.1), 0 10px 10px -5px hsl(270 75% 55% / 0.04);
-    --shadow-glow: 0 0 40px hsl(270 75% 70% / 0.3);
-    --shadow-card: 0 2px 8px hsl(270 75% 55% / 0.08);
+    --shadow-sm: 0 1px 2px 0 hsl(210 100% 45% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 100% 45% / 0.1), 0 2px 4px -1px hsl(210 100% 45% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(210 100% 45% / 0.1), 0 4px 6px -2px hsl(210 100% 45% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(210 100% 45% / 0.1), 0 10px 10px -5px hsl(210 100% 45% / 0.04);
+    --shadow-glow: 0 0 40px hsl(210 100% 60% / 0.25);
+    --shadow-card: 0 2px 8px hsl(210 100% 45% / 0.06);
     
     /* Sidebar Variables */
-    --sidebar-background: 330 25% 15%;
-    --sidebar-foreground: 320 20% 90%;
-    --sidebar-primary: 270 75% 55%;
+    --sidebar-background: 210 25% 15%;
+    --sidebar-foreground: 200 20% 90%;
+    --sidebar-primary: 210 100% 45%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 330 25% 20%;
-    --sidebar-accent-foreground: 320 20% 90%;
-    --sidebar-border: 330 25% 25%;
-    --sidebar-ring: 270 75% 55%;
+    --sidebar-accent: 210 25% 20%;
+    --sidebar-accent-foreground: 200 20% 90%;
+    --sidebar-border: 210 25% 25%;
+    --sidebar-ring: 210 100% 45%;
   }
 
   .dark {
-    /* Core Colors - Dark Purple Theme */
-    --background: 330 30% 8%;
-    --foreground: 320 20% 90%;
-    --card: 330 25% 12%;
-    --card-foreground: 320 20% 90%;
-    --popover: 330 25% 12%;
-    --popover-foreground: 320 20% 90%;
+    /* Core Colors - Dark Professional Dental Theme */
+    --background: 210 25% 8%;
+    --foreground: 200 20% 90%;
+    --card: 210 20% 12%;
+    --card-foreground: 200 20% 90%;
+    --popover: 210 20% 12%;
+    --popover-foreground: 200 20% 90%;
     
-    /* Primary - Bright Purple */
-    --primary: 270 75% 60%;
-    --primary-foreground: 330 30% 8%;
-    --primary-hover: 270 75% 55%;
-    --primary-light: 270 75% 25%;
-    --primary-glow: 270 75% 70%;
+    /* Primary - Bright Professional Blue */
+    --primary: 210 100% 55%;
+    --primary-foreground: 210 25% 8%;
+    --primary-hover: 210 100% 50%;
+    --primary-light: 210 100% 25%;
+    --primary-glow: 210 100% 65%;
     
-    /* Secondary - Rose Gold */
-    --secondary: 15 75% 60%;
-    --secondary-foreground: 330 30% 8%;
-    --secondary-light: 15 75% 25%;
+    /* Secondary - Fresh Mint Green */
+    --secondary: 165 55% 50%;
+    --secondary-foreground: 210 25% 8%;
+    --secondary-light: 165 55% 25%;
     
     /* Neutral Tones */
-    --muted: 330 25% 15%;
-    --muted-foreground: 330 15% 65%;
-    --accent: 330 25% 18%;
-    --accent-foreground: 320 20% 90%;
+    --muted: 210 20% 15%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 210 20% 18%;
+    --accent-foreground: 200 20% 90%;
     
     /* Status Colors */
     --destructive: 0 85% 55%;
@@ -119,33 +119,33 @@
     --info-light: 210 85% 25%;
     
     /* Border & Input */
-    --border: 330 25% 20%;
-    --input: 330 25% 20%;
-    --ring: 270 75% 60%;
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 210 100% 55%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 75% 60%), hsl(15 75% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(15 75% 60%), hsl(270 75% 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(330 30% 8%), hsl(330 25% 12%));
-    --gradient-card: linear-gradient(145deg, hsl(330 25% 12%), hsl(330 25% 15%));
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 55%), hsl(165 55% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(165 55% 50%), hsl(210 100% 55%));
+    --gradient-subtle: linear-gradient(180deg, hsl(210 25% 8%), hsl(210 20% 12%));
+    --gradient-card: linear-gradient(145deg, hsl(210 20% 12%), hsl(210 20% 15%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.15);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.2), 0 4px 6px -2px hsl(0 0% 0% / 0.1);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.25), 0 10px 10px -5px hsl(0 0% 0% / 0.1);
-    --shadow-glow: 0 0 40px hsl(270 75% 70% / 0.4);
+    --shadow-glow: 0 0 40px hsl(210 100% 65% / 0.3);
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.15);
     
     /* Sidebar Variables */
-    --sidebar-background: 330 25% 10%;
-    --sidebar-foreground: 320 20% 85%;
-    --sidebar-primary: 270 75% 60%;
-    --sidebar-primary-foreground: 330 30% 8%;
-    --sidebar-accent: 330 25% 15%;
-    --sidebar-accent-foreground: 320 20% 85%;
-    --sidebar-border: 330 25% 20%;
-    --sidebar-ring: 270 75% 60%;
+    --sidebar-background: 210 20% 10%;
+    --sidebar-foreground: 200 20% 85%;
+    --sidebar-primary: 210 100% 55%;
+    --sidebar-primary-foreground: 210 25% 8%;
+    --sidebar-accent: 210 20% 15%;
+    --sidebar-accent-foreground: 200 20% 85%;
+    --sidebar-border: 210 20% 20%;
+    --sidebar-ring: 210 100% 55%;
   }
 }
 
