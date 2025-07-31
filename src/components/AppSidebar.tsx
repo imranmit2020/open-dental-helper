@@ -37,9 +37,11 @@ const schedulingItems = [
 ];
 
 const aiItems = [
-  { title: "X-Ray Analysis", url: "/ai/xray", icon: Camera },
-  { title: "Voice Notes", url: "/ai/voice", icon: Mic },
-  { title: "Diagnostic Assistant", url: "/ai/diagnostics", icon: Brain },
+  { title: "Voice Transcription", url: "/ai/voice", icon: Mic },
+  { title: "Image Analysis", url: "/ai/image", icon: Camera },
+  { title: "Voice Agent", url: "/ai/agent", icon: Brain },
+  { title: "Translation", url: "/ai/translation", icon: Brain },
+  { title: "Predictive Analytics", url: "/ai/analytics", icon: BarChart3 },
 ];
 
 const reportsItems = [
