@@ -58,38 +58,38 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-gradient-primary text-white font-semibold shadow-elegant border border-primary/20 transition-all duration-300" 
-      : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-300 hover:shadow-md";
+      ? "bg-blue-600 text-white font-medium" 
+      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800";
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-16" : "w-72"} transition-all duration-300 ease-out`}
+      className={`${isCollapsed ? "w-16" : "w-64"} transition-all duration-300 ease-out bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800`}
       collapsible="icon"
     >
-      <SidebarContent className="bg-sidebar-background border-r border-sidebar-border shadow-elegant backdrop-blur-sm">
+      <SidebarContent className="h-full">
         {/* Header */}
-        <div className="p-6 border-b border-sidebar-border/50">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
-              <Stethoscope className="w-7 h-7 text-white" />
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Stethoscope className="w-6 h-6 text-white" />
             </div>
             {!isCollapsed && (
-              <div className="space-y-1">
-                <h1 className="font-bold text-xl text-sidebar-foreground tracking-tight">DentalAI Pro</h1>
-                <p className="text-xs text-sidebar-foreground/60 font-medium">Advanced Practice Management</p>
+              <div>
+                <h1 className="font-semibold text-lg text-gray-900 dark:text-white">DentalAI Pro</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Practice Management</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Navigation Sections */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-2">
+        <div className="flex-1 overflow-y-auto py-2 space-y-6">
           {/* Patient Management */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+            <SidebarGroupLabel className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Patient Care
             </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3">
+            <SidebarGroupContent className="px-2">
               <SidebarMenu className="space-y-1">
                 {patientItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -97,11 +97,11 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => `
-                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-200
                           ${getNavCls({ isActive })}
                         `}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         {!isCollapsed && <span className="truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -113,10 +113,10 @@ export function AppSidebar() {
 
           {/* Scheduling */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+            <SidebarGroupLabel className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Scheduling
             </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3">
+            <SidebarGroupContent className="px-2">
               <SidebarMenu className="space-y-1">
                 {schedulingItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -124,11 +124,11 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => `
-                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-200
                           ${getNavCls({ isActive })}
                         `}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         {!isCollapsed && <span className="truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -140,10 +140,10 @@ export function AppSidebar() {
 
           {/* AI Features */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+            <SidebarGroupLabel className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               AI Features
             </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3">
+            <SidebarGroupContent className="px-2">
               <SidebarMenu className="space-y-1">
                 {aiItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -151,11 +151,11 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => `
-                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-200
                           ${getNavCls({ isActive })}
                         `}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         {!isCollapsed && <span className="truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -167,10 +167,10 @@ export function AppSidebar() {
 
           {/* Reports */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-widest text-xs font-bold px-6 mb-3">
+            <SidebarGroupLabel className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs font-semibold px-4 mb-2">
               Analytics
             </SidebarGroupLabel>
-            <SidebarGroupContent className="px-3">
+            <SidebarGroupContent className="px-2">
               <SidebarMenu className="space-y-1">
                 {reportsItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -178,11 +178,11 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => `
-                          flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                          flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-200
                           ${getNavCls({ isActive })}
                         `}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className="h-4 w-4 shrink-0" />
                         {!isCollapsed && <span className="truncate">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -194,7 +194,7 @@ export function AppSidebar() {
         </div>
 
         {/* Settings - Bottom */}
-        <div className="border-t border-sidebar-border/50 p-3">
+        <div className="border-t border-gray-200 dark:border-gray-800 p-2">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -203,11 +203,11 @@ export function AppSidebar() {
                     <NavLink 
                       to="/settings" 
                       className={({ isActive }) => `
-                        flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                        flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-200
                         ${getNavCls({ isActive })}
                       `}
                     >
-                      <Settings className="h-5 w-5 shrink-0" />
+                      <Settings className="h-4 w-4 shrink-0" />
                       {!isCollapsed && <span className="truncate">Settings</span>}
                     </NavLink>
                   </SidebarMenuButton>
