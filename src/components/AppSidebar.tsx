@@ -64,7 +64,7 @@ export function AppSidebar() {
       className={isCollapsed ? "w-16" : "w-64"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-card border-r border-border">
+      <SidebarContent className="bg-gradient-to-b from-card/95 to-muted/50 backdrop-blur-sm border-r border-border/60 shadow-xl">
         {/* Header */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
