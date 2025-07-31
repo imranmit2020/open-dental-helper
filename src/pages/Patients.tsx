@@ -99,162 +99,195 @@ export default function Patients() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Patient Management</h1>
-          <p className="text-muted-foreground">Manage your patient records and information</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 space-y-8">
+      {/* Animated Header */}
+      <div className="flex items-center justify-between animate-fade-in">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            Patient Management
+          </h1>
+          <p className="text-muted-foreground text-lg">Manage your patient records with AI-powered insights</p>
         </div>
-        <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:shadow-xl transition-all">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3">
+          <Plus className="h-5 w-5 mr-2" />
           New Patient
         </Button>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+      {/* Enhanced Search Card */}
+      <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-2xl animate-scale-in">
+        <CardContent className="p-8">
+          <div className="flex flex-col sm:flex-row gap-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 placeholder="Search patients by name, email, or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl"
               />
             </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
+            <Button variant="outline" className="h-12 px-6 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
+              <Filter className="h-5 w-5 mr-2" />
+              Advanced Filters
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Patient Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      {/* Enhanced Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in">
+        <Card className="bg-gradient-to-br from-card to-muted/30 border-border/50 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Patients</p>
-                <p className="text-2xl font-bold">1,247</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Total Patients</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">1,247</p>
+                <p className="text-xs text-success flex items-center gap-1">
+                  <span className="w-1 h-1 bg-success rounded-full"></span>
+                  +12% from last month
+                </p>
               </div>
-              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Calendar className="h-4 w-4 text-primary" />
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center shadow-lg">
+                <Calendar className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        
+        <Card className="bg-gradient-to-br from-card to-muted/30 border-border/50 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Treatments</p>
-                <p className="text-2xl font-bold">32</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Active Treatments</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-warning to-orange-500 bg-clip-text text-transparent">32</p>
+                <p className="text-xs text-warning flex items-center gap-1">
+                  <span className="w-1 h-1 bg-warning rounded-full"></span>
+                  4 urgent cases
+                </p>
               </div>
-              <div className="w-8 h-8 bg-warning/10 rounded-lg flex items-center justify-center">
-                <Clock className="h-4 w-4 text-warning" />
+              <div className="w-12 h-12 bg-gradient-to-br from-warning/20 to-warning/10 rounded-xl flex items-center justify-center shadow-lg">
+                <Clock className="h-6 w-6 text-warning" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        
+        <Card className="bg-gradient-to-br from-card to-muted/30 border-border/50 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Overdue Checkups</p>
-                <p className="text-2xl font-bold">18</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">Overdue Checkups</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-destructive to-red-600 bg-clip-text text-transparent">18</p>
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <span className="w-1 h-1 bg-destructive rounded-full"></span>
+                  Requires attention
+                </p>
               </div>
-              <div className="w-8 h-8 bg-destructive/10 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
+              <div className="w-12 h-12 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-xl flex items-center justify-center shadow-lg">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
+        
+        <Card className="bg-gradient-to-br from-card to-muted/30 border-border/50 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">This Month</p>
-                <p className="text-2xl font-bold">156</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">This Month</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-success to-green-600 bg-clip-text text-transparent">156</p>
+                <p className="text-xs text-success flex items-center gap-1">
+                  <span className="w-1 h-1 bg-success rounded-full"></span>
+                  Appointments completed
+                </p>
               </div>
-              <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-success" />
+              <div className="w-12 h-12 bg-gradient-to-br from-success/20 to-success/10 rounded-xl flex items-center justify-center shadow-lg">
+                <CheckCircle className="h-6 w-6 text-success" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Patient List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Patient Records</CardTitle>
-          <CardDescription>
-            {filteredPatients.length} patients found
-          </CardDescription>
+      {/* Enhanced Patient List */}
+      <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-2xl animate-scale-in">
+        <CardHeader className="pb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                Patient Records
+              </CardTitle>
+              <CardDescription className="text-base mt-2">
+                {filteredPatients.length} patients found • AI-powered insights available
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="hover:bg-primary/5">Export</Button>
+              <Button variant="ghost" size="sm" className="hover:bg-primary/5">Import</Button>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredPatients.map((patient) => (
-              <div
-                key={patient.id}
-                className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={patient.avatar} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {patient.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{patient.name}</h3>
-                      <Badge variant="outline" className={getStatusColor(patient.status)}>
-                        {patient.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {patient.email}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {patient.phone}
-                      </span>
-                    </div>
+        <CardContent className="space-y-4">
+          {filteredPatients.map((patient, index) => (
+            <div
+              key={patient.id}
+              className="group flex items-center justify-between p-6 border border-border/50 rounded-2xl hover:bg-gradient-to-r hover:from-muted/30 hover:to-accent/5 hover:border-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="flex items-center gap-6">
+                <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg group-hover:ring-primary/30 transition-all duration-300">
+                  <AvatarImage src={patient.avatar} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
+                    {patient.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{patient.name}</h3>
+                    <Badge variant="outline" className={`${getStatusColor(patient.status)} font-medium px-3 py-1`}>
+                      {patient.status}
+                    </Badge>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Age</p>
-                    <p className="font-medium">{patient.age}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Last Visit</p>
-                    <p className="font-medium">{new Date(patient.lastVisit).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Risk Level</p>
-                    <p className={`font-medium ${getRiskColor(patient.riskLevel)}`}>
-                      {patient.riskLevel}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground">Insurance</p>
-                    <p className="font-medium">{patient.insurance}</p>
+                  <div className="flex items-center gap-6 text-muted-foreground">
+                    <span className="flex items-center gap-2 hover:text-primary transition-colors">
+                      <Mail className="h-4 w-4" />
+                      {patient.email}
+                    </span>
+                    <span className="flex items-center gap-2 hover:text-primary transition-colors">
+                      <Phone className="h-4 w-4" />
+                      {patient.phone}
+                    </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="flex items-center gap-8">
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Age</p>
+                  <p className="text-lg font-bold">{patient.age}</p>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Last Visit</p>
+                  <p className="text-sm font-semibold">{new Date(patient.lastVisit).toLocaleDateString()}</p>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Risk Level</p>
+                  <p className={`text-sm font-bold ${getRiskColor(patient.riskLevel)} uppercase tracking-wide`}>
+                    {patient.riskLevel}
+                  </p>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Insurance</p>
+                  <p className="text-sm font-semibold">{patient.insurance}</p>
+                </div>
+                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10">
+                  View Details
+                </Button>
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>
