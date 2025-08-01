@@ -14,218 +14,16 @@ export type Database = {
   }
   public: {
     Tables: {
-      categories: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      grocery_items: {
-        Row: {
-          category_id: string
-          created_at: string
-          id: string
-          keywords: string[] | null
-          name: string
-          price_range: Json | null
-          retailer_terms: Json | null
-          updated_at: string
-        }
-        Insert: {
-          category_id: string
-          created_at?: string
-          id?: string
-          keywords?: string[] | null
-          name: string
-          price_range?: Json | null
-          retailer_terms?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          category_id?: string
-          created_at?: string
-          id?: string
-          keywords?: string[] | null
-          name?: string
-          price_range?: Json | null
-          retailer_terms?: Json | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "grocery_items_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      scraping_sources: {
-        Row: {
-          active: boolean
-          base_url: string
-          created_at: string
-          headers: Json | null
-          id: string
-          rate_limit_ms: number
-          search_endpoint: string | null
-          selectors: Json
-          store_name: string
-          updated_at: string
-          user_agent: string | null
-        }
-        Insert: {
-          active?: boolean
-          base_url: string
-          created_at?: string
-          headers?: Json | null
-          id?: string
-          rate_limit_ms?: number
-          search_endpoint?: string | null
-          selectors: Json
-          store_name: string
-          updated_at?: string
-          user_agent?: string | null
-        }
-        Update: {
-          active?: boolean
-          base_url?: string
-          created_at?: string
-          headers?: Json | null
-          id?: string
-          rate_limit_ms?: number
-          search_endpoint?: string | null
-          selectors?: Json
-          store_name?: string
-          updated_at?: string
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
-      store_prices: {
-        Row: {
-          availability: boolean
-          created_at: string
-          currency: string
-          id: string
-          image_url: string | null
-          last_updated: string
-          original_price: number | null
-          price: number
-          product_keywords: string[]
-          product_name: string
-          product_url: string | null
-          store_name: string
-        }
-        Insert: {
-          availability?: boolean
-          created_at?: string
-          currency?: string
-          id?: string
-          image_url?: string | null
-          last_updated?: string
-          original_price?: number | null
-          price: number
-          product_keywords?: string[]
-          product_name: string
-          product_url?: string | null
-          store_name: string
-        }
-        Update: {
-          availability?: boolean
-          created_at?: string
-          currency?: string
-          id?: string
-          image_url?: string | null
-          last_updated?: string
-          original_price?: number | null
-          price?: number
-          product_keywords?: string[]
-          product_name?: string
-          product_url?: string | null
-          store_name?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "user" | "vendor" | "super_admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -352,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["user", "vendor", "super_admin"],
-    },
+    Enums: {},
   },
 } as const
