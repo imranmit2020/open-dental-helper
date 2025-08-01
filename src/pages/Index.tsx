@@ -108,69 +108,108 @@ const Index = () => {
         {/* Dental Services Section */}
         <div className="mb-20">
           <h2 className="text-4xl font-bold text-center mb-4">Comprehensive Dental Care Management</h2>
-          <p className="text-xl text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground text-center mb-4 max-w-2xl mx-auto">
             From routine cleanings to complex procedures, manage every aspect of your dental practice
+          </p>
+          <p className="text-sm text-primary text-center mb-12 font-medium">
+            ✨ Services can be customized and configured for each practice
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="group">
-              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-primary/5">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-primary/5 group-hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                      <Clock className="h-6 w-6 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
+                      <Shield className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Preventive Care</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-muted-foreground">
-                    <li>• Routine cleanings & checkups</li>
-                    <li>• Fluoride treatments</li>
-                    <li>• Dental sealants</li>
-                    <li>• Oral cancer screenings</li>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Routine cleanings & checkups
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Fluoride treatments
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Dental sealants
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Oral cancer screenings
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
             </div>
 
             <div className="group">
-              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-secondary/5">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-secondary/5 group-hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
                       <Heart className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Restorative Care</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-muted-foreground">
-                    <li>• Dental fillings</li>
-                    <li>• Crowns & bridges</li>
-                    <li>• Root canal therapy</li>
-                    <li>• Dental implants</li>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                      Dental fillings
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                      Crowns & bridges
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                      Root canal therapy
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                      Dental implants
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
             </div>
 
             <div className="group">
-              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-accent/5">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-accent/5 group-hover:scale-105">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
                       <Star className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Cosmetic Dentistry</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-muted-foreground">
-                    <li>• Teeth whitening</li>
-                    <li>• Porcelain veneers</li>
-                    <li>• Invisalign treatment</li>
-                    <li>• Smile makeovers</li>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                      Teeth whitening
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                      Porcelain veneers
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                      Invisalign treatment
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                      Smile makeovers
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
