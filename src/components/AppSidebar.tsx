@@ -8,7 +8,10 @@ import {
   BarChart3,
   Settings,
   Stethoscope,
-  Shield
+  Shield,
+  Building,
+  User,
+  Target
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -24,6 +27,12 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+
+const dashboardItems = [
+  { title: "Patient Dashboard", url: "/patient-dashboard", icon: User },
+  { title: "Practice Dashboard", url: "/practice-dashboard", icon: Building },
+  { title: "Dentist Dashboard", url: "/dentist-dashboard", icon: Stethoscope },
+];
 
 const patientItems = [
   { title: "Patient Management", url: "/patients", icon: Users },
@@ -42,6 +51,7 @@ const aiItems = [
   { title: "Voice Agent", url: "/ai/agent", icon: Brain },
   { title: "Translation", url: "/ai/translation", icon: Brain },
   { title: "Predictive Analytics", url: "/ai/analytics", icon: BarChart3 },
+  { title: "AI Marketing", url: "/ai-marketing", icon: Target },
 ];
 
 const reportsItems = [
@@ -81,6 +91,27 @@ export function AppSidebar() {
             )}
           </div>
         </div>
+
+        {/* Dashboards */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            Dashboards
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {dashboardItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* Patient Management */}
         <SidebarGroup>

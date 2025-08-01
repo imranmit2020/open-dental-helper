@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import Dashboard from "./pages/Dashboard";
+import PatientDashboard from "./pages/PatientDashboard";
+import PracticeDashboard from "./pages/PracticeDashboard";
+import DentistDashboard from "./pages/DentistDashboard";
+import AIMarketing from "./pages/AIMarketing";
 import Patients from "./pages/Patients";
 import Schedule from "./pages/Schedule";
 import AIVoiceNotes from "./pages/AIVoiceNotes";
@@ -24,6 +28,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/patient-dashboard" element={<Layout><PatientDashboard /></Layout>} />
+          <Route path="/practice-dashboard" element={<Layout><PracticeDashboard /></Layout>} />
+          <Route path="/dentist-dashboard" element={<Layout><DentistDashboard /></Layout>} />
+          <Route path="/ai-marketing" element={<Layout><AIMarketing /></Layout>} />
           <Route path="/patients" element={<Layout><Patients /></Layout>} />
           <Route path="/patients/history" element={<Layout><MedicalHistory /></Layout>} />
           <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
