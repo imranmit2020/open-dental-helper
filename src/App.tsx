@@ -16,6 +16,7 @@ import MedicalHistory from "./pages/MedicalHistory";
 import PracticeAnalytics from "./pages/PracticeAnalytics";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import ConsentForms from "./pages/ConsentForms";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
           <Route path="/reports" element={<Layout><PracticeAnalytics /></Layout>} />
           <Route path="/ai-voice-notes" element={<Layout><AIVoiceNotes /></Layout>} />
+          <Route path="/consent-forms" element={<Layout><ConsentForms /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

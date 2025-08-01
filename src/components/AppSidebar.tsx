@@ -40,6 +40,7 @@ const practiceDashboards = [
 const patientItems = [
   { title: "Patient Management", url: "/patients", icon: Users },
   { title: "Medical History", url: "/patients/history", icon: FileText },
+  { title: "Consent Forms", url: "/consent-forms", icon: Shield },
   { title: "Treatment Plans", url: "/patients/treatments", icon: Stethoscope },
 ];
 
@@ -124,6 +125,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {practiceDashboards.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Patient Management */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            Patient Management
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {patientItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
