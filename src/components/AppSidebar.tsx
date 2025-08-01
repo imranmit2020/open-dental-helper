@@ -28,10 +28,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const dashboardItems = [
-  { title: "Patient Dashboard", url: "/patient-dashboard", icon: User },
-  { title: "Practice Dashboard", url: "/practice-dashboard", icon: Building },
-  { title: "Dentist Dashboard", url: "/dentist-dashboard", icon: Stethoscope },
+const patientDashboards = [
+  { title: "Patient Portal", url: "/patient-dashboard", icon: User },
+];
+
+const practiceDashboards = [
+  { title: "Practice Overview", url: "/practice-dashboard", icon: Building },
+  { title: "Dentist Workspace", url: "/dentist-dashboard", icon: Stethoscope },
 ];
 
 const patientItems = [
@@ -86,20 +89,20 @@ export function AppSidebar() {
             {!isCollapsed && (
               <div>
                 <h1 className="font-bold text-lg text-gray-900 dark:text-gray-100">DentalAI Pro</h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Revolutionary Practice Management</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">For Practices & Patients</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Dashboards */}
+        {/* Patient Portal */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Dashboards
+            Patient Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {dashboardItems.map((item) => (
+              {patientDashboards.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
@@ -113,14 +116,14 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Patient Management */}
+        {/* Practice Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Patient Care
+            Practice Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {patientItems.map((item) => (
+              {practiceDashboards.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>

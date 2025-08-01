@@ -1,4 +1,4 @@
-import { CalendarIcon, Clock, Star, Users, Shield, Heart, Zap, Brain, BarChart3, Mic } from "lucide-react";
+import { CalendarIcon, Clock, Star, Users, Shield, Heart, Zap, Brain, BarChart3, Mic, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import NewAppointmentForm from "@/components/NewAppointmentForm";
@@ -17,12 +17,12 @@ const Index = () => {
           <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight">
             Transform Your
             <br />
-            Dental Practice
+            Dental Experience
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Streamline appointments, enhance patient care, and grow your practice with our AI-powered dental management platform. 
-            Join 10,000+ dental professionals revolutionizing patient care.
+            Complete dental management platform for <span className="font-semibold text-primary">practices</span> and <span className="font-semibold text-primary">patients</span>. 
+            AI-powered tools, seamless scheduling, and intelligent insights for modern dental care.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -30,14 +30,14 @@ const Index = () => {
               trigger={
                 <Button size="lg" className="bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:shadow-xl transition-all transform hover:scale-105 px-8 py-6 text-lg group">
                   <CalendarIcon className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-                  Book Dental Appointment
+                  For Practices - Get Started
                 </Button>
               }
             />
             
             <Button variant="outline" size="lg" className="px-8 py-6 text-lg border-2 hover:bg-primary/5">
-              <Users className="h-5 w-5 mr-2" />
-              Patient Portal
+              <User className="h-5 w-5 mr-2" />
+              For Patients - Book Appointment
             </Button>
           </div>
           
@@ -183,11 +183,11 @@ const Index = () => {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Brain className="h-4 w-4" />
-              AI-Powered Features
+              Our Comprehensive Platform
             </div>
             <h2 className="text-4xl font-bold mb-4">Next-Generation Dental Technology</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Leverage artificial intelligence to enhance patient care and streamline your practice operations
+              Advanced tools designed for modern dental practices and patient engagement
             </p>
           </div>
 
