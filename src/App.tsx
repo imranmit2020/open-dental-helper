@@ -75,6 +75,7 @@ function App() {
             <Route path="ai/voice-agent" element={<VoiceAgent />} />
             <Route path="image-analysis" element={<ImageAnalysis />} />
             <Route path="ai/image-analysis" element={<ImageAnalysis />} />
+            <Route path="ai/image" element={<ImageAnalysis />} />
             <Route path="ai-marketing" element={<AIMarketing />} />
             <Route path="ai/marketing" element={<AIMarketing />} />
             <Route path="practice-analytics" element={<PracticeAnalytics />} />

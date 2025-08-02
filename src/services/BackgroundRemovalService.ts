@@ -34,8 +34,23 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
     console.log('Starting background removal process...');
+    
+    // Try WebGPU first, fallback to CPU if not available
+    let device: "webgpu" | "cpu" = "cpu";
+    try {
+      // Check if WebGPU is available
+      if ('gpu' in navigator) {
+        device = "webgpu";
+        console.log('Using WebGPU for processing');
+      } else {
+        console.log('WebGPU not available, using CPU');
+      }
+    } catch (error) {
+      console.log('Falling back to CPU processing');
+    }
+    
     const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'webgpu',
+      device,
     });
     
     // Convert HTMLImageElement to canvas
