@@ -266,7 +266,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('multiPractice.chairUtilization', 'Chair Utilization')}</CardTitle>
+            <CardTitle className="text-sm font-medium">Chair Utilization</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -277,7 +277,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('multiPractice.treatmentAcceptance', 'Treatment Acceptance')}</CardTitle>
+            <CardTitle className="text-sm font-medium">Treatment Acceptance</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -288,7 +288,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('multiPractice.noShowRate', 'No-Show Rate')}</CardTitle>
+            <CardTitle className="text-sm font-medium">No-Show Rate</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -299,7 +299,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('multiPractice.insuranceSuccess', 'Insurance Success')}</CardTitle>
+            <CardTitle className="text-sm font-medium">Insurance Success</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -315,7 +315,7 @@ export default function MultiPracticeAnalytics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-600" />
-            {t('multiPractice.aiInsights', 'AI-Powered Insights & Recommendations')}
+            AI-Powered Insights & Recommendations
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -351,7 +351,7 @@ export default function MultiPracticeAnalytics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            {t('multiPractice.practiceComparison', 'Practice Performance Comparison')}
+            Practice Performance Comparison
           </CardTitle>
         </CardHeader>
         <CardContent>
