@@ -157,6 +157,59 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_recipients: {
+        Row: {
+          ai_personalization: Json | null
+          campaign_id: string
+          channel: string
+          clicked_at: string | null
+          converted_at: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          opened_at: string | null
+          patient_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          ai_personalization?: Json | null
+          campaign_id: string
+          channel: string
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          opened_at?: string | null
+          patient_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          ai_personalization?: Json | null
+          campaign_id?: string
+          channel?: string
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          opened_at?: string | null
+          patient_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns_enhanced"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_forms: {
         Row: {
           created_at: string
@@ -294,6 +347,122 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          lead_id: string
+          next_action: string | null
+          outcome: string | null
+          scheduled_for: string | null
+        }
+        Insert: {
+          activity_type: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id: string
+          next_action?: string | null
+          outcome?: string | null
+          scheduled_for?: string | null
+        }
+        Update: {
+          activity_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id?: string
+          next_action?: string | null
+          outcome?: string | null
+          scheduled_for?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          ai_insights: Json | null
+          ai_lead_score: number | null
+          assigned_to: string | null
+          conversion_date: string | null
+          conversion_probability: number | null
+          created_at: string
+          email: string | null
+          first_contact_at: string | null
+          follow_up_sequence: Json | null
+          id: string
+          last_contact_at: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          preferred_contact: string | null
+          service_interest: string[] | null
+          source: string
+          status: string
+          updated_at: string
+          urgency_level: string | null
+        }
+        Insert: {
+          ai_insights?: Json | null
+          ai_lead_score?: number | null
+          assigned_to?: string | null
+          conversion_date?: string | null
+          conversion_probability?: number | null
+          created_at?: string
+          email?: string | null
+          first_contact_at?: string | null
+          follow_up_sequence?: Json | null
+          id?: string
+          last_contact_at?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_contact?: string | null
+          service_interest?: string[] | null
+          source: string
+          status?: string
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Update: {
+          ai_insights?: Json | null
+          ai_lead_score?: number | null
+          assigned_to?: string | null
+          conversion_date?: string | null
+          conversion_probability?: number | null
+          created_at?: string
+          email?: string | null
+          first_contact_at?: string | null
+          follow_up_sequence?: Json | null
+          id?: string
+          last_contact_at?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_contact?: string | null
+          service_interest?: string[] | null
+          source?: string
+          status?: string
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Relationships: []
+      }
       marketing_campaigns: {
         Row: {
           ai_generated_content: string | null
@@ -349,6 +518,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketing_campaigns_enhanced: {
+        Row: {
+          actual_start: string | null
+          ai_generated_content: Json | null
+          ai_optimization_enabled: boolean | null
+          campaign_name: string
+          campaign_type: string
+          content: string | null
+          created_at: string
+          created_by: string
+          end_date: string | null
+          id: string
+          performance_metrics: Json | null
+          scheduled_start: string | null
+          status: string
+          target_audience: Json
+          updated_at: string
+        }
+        Insert: {
+          actual_start?: string | null
+          ai_generated_content?: Json | null
+          ai_optimization_enabled?: boolean | null
+          campaign_name: string
+          campaign_type: string
+          content?: string | null
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          id?: string
+          performance_metrics?: Json | null
+          scheduled_start?: string | null
+          status?: string
+          target_audience: Json
+          updated_at?: string
+        }
+        Update: {
+          actual_start?: string | null
+          ai_generated_content?: Json | null
+          ai_optimization_enabled?: boolean | null
+          campaign_name?: string
+          campaign_type?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          id?: string
+          performance_metrics?: Json | null
+          scheduled_start?: string | null
+          status?: string
+          target_audience?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       medical_conditions: {
         Row: {
@@ -517,6 +740,36 @@ export type Database = {
           },
         ]
       }
+      patient_journey_events: {
+        Row: {
+          ai_insights: Json | null
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          patient_id: string
+          source_module: string
+        }
+        Insert: {
+          ai_insights?: Json | null
+          created_at?: string
+          event_data: Json
+          event_type: string
+          id?: string
+          patient_id: string
+          source_module: string
+        }
+        Update: {
+          ai_insights?: Json | null
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          patient_id?: string
+          source_module?: string
+        }
+        Relationships: []
+      }
       patients: {
         Row: {
           address: string | null
@@ -637,6 +890,123 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      review_requests: {
+        Row: {
+          actual_response: string | null
+          ai_sentiment_analysis: Json | null
+          ai_sentiment_score: number | null
+          ai_suggested_response: string | null
+          appointment_id: string | null
+          created_at: string
+          id: string
+          patient_id: string
+          platform: string
+          request_sent_at: string | null
+          responded_at: string | null
+          response_required: boolean | null
+          review_rating: number | null
+          review_received_at: string | null
+          review_text: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_response?: string | null
+          ai_sentiment_analysis?: Json | null
+          ai_sentiment_score?: number | null
+          ai_suggested_response?: string | null
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          patient_id: string
+          platform: string
+          request_sent_at?: string | null
+          responded_at?: string | null
+          response_required?: boolean | null
+          review_rating?: number | null
+          review_received_at?: string | null
+          review_text?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_response?: string | null
+          ai_sentiment_analysis?: Json | null
+          ai_sentiment_score?: number | null
+          ai_suggested_response?: string | null
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string
+          platform?: string
+          request_sent_at?: string | null
+          responded_at?: string | null
+          response_required?: boolean | null
+          review_rating?: number | null
+          review_received_at?: string | null
+          review_text?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      teledentistry_sessions: {
+        Row: {
+          ai_soap_notes: Json | null
+          ai_summary: string | null
+          ai_transcript: string | null
+          created_at: string
+          dentist_id: string
+          ended_at: string | null
+          follow_up_notes: string | null
+          follow_up_required: boolean | null
+          id: string
+          patient_id: string
+          recording_url: string | null
+          scheduled_at: string
+          session_type: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ai_soap_notes?: Json | null
+          ai_summary?: string | null
+          ai_transcript?: string | null
+          created_at?: string
+          dentist_id: string
+          ended_at?: string | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          patient_id: string
+          recording_url?: string | null
+          scheduled_at: string
+          session_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_soap_notes?: Json | null
+          ai_summary?: string | null
+          ai_transcript?: string | null
+          created_at?: string
+          dentist_id?: string
+          ended_at?: string | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean | null
+          id?: string
+          patient_id?: string
+          recording_url?: string | null
+          scheduled_at?: string
+          session_type?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
