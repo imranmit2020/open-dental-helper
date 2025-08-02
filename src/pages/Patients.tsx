@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import NewPatientForm from "@/components/NewPatientForm";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import { 
   Search, 
   Plus, 
@@ -22,6 +23,7 @@ import {
 export default function Patients() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { logPatientView } = useAuditLog();
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([
 
@@ -292,7 +294,15 @@ export default function Patients() {
                   variant="ghost" 
                   size="sm" 
                   className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
-                   onClick={() => navigate(`/patients/${patient.id}`)}
+                  onClick={() => {
+                    // Log patient access for HIPAA compliance
+                    logPatientView(patient.id.toString(), {
+                      action_context: 'patient_list_view',
+                      patient_name: patient.name,
+                      timestamp: new Date().toISOString()
+                    });
+                    navigate(`/patients/${patient.id}`);
+                  }}
                  >
                    {t('patients.viewDetails', 'View Details')}
                  </Button>
