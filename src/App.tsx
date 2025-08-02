@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
@@ -30,6 +31,7 @@ import AIScheduling from "./pages/AIScheduling";
 import Teledentistry from "./pages/Teledentistry";
 import MultiPracticeAnalytics from "./pages/MultiPracticeAnalytics";
 import MarketingAutomation from "./pages/MarketingAutomation";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -55,8 +57,9 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <CurrencyProvider>
-        <SidebarProvider>
+      <LanguageProvider>
+        <CurrencyProvider>
+          <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -97,11 +100,13 @@ function App() {
             <Route path="reports/patients" element={<PatientProfile />} />
             <Route path="reports" element={<PracticeAnalytics />} />
             <Route path="patient-insights" element={<PracticeAnalytics />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </SidebarProvider>
-      </CurrencyProvider>
+        </SidebarProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
     </TooltipProvider>
   );
 }
