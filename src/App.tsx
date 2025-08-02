@@ -85,6 +85,9 @@ function App() {
             <Route path="ai-scheduling" element={<AIScheduling />} />
             <Route path="ai/scheduling" element={<AIScheduling />} />
             <Route path="teledentistry" element={<Teledentistry />} />
+            <Route path="reports/patients" element={<PatientProfile />} />
+            <Route path="reports" element={<PracticeAnalytics />} />
+            <Route path="patient-insights" element={<PracticeAnalytics />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
