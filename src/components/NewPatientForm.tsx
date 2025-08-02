@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Plus, User, Phone, Mail, Calendar, Shield, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -59,11 +60,31 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
 
   const onSubmit = async (data: FormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Insert patient into Supabase database
+      const { data: patientData, error } = await supabase
+        .from('patients')
+        .insert({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          date_of_birth: data.dateOfBirth,
+          gender: data.gender,
+          address: data.address,
+          emergency_contact: `${data.emergencyContact} - ${data.emergencyPhone}`,
+          insurance_info: { provider: data.insurance },
+          risk_level: "low"
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Create the patient object for local state update
       const newPatient = {
-        id: Math.random(),
+        id: patientData.id,
         name: `${data.firstName} ${data.lastName}`,
         email: data.email,
         phone: data.phone,
@@ -76,7 +97,7 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
         medicalHistory: data.medicalHistory,
         status: "active",
         riskLevel: "low",
-        lastVisit: new Date().toISOString().split('T')[0],
+        lastVisit: null,
         nextAppointment: null,
         avatar: "",
         age: Math.floor((Date.now() - new Date(data.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
@@ -92,6 +113,7 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
       form.reset();
       setOpen(false);
     } catch (error) {
+      console.error("Error adding patient:", error);
       toast({
         title: "Error",
         description: "Failed to add patient. Please try again.",
