@@ -218,7 +218,7 @@ export function AppSidebar() {
         {/* Reports */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.analytics', 'Analytics')}
+            {t('analytics.title', 'Analytics')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
