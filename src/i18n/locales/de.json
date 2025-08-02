@@ -53,16 +53,10 @@
     "group": "Gruppieren"
   },
   "navigation": {
-    "patientPortal": "Patientenportal",
-    "practiceManagement": "Praxisverwaltung",
-    "patientManagement": "Patientenverwaltung",
-    "scheduling": "Terminplanung",
-    "aiFeatures": "KI-Funktionen",
-    "analytics": "Analysen",
-    "enterprise": "Unternehmen",
     "dashboard": "Dashboard",
     "patients": "Patienten",
     "schedule": "Terminplan",
+    "analytics": "Analysen",
     "marketing": "Marketing",
     "insurance": "Versicherung und Abrechnung",
     "teledentistry": "Telezahnmedizin",

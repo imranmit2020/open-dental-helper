@@ -1,5 +1,3 @@
-// TODO: Uncomment and implement when ready for i18n
-/*
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -44,7 +42,3 @@ i18n
   });
 
 export default i18n;
-*/
-
-// Placeholder export to prevent import errors
-export default {};

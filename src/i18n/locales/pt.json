@@ -53,16 +53,10 @@
     "group": "Agrupar"
   },
   "navigation": {
-    "patientPortal": "Portal do paciente",
-    "practiceManagement": "Gestão da clínica",
-    "patientManagement": "Gestão de pacientes",
-    "scheduling": "Agendamento",
-    "aiFeatures": "Recursos de IA",
-    "analytics": "Análises", 
-    "enterprise": "Empresarial",
     "dashboard": "Painel",
     "patients": "Pacientes",
     "schedule": "Agenda",
+    "analytics": "Análises",
     "marketing": "Marketing",
     "insurance": "Seguro e faturamento",
     "teledentistry": "Teleodontologia",

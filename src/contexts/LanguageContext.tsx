@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-// import { useTranslation } from 'react-i18next'; // TODO: Uncomment when implementing i18n
+import { useTranslation } from 'react-i18next';
 
 export interface Language {
   code: string;
@@ -48,10 +48,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [selectedLanguage, setSelectedLanguageState] = useState<Language>(SUPPORTED_LANGUAGES[0]);
   const [isLoading, setIsLoading] = useState(false);
-  // const { i18n, t } = useTranslation(); // TODO: Uncomment when implementing i18n
-
-  // TODO: Remove this placeholder when implementing i18n
-  const t = (key: string, options?: any) => key; // Placeholder function
+  const { i18n, t } = useTranslation();
 
   // Load saved language from localStorage
   useEffect(() => {
@@ -60,10 +57,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const language = SUPPORTED_LANGUAGES.find(l => l.code === savedLanguage);
       if (language) {
         setSelectedLanguageState(language);
-        // i18n.changeLanguage(language.code); // TODO: Uncomment when implementing i18n
+        i18n.changeLanguage(language.code);
       }
     }
-  }, []); // TODO: Add i18n dependency when implementing
+  }, [i18n]);
 
   // Update document direction for RTL languages
   useEffect(() => {
@@ -76,7 +73,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       setSelectedLanguageState(language);
       localStorage.setItem('selectedLanguage', language.code);
-      // await i18n.changeLanguage(language.code); // TODO: Uncomment when implementing i18n
+      await i18n.changeLanguage(language.code);
     } catch (error) {
       console.error('Failed to change language:', error);
     } finally {

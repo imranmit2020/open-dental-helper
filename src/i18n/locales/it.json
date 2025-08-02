@@ -53,16 +53,10 @@
     "group": "Raggruppa"
   },
   "navigation": {
-    "patientPortal": "Portale paziente",
-    "practiceManagement": "Gestione studio",
-    "patientManagement": "Gestione pazienti", 
-    "scheduling": "Programmazione",
-    "aiFeatures": "Funzionalità AI",
-    "analytics": "Analisi",
-    "enterprise": "Azienda",
     "dashboard": "Dashboard",
     "patients": "Pazienti",
     "schedule": "Programma",
+    "analytics": "Analisi",
     "marketing": "Marketing",
     "insurance": "Assicurazione e fatturazione",
     "teledentistry": "Teleodontoiatria",
