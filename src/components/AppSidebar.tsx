@@ -12,7 +12,9 @@ import {
   Building,
   User,
   Target,
-  CreditCard
+  CreditCard,
+  Bot,
+  Video
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -48,7 +50,8 @@ const patientItems = [
 
 const schedulingItems = [
   { title: "Appointment Calendar", url: "/schedule", icon: Calendar },
-  { title: "AI Smart Scheduling", url: "/schedule/ai", icon: Brain },
+  { title: "AI Smart Scheduling", url: "/ai-scheduling", icon: Bot },
+  { title: "Teledentistry", url: "/teledentistry", icon: Video },
 ];
 
 const aiItems = [
