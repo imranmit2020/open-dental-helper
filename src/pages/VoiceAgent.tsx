@@ -146,9 +146,9 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold gradient-text">{t('voiceAgent.title', 'AI Voice Agent')}</h1>
+        <h1 className="text-4xl font-bold gradient-text">AI Voice Agent</h1>
         <p className="text-lg text-muted-foreground">
-          {t('voiceAgent.description', '24/7 Virtual dental assistant for appointment scheduling and patient support')}
+          24/7 Virtual dental assistant for appointment scheduling and patient support
         </p>
       </div>
 
@@ -157,10 +157,10 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
-            {t('voiceAgent.apiConfiguration', 'ElevenLabs Configuration')}
+            ElevenLabs Configuration
           </CardTitle>
           <CardDescription>
-            {t('voiceAgent.apiDescription', 'Enter your ElevenLabs API key to enable voice agent functionality')}
+            Enter your ElevenLabs API key to enable voice agent functionality
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -196,7 +196,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PhoneCall className="w-5 h-5" />
-            {t('voiceAgent.controlTitle', 'Voice Agent Control')}
+            Voice Agent Control
             {isConnected && (
               <Badge className="bg-success text-success-foreground">
                 Connected
@@ -204,7 +204,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
             )}
           </CardTitle>
           <CardDescription>
-            {t('voiceAgent.controlDescription', 'Start a conversation with your AI dental assistant')}
+            Start a conversation with your AI dental assistant
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
