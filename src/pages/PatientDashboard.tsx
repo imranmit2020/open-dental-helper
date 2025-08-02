@@ -73,10 +73,10 @@ const PatientDashboard = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {t('dashboard.welcome', 'Welcome Back, John!')}
+              Welcome Back, John!
             </h1>
             <p className="text-muted-foreground mt-2">
-              {t('dashboard.overview', "Here's your dental health overview and upcoming appointments")}
+              Here's your dental health overview and upcoming appointments
             </p>
           </div>
           <NewAppointmentForm 
@@ -117,7 +117,7 @@ const PatientDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                {t('dashboard.upcomingAppointments', 'Upcoming Appointments')}
+                Upcoming Appointments
               </CardTitle>
               <CardDescription>
                 Your scheduled dental visits

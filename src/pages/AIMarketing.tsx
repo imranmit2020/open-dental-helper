@@ -153,20 +153,20 @@ const AIMarketing = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {t('marketing.title', 'AI Marketing Hub')}
+              AI Marketing Hub
             </h1>
             <p className="text-muted-foreground mt-2">
-              {t('marketing.description', 'Intelligent marketing automation and campaign optimization')}
+              Intelligent marketing automation and campaign optimization
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline">
               <Brain className="w-4 h-4 mr-2" />
-              {t('marketing.aiSuggestions', 'AI Suggestions')}
+              AI Suggestions
             </Button>
             <Button>
               <Zap className="w-4 h-4 mr-2" />
-              {t('marketing.createCampaign', 'Create Campaign')}
+              Create Campaign
             </Button>
           </div>
         </div>
@@ -201,10 +201,10 @@ const AIMarketing = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="w-5 h-5" />
-                  {t('marketing.activeCampaigns', 'Active Campaigns')}
+                  Active Campaigns
                 </CardTitle>
                 <CardDescription>
-                  {t('marketing.campaignsDescription', 'Monitor and manage your marketing campaigns')}
+                  Monitor and manage your marketing campaigns
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -251,10 +251,10 @@ const AIMarketing = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5" />
-                  {t('marketing.aiInsights', 'AI Marketing Insights')}
+                  AI Marketing Insights
                 </CardTitle>
                 <CardDescription>
-                  {t('marketing.insightsDescription', 'Data-driven recommendations to optimize your campaigns')}
+                  Data-driven recommendations to optimize your campaigns
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -339,24 +339,24 @@ const AIMarketing = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('marketing.tools', 'Marketing Tools')}</CardTitle>
+                <CardTitle>Marketing Tools</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <Mail className="w-4 h-4 mr-2" />
-                  {t('marketing.emailCampaign', 'Email Campaign')}
+                  Email Campaign
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  {t('marketing.socialPost', 'Social Media Post')}
+                  Social Media Post
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Phone className="w-4 h-4 mr-2" />
-                  {t('marketing.smsCampaign', 'SMS Campaign')}
+                  SMS Campaign
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Star className="w-4 h-4 mr-2" />
-                  {t('marketing.reviewManager', 'Review Manager')}
+                  Review Manager
                 </Button>
               </CardContent>
             </Card>

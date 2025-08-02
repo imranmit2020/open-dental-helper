@@ -141,8 +141,8 @@ export default function PracticeAnalytics() {
               <Sparkles className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">{t('analytics.title', 'Revolutionary Practice Analytics')}</h1>
-              <p className="text-xl text-purple-100 mt-2">{t('analytics.subtitle', 'AI-Powered Insights Beyond Traditional Analytics')}</p>
+              <h1 className="text-4xl font-bold">Revolutionary Practice Analytics</h1>
+              <p className="text-xl text-purple-100 mt-2">AI-Powered Insights Beyond Traditional Analytics</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -208,7 +208,7 @@ export default function PracticeAnalytics() {
             <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600">
               <Brain className="h-6 w-6 text-white" />
             </div>
-            {t('analytics.aiInsights', 'Revolutionary AI Insights')}
+            Revolutionary AI Insights
             <Badge className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">BETA</Badge>
           </CardTitle>
           <CardDescription className="text-base">

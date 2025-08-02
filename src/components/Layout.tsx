@@ -76,7 +76,7 @@ const Layout = () => {
               className="gap-2"
             >
               <LogOut className="h-4 w-4" />
-              {t('common.logout', 'Sign Out')}
+              Sign Out
             </Button>
           </div>
         </header>

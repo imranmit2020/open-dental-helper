@@ -143,7 +143,7 @@ const DentistDashboard = () => {
                 Dr. Sarah Wilson
               </h1>
               <p className="text-muted-foreground mt-1">
-                {t('dentist.generalDentistry', 'General Dentistry')} • {t('dentist.appointmentsToday', '8 appointments today')}
+                General Dentistry • 8 appointments today
               </p>
             </div>
           </div>
@@ -152,13 +152,13 @@ const DentistDashboard = () => {
               trigger={
                 <Button variant="outline">
                   <FileText className="w-4 h-4 mr-2" />
-                  {t('dentist.patientNotes', 'Patient Notes')}
+                  Patient Notes
                 </Button>
               }
             />
             <Button onClick={() => navigate('/schedule')}>
               <Calendar className="w-4 h-4 mr-2" />
-              {t('dentist.viewFullSchedule', 'View Full Schedule')}
+              View Full Schedule
             </Button>
           </div>
         </div>
@@ -170,10 +170,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  {t('dentist.todaySchedule', "Today's Schedule")}
+                  Today's Schedule
                 </CardTitle>
                 <CardDescription>
-                  {t('dentist.yourAppointments', 'Your appointments for today')}
+                  Your appointments for today
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -214,10 +214,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5" />
-                  {t('dentist.aiInsights', 'AI Clinical Insights')}
+                  AI Clinical Insights
                 </CardTitle>
                 <CardDescription>
-                  {t('dentist.aiRecommendations', 'AI-powered recommendations and predictions')}
+                  AI-powered recommendations and predictions
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -246,10 +246,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5" />
-                  {t('dentist.patientAlerts', 'Patient Alerts')}
+                  Patient Alerts
                 </CardTitle>
                 <CardDescription>
-                  {t('dentist.medicalInfo', 'Important medical information')}
+                  Important medical information
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -278,10 +278,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Stethoscope className="w-5 h-5" />
-                  {t('dentist.recentTreatments', 'Recent Treatments')}
+                  Recent Treatments
                 </CardTitle>
                 <CardDescription>
-                  {t('dentist.completedProcedures', 'Latest completed procedures')}
+                  Latest completed procedures
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -310,20 +310,20 @@ const DentistDashboard = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('dentist.quickActions', 'Quick Actions')}</CardTitle>
+                <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <Users className="w-4 h-4 mr-2" />
-                  {t('dentist.addEmergencySlot', 'Add Emergency Slot')}
+                  Add Emergency Slot
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="w-4 h-4 mr-2" />
-                  {t('dentist.createTreatmentPlan', 'Create Treatment Plan')}
+                  Create Treatment Plan
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Star className="w-4 h-4 mr-2" />
-                  {t('dentist.requestFeedback', 'Request Feedback')}
+                  Request Feedback
                 </Button>
               </CardContent>
             </Card>

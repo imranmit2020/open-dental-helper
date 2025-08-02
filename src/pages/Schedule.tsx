@@ -120,8 +120,8 @@ export default function Schedule() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('schedule.title', 'Appointment Calendar')}</h1>
-          <p className="text-muted-foreground">{t('schedule.description', 'Manage your daily schedule and appointments')}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointment Calendar</h1>
+          <p className="text-muted-foreground">Manage your daily schedule and appointments</p>
         </div>
         <NewAppointmentForm />
       </div>
@@ -173,10 +173,10 @@ export default function Schedule() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-primary" />
-                {t('schedule.todaySchedule', "Today's Schedule")}
+                Today's Schedule
               </CardTitle>
               <CardDescription>
-                {appointments.filter(apt => apt.type !== 'break').length} {t('schedule.appointmentsScheduled', 'appointments scheduled')}
+                {appointments.filter(apt => apt.type !== 'break').length} appointments scheduled
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -42,9 +42,9 @@ export default function Settings() {
       <div className="flex items-center gap-3">
         <SettingsIcon className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold">{t('common.settings', 'Settings')}</h1>
+          <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">
-            {t('settings.description', 'Configure your regional preferences and system settings')}
+            Configure your regional preferences and system settings
           </p>
         </div>
       </div>
@@ -63,15 +63,15 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5" />
-                  {t('language.languageSettings', 'Language & Region')}
+                  Language & Region
                 </CardTitle>
                 <CardDescription>
-                  {t('settings.languageDescription', 'Set your preferred language and regional formatting')}
+                  Set your preferred language and regional formatting
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="language">{t('language.selectLanguage', 'Display Language')}</Label>
+                  <Label htmlFor="language">Display Language</Label>
                   <LanguageSelector variant="default" />
                   <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                     <Badge variant="secondary">
@@ -84,18 +84,18 @@ export default function Settings() {
                 <Separator />
 
                 <div className="space-y-3">
-                  <Label>{t('settings.regionalInfo', 'Regional Information')}</Label>
+                  <Label>Regional Information</Label>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('settings.languageCode', 'Language Code')}:</span>
+                      <span className="text-muted-foreground">Language Code:</span>
                       <span className="font-mono">{selectedLanguage.code}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('settings.textDirection', 'Text Direction')}:</span>
-                      <span>{isRTL ? t('settings.rtl', 'Right-to-Left') : t('settings.ltr', 'Left-to-Right')}</span>
+                      <span className="text-muted-foreground">Text Direction:</span>
+                      <span>{isRTL ? 'Right-to-Left' : 'Left-to-Right'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('settings.dateFormat', 'Date Format')}:</span>
+                      <span className="text-muted-foreground">Date Format:</span>
                       <span>{formatDate(new Date())}</span>
                     </div>
                   </div>
@@ -108,15 +108,15 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  {t('currency.title', 'Currency & Financial')}
+                  Currency & Financial
                 </CardTitle>
                 <CardDescription>
-                  {t('settings.currencyDescription', 'Configure your preferred currency and financial display options')}
+                  Configure your preferred currency and financial display options
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="currency">{t('currency.selectCurrency', 'Primary Currency')}</Label>
+                  <Label htmlFor="currency">Primary Currency</Label>
                   <CurrencySelector variant="default" showRefreshButton={true} />
                   <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                     <Badge variant="secondary">

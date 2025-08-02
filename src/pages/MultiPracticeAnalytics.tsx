@@ -218,16 +218,16 @@ export default function MultiPracticeAnalytics() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{t('multiPractice.title', 'Multi-Practice Analytics Dashboard')}</h1>
-          <p className="text-muted-foreground">{t('multiPractice.description', 'Comprehensive insights & AI-powered recommendations across all practice locations')}</p>
+          <h1 className="text-3xl font-bold text-foreground">Multi-Practice Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Comprehensive insights & AI-powered recommendations across all practice locations</p>
         </div>
         <div className="flex gap-4">
           <Select value={selectedPractice} onValueChange={setSelectedPractice}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder={t('multiPractice.selectPractice', 'Select Practice')} />
+              <SelectValue placeholder="Select Practice" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('multiPractice.allPractices', 'All Practices')}</SelectItem>
+              <SelectItem value="all">All Practices</SelectItem>
               {practices.map((practice) => (
                 <SelectItem key={practice.id} value={practice.id.toString()}>
                   {practice.name}
@@ -253,7 +253,7 @@ export default function MultiPracticeAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('multiPractice.networkRevenue', 'Network Revenue')}</CardTitle>
+            <CardTitle className="text-sm font-medium">Network Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
