@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, Stethoscope } from "lucide-react";
+import { Eye, EyeOff, Stethoscope, ArrowLeft } from "lucide-react";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +18,8 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("staff");
+  const [resetEmail, setResetEmail] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -141,9 +143,45 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Reset email sent",
+        description: "Please check your email for password reset instructions.",
+      });
+      
+      setResetEmail("");
+      setShowForgotPassword(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
+      <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="p-3 rounded-full bg-gradient-to-r from-primary to-secondary">
@@ -159,11 +197,52 @@ export default function Auth() {
         </CardHeader>
 
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+          {showForgotPassword ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowForgotPassword(false)}
+                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to sign in
+                </Button>
+              </div>
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold">Reset Password</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+              </div>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-primary to-secondary text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Email"}
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
@@ -213,6 +292,17 @@ export default function Auth() {
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
+                
+                <div className="text-center mt-4">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm text-muted-foreground hover:text-primary"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
 
@@ -304,7 +394,8 @@ export default function Auth() {
                 </Button>
               </form>
             </TabsContent>
-          </Tabs>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
