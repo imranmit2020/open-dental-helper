@@ -74,7 +74,7 @@ function App() {
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Index />} />
+            <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="patient-dashboard" element={<PatientDashboard />} />
             <Route path="dentist-dashboard" element={<DentistDashboard />} />
