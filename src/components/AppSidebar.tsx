@@ -11,7 +11,8 @@ import {
   Shield,
   Building,
   User,
-  Target
+  Target,
+  CreditCard
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -42,6 +43,7 @@ const patientItems = [
   { title: "Medical History", url: "/patients/history", icon: FileText },
   { title: "Consent Forms", url: "/consent-forms", icon: Shield },
   { title: "Treatment Plans", url: "/patients/treatments", icon: Stethoscope },
+  { title: "Insurance & Billing", url: "/insurance-billing", icon: CreditCard },
 ];
 
 const schedulingItems = [

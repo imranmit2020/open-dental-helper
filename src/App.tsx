@@ -24,6 +24,7 @@ import { ImageAnalysis } from "./pages/ImageAnalysis";
 import AIMarketing from "./pages/AIMarketing";
 import PracticeAnalytics from "./pages/PracticeAnalytics";
 import { PredictiveAnalytics } from "./pages/PredictiveAnalytics";
+import InsuranceBilling from "./pages/InsuranceBilling";
 import NotFound from "./pages/NotFound";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -71,6 +72,7 @@ function App() {
             <Route path="ai-marketing" element={<AIMarketing />} />
             <Route path="practice-analytics" element={<PracticeAnalytics />} />
             <Route path="predictive-analytics" element={<PredictiveAnalytics />} />
+            <Route path="insurance-billing" element={<InsuranceBilling />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
