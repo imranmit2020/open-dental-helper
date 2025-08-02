@@ -229,16 +229,19 @@ export default function FraudDetectionSystem() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.entries(fraudAnalysis?.riskCategories || {}).map(([category, data]) => (
-                  <div key={category} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{category}</span>
-                      <Badge variant="outline">{data.alertCount} alerts</Badge>
+                {Object.entries(fraudAnalysis?.riskCategories || {}).map(([category, data]) => {
+                  const categoryData = data as { alertCount: number; riskLevel: number; description: string };
+                  return (
+                    <div key={category} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{category}</span>
+                        <Badge variant="outline">{categoryData.alertCount} alerts</Badge>
+                      </div>
+                      <Progress value={categoryData.riskLevel} className="h-2" />
+                      <p className="text-sm text-muted-foreground">{categoryData.description}</p>
                     </div>
-                    <Progress value={data.riskLevel} className="h-2" />
-                    <p className="text-sm text-muted-foreground">{data.description}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
