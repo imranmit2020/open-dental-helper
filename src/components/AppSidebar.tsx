@@ -14,7 +14,9 @@ import {
   Target,
   CreditCard,
   Bot,
-  Video
+  Video,
+  TrendingUp,
+  Mail
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -66,6 +68,11 @@ const aiItems = [
 const reportsItems = [
   { title: "Practice Analytics", url: "/reports", icon: BarChart3 },
   { title: "Patient Insights", url: "/reports/patients", icon: Users },
+];
+
+const enterpriseItems = [
+  { title: "Multi-Practice Analytics", url: "/multi-practice-analytics", icon: TrendingUp },
+  { title: "Marketing Automation", url: "/marketing-automation", icon: Mail },
 ];
 
 export function AppSidebar() {
@@ -214,6 +221,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {reportsItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Enterprise Features */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            Enterprise
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {enterpriseItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>

@@ -27,6 +27,8 @@ import { PredictiveAnalytics } from "./pages/PredictiveAnalytics";
 import InsuranceBilling from "./pages/InsuranceBilling";
 import AIScheduling from "./pages/AIScheduling";
 import Teledentistry from "./pages/Teledentistry";
+import MultiPracticeAnalytics from "./pages/MultiPracticeAnalytics";
+import MarketingAutomation from "./pages/MarketingAutomation";
 import NotFound from "./pages/NotFound";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -88,6 +90,8 @@ function App() {
             <Route path="ai-scheduling" element={<AIScheduling />} />
             <Route path="ai/scheduling" element={<AIScheduling />} />
             <Route path="teledentistry" element={<Teledentistry />} />
+            <Route path="multi-practice-analytics" element={<MultiPracticeAnalytics />} />
+            <Route path="marketing-automation" element={<MarketingAutomation />} />
             <Route path="reports/patients" element={<PatientProfile />} />
             <Route path="reports" element={<PracticeAnalytics />} />
             <Route path="patient-insights" element={<PracticeAnalytics />} />
