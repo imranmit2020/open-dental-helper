@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Calendar,
   Clock,
@@ -15,6 +16,7 @@ import {
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 export default function Schedule() {
+  const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
 
@@ -118,8 +120,8 @@ export default function Schedule() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointment Calendar</h1>
-          <p className="text-muted-foreground">Manage your daily schedule and appointments</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('schedule.title', 'Appointment Calendar')}</h1>
+          <p className="text-muted-foreground">{t('schedule.description', 'Manage your daily schedule and appointments')}</p>
         </div>
         <NewAppointmentForm />
       </div>
@@ -171,10 +173,10 @@ export default function Schedule() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-primary" />
-                Today's Schedule
+                {t('schedule.todaySchedule', "Today's Schedule")}
               </CardTitle>
               <CardDescription>
-                {appointments.filter(apt => apt.type !== 'break').length} appointments scheduled
+                {appointments.filter(apt => apt.type !== 'break').length} {t('schedule.appointmentsScheduled', 'appointments scheduled')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -231,10 +233,10 @@ export default function Schedule() {
                       {appointment.type !== 'break' && (
                         <div className="flex items-center gap-2">
                           <Button variant="outline" size="sm">
-                            Reschedule
+                            {t('schedule.reschedule', 'Reschedule')}
                           </Button>
                           <Button variant="outline" size="sm">
-                            Start Visit
+                            {t('schedule.startVisit', 'Start Visit')}
                           </Button>
                         </div>
                       )}
@@ -250,7 +252,7 @@ export default function Schedule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Today's Summary</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.todaySummary', "Today's Summary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
@@ -282,7 +284,7 @@ export default function Schedule() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.quickActions', 'Quick Actions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start">

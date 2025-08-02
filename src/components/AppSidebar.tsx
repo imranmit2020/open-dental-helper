@@ -19,6 +19,7 @@ import {
   Mail
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import {
   Sidebar,
@@ -77,6 +78,7 @@ const enterpriseItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { t } = useLanguage();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
@@ -111,7 +113,7 @@ export function AppSidebar() {
         {/* Patient Portal */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Patient Portal
+            {t('navigation.patientPortal', 'Patient Portal')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -132,7 +134,7 @@ export function AppSidebar() {
         {/* Practice Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Practice Management
+            {t('navigation.practiceManagement', 'Practice Management')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -153,7 +155,7 @@ export function AppSidebar() {
         {/* Patient Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Patient Management
+            {t('navigation.patientManagement', 'Patient Management')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -174,7 +176,7 @@ export function AppSidebar() {
         {/* Scheduling */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Scheduling
+            {t('navigation.scheduling', 'Scheduling')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -195,7 +197,7 @@ export function AppSidebar() {
         {/* AI Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            AI Features
+            {t('navigation.aiFeatures', 'AI Features')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -216,7 +218,7 @@ export function AppSidebar() {
         {/* Reports */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Analytics
+            {t('navigation.analytics', 'Analytics')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -237,7 +239,7 @@ export function AppSidebar() {
         {/* Enterprise Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Enterprise
+            {t('navigation.enterprise', 'Enterprise')}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -263,7 +265,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <NavLink to="/settings" className={getNavCls}>
                     <Settings className="h-4 w-4 text-current" />
-                    {!isCollapsed && <span className="font-medium">Settings</span>}
+                    {!isCollapsed && <span className="font-medium">{t('common.settings', 'Settings')}</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
