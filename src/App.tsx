@@ -67,15 +67,22 @@ function App() {
             <Route path="medical-history" element={<MedicalHistory />} />
             <Route path="consent-forms" element={<ConsentForms />} />
             <Route path="voice-transcription" element={<VoiceTranscription />} />
+            <Route path="ai/voice" element={<VoiceTranscription />} />
             <Route path="translation" element={<Translation />} />
+            <Route path="ai/translation" element={<Translation />} />
             <Route path="ai-voice-notes" element={<AIVoiceNotes />} />
             <Route path="voice-agent" element={<VoiceAgent />} />
+            <Route path="ai/voice-agent" element={<VoiceAgent />} />
             <Route path="image-analysis" element={<ImageAnalysis />} />
+            <Route path="ai/image-analysis" element={<ImageAnalysis />} />
             <Route path="ai-marketing" element={<AIMarketing />} />
+            <Route path="ai/marketing" element={<AIMarketing />} />
             <Route path="practice-analytics" element={<PracticeAnalytics />} />
             <Route path="predictive-analytics" element={<PredictiveAnalytics />} />
+            <Route path="ai/predictive-analytics" element={<PredictiveAnalytics />} />
             <Route path="insurance-billing" element={<InsuranceBilling />} />
             <Route path="ai-scheduling" element={<AIScheduling />} />
+            <Route path="ai/scheduling" element={<AIScheduling />} />
             <Route path="teledentistry" element={<Teledentistry />} />
           </Route>
           <Route path="*" element={<NotFound />} />
