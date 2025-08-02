@@ -14,6 +14,7 @@ import * as z from "zod";
 import { Plus, User, Phone, Mail, Calendar, Shield, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -40,6 +41,7 @@ interface NewPatientFormProps {
 export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,10 +62,20 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
 
   const onSubmit = async (data: FormData) => {
     try {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to add patients.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Insert patient into Supabase database
       const { data: patientData, error } = await supabase
         .from('patients')
         .insert({
+          user_id: user.id,
           first_name: data.firstName,
           last_name: data.lastName,
           email: data.email,
