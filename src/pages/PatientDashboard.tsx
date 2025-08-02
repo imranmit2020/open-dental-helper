@@ -3,9 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, FileText, Heart, MapPin, Phone, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 const PatientDashboard = () => {
+  const { t, formatDate } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [appointments, setAppointments] = useState([
     {
       id: 1,
@@ -42,14 +47,16 @@ const PatientDashboard = () => {
       treatment: "Dental Cleaning",
       date: "2024-01-15",
       doctor: "Dr. Sarah Johnson",
-      status: "completed"
+      status: "completed",
+      cost: 150
     },
     {
       id: 2,
       treatment: "Cavity Filling",
       date: "2024-01-08",
       doctor: "Dr. Michael Chen",
-      status: "completed"
+      status: "completed",
+      cost: 280
     }
   ];
 
@@ -66,10 +73,10 @@ const PatientDashboard = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Welcome Back, John!
+              {t('dashboard.welcome', 'Welcome Back, John!')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Here's your dental health overview and upcoming appointments
+              {t('dashboard.overview', "Here's your dental health overview and upcoming appointments")}
             </p>
           </div>
           <NewAppointmentForm 
@@ -110,7 +117,7 @@ const PatientDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                Upcoming Appointments
+                {t('dashboard.upcomingAppointments', 'Upcoming Appointments')}
               </CardTitle>
               <CardDescription>
                 Your scheduled dental visits
@@ -130,7 +137,7 @@ const PatientDashboard = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {appointment.date}
+                        {formatDate(new Date(appointment.date))}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -168,9 +175,12 @@ const PatientDashboard = () => {
                     <p className="text-sm text-muted-foreground">
                       {treatment.doctor}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {treatment.date}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(new Date(treatment.date))}
+                      </p>
+                      <CurrencyDisplay amount={treatment.cost} variant="small" />
+                    </div>
                   </div>
                   <Badge variant="outline">
                     {treatment.status}
