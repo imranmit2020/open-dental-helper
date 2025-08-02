@@ -115,9 +115,9 @@ export default function Patients() {
       <div className="flex items-center justify-between animate-fade-in">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            {t('patients.title', 'Patient Management')}
+            Patient Management
           </h1>
-          <p className="text-muted-foreground text-lg">{t('patients.description', 'Manage your patient records with AI-powered insights')}</p>
+          <p className="text-muted-foreground text-lg">Manage your patient records with AI-powered insights</p>
         </div>
         <NewPatientForm onPatientAdded={handlePatientAdded} />
       </div>
@@ -129,7 +129,7 @@ export default function Patients() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                <Input
-                 placeholder={t('patients.searchPlaceholder', 'Search patients by name, email, or phone...')}
+                 placeholder="Search patients by name, email, or phone..."
                  value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-12 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl"
@@ -137,7 +137,7 @@ export default function Patients() {
             </div>
             <Button variant="outline" className="h-12 px-6 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
               <Filter className="h-5 w-5 mr-2" />
-               {t('patients.advancedFilters', 'Advanced Filters')}
+               Advanced Filters
              </Button>
           </div>
         </CardContent>
@@ -149,7 +149,7 @@ export default function Patients() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground font-medium">{t('patients.totalPatients', 'Total Patients')}</p>
+                <p className="text-sm text-muted-foreground font-medium">Total Patients</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">1,247</p>
                 <p className="text-xs text-success flex items-center gap-1">
                   <span className="w-1 h-1 bg-success rounded-full"></span>
@@ -224,10 +224,10 @@ export default function Patients() {
           <div className="flex items-center justify-between">
             <div>
                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                 {t('patients.patientRecords', 'Patient Records')}
+                 Patient Records
                </CardTitle>
                <CardDescription className="text-base mt-2">
-                 {filteredPatients.length} {t('patients.patientsFound', 'patients found')} • {t('patients.aiInsights', 'AI-powered insights available')}
+                 {filteredPatients.length} patients found • AI-powered insights available
                </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -304,7 +304,7 @@ export default function Patients() {
                     navigate(`/patients/${patient.id}`);
                   }}
                  >
-                   {t('patients.viewDetails', 'View Details')}
+                   View Details
                  </Button>
               </div>
             </div>
