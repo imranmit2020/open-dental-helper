@@ -1,8 +1,11 @@
-import { pipeline, env } from '@huggingface/transformers';
+// TODO: Hugging Face transformers background removal will be implemented later
+// Currently commented out for future implementation
+
+// import { pipeline, env } from '@huggingface/transformers';
 
 // Configure transformers.js
-env.allowLocalModels = false;
-env.useBrowserCache = false;
+// env.allowLocalModels = false;
+// env.useBrowserCache = false;
 
 const MAX_IMAGE_DIMENSION = 1024;
 
@@ -32,6 +35,10 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 }
 
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
+  // TODO: Implement Hugging Face transformers background removal
+  throw new Error('Background removal feature is not yet implemented. Please check back later.');
+
+  /*
   try {
     console.log('Starting background removal process...');
     
@@ -125,6 +132,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     console.error('Error removing background:', error);
     throw error;
   }
+  */
 };
 
 export const loadImage = (file: Blob): Promise<HTMLImageElement> => {
