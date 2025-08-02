@@ -26,6 +26,7 @@ export const Translation: React.FC = () => {
 
   const supportedLanguages = translationService.getSupportedLanguages();
 
+  // TODO: Translation functionality will be implemented later
   const handleTranslate = async () => {
     if (!sourceText.trim()) {
       toast({
@@ -36,6 +37,14 @@ export const Translation: React.FC = () => {
       return;
     }
 
+    // TODO: Implement translation functionality
+    toast({
+      title: "Feature Coming Soon",
+      description: "Translation feature will be implemented later",
+      variant: "destructive",
+    });
+
+    /*
     setIsTranslating(true);
     try {
       const result = await translationService.translateText(
@@ -59,8 +68,10 @@ export const Translation: React.FC = () => {
     } finally {
       setIsTranslating(false);
     }
+    */
   };
 
+  // TODO: Medical document translation will be implemented later
   const handleMedicalDocumentTranslate = async () => {
     if (!sourceText.trim()) {
       toast({
@@ -71,6 +82,14 @@ export const Translation: React.FC = () => {
       return;
     }
 
+    // TODO: Implement medical document translation
+    toast({
+      title: "Feature Coming Soon",
+      description: "Medical document translation feature will be implemented later",
+      variant: "destructive",
+    });
+
+    /*
     setIsTranslating(true);
     try {
       const result = await translationService.translateMedicalDocument(
@@ -93,6 +112,7 @@ export const Translation: React.FC = () => {
     } finally {
       setIsTranslating(false);
     }
+    */
   };
 
   const speakText = (text: string, language: string) => {
