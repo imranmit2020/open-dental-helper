@@ -3,15 +3,98 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Building, TrendingUp, Users, Calendar, DollarSign, BarChart3, Activity } from "lucide-react";
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Building, 
+  TrendingUp, 
+  Users, 
+  Calendar, 
+  DollarSign, 
+  BarChart3, 
+  Activity, 
+  MapPin,
+  Trophy,
+  AlertTriangle,
+  CheckCircle,
+  Target,
+  Clock,
+  Star,
+  Brain,
+  TrendingDown
+} from "lucide-react";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 
-// Mock data for multipractice analytics
+// Enhanced Mock data for multipractice analytics
 const practices = [
-  { id: 1, name: "Downtown Dental", location: "Downtown", patients: 1250, revenue: 125000, appointments: 890 },
-  { id: 2, name: "Westside Dental", location: "Westside", patients: 980, revenue: 98000, appointments: 720 },
-  { id: 3, name: "Northside Dental", location: "Northside", patients: 1100, revenue: 110000, appointments: 800 },
-  { id: 4, name: "Southside Dental", location: "Southside", patients: 850, revenue: 85000, appointments: 650 }
+  { 
+    id: 1, 
+    name: "Downtown Dental", 
+    location: "Downtown", 
+    patients: 1250, 
+    revenue: 125000, 
+    appointments: 890,
+    target: 120000,
+    chairUtilization: 85,
+    treatmentAcceptance: 78,
+    missedAppointments: 12,
+    insuranceClaimSuccess: 94,
+    status: 'above_target',
+    coordinates: { lat: 40.7128, lng: -74.0060 },
+    staffCount: 12,
+    chairCount: 6
+  },
+  { 
+    id: 2, 
+    name: "Westside Dental", 
+    location: "Westside", 
+    patients: 980, 
+    revenue: 98000, 
+    appointments: 720,
+    target: 100000,
+    chairUtilization: 72,
+    treatmentAcceptance: 65,
+    missedAppointments: 18,
+    insuranceClaimSuccess: 89,
+    status: 'at_risk',
+    coordinates: { lat: 40.7589, lng: -73.9851 },
+    staffCount: 10,
+    chairCount: 5
+  },
+  { 
+    id: 3, 
+    name: "Northside Dental", 
+    location: "Northside", 
+    patients: 1100, 
+    revenue: 110000, 
+    appointments: 800,
+    target: 105000,
+    chairUtilization: 80,
+    treatmentAcceptance: 82,
+    missedAppointments: 8,
+    insuranceClaimSuccess: 96,
+    status: 'above_target',
+    coordinates: { lat: 40.7831, lng: -73.9712 },
+    staffCount: 11,
+    chairCount: 5
+  },
+  { 
+    id: 4, 
+    name: "Southside Dental", 
+    location: "Southside", 
+    patients: 850, 
+    revenue: 85000, 
+    appointments: 650,
+    target: 90000,
+    chairUtilization: 68,
+    treatmentAcceptance: 58,
+    missedAppointments: 22,
+    insuranceClaimSuccess: 87,
+    status: 'needs_attention',
+    coordinates: { lat: 40.6892, lng: -74.0445 },
+    staffCount: 8,
+    chairCount: 4
+  }
 ];
 
 const performanceData = [
@@ -40,23 +123,100 @@ const treatmentData = [
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
 
+// Top performing staff across practices
+const topPerformers = [
+  { name: "Dr. Sarah Johnson", practice: "Downtown Dental", metric: "Revenue", value: "$45,000", rank: 1 },
+  { name: "Dr. Michael Chen", practice: "Northside Dental", metric: "Patient Satisfaction", value: "98%", rank: 2 },
+  { name: "Lisa Rodriguez, RDH", practice: "Downtown Dental", metric: "Efficiency", value: "95%", rank: 3 },
+  { name: "Dr. Emily Davis", practice: "Westside Dental", metric: "Treatment Acceptance", value: "87%", rank: 4 },
+  { name: "James Wilson, RDH", practice: "Northside Dental", metric: "Productivity", value: "92%", rank: 5 }
+];
+
+// AI Insights
+const aiInsights = [
+  {
+    type: "warning",
+    practice: "Westside Dental",
+    message: "Branch #2 has highest no-show risk this month (18% above average)",
+    action: "Implement reminder automation"
+  },
+  {
+    type: "optimization",
+    practice: "Southside Dental",
+    message: "Branch #4 is underutilizing Chair 3, consider schedule optimization",
+    action: "Adjust scheduling patterns"
+  },
+  {
+    type: "opportunity",
+    practice: "Downtown Dental",
+    message: "High treatment acceptance rate suggests capacity for premium services",
+    action: "Introduce cosmetic packages"
+  },
+  {
+    type: "prediction",
+    practice: "All Practices",
+    message: "Forecast shows 15% revenue increase potential with staff reallocation",
+    action: "Review staffing strategy"
+  }
+];
+
+// Service revenue breakdown
+const serviceRevenue = [
+  { service: 'Cleanings', downtown: 35000, westside: 28000, northside: 32000, southside: 25000 },
+  { service: 'Fillings', downtown: 25000, westside: 20000, northside: 23000, southside: 18000 },
+  { service: 'Crowns', downtown: 30000, westside: 22000, northside: 27000, southside: 20000 },
+  { service: 'Implants', downtown: 20000, westside: 15000, northside: 18000, southside: 12000 },
+  { service: 'Orthodontics', downtown: 15000, westside: 13000, northside: 10000, southside: 10000 }
+];
+
+// Staff efficiency radar data
+const staffEfficiency = [
+  { practice: 'Downtown', productivity: 90, satisfaction: 95, efficiency: 88, retention: 92 },
+  { practice: 'Westside', productivity: 75, satisfaction: 80, efficiency: 72, retention: 85 },
+  { practice: 'Northside', productivity: 85, satisfaction: 92, efficiency: 87, retention: 90 },
+  { practice: 'Southside', productivity: 70, satisfaction: 75, efficiency: 68, retention: 80 }
+];
+
 export default function MultiPracticeAnalytics() {
   const [selectedPractice, setSelectedPractice] = useState("all");
   const [timeRange, setTimeRange] = useState("6months");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const totalMetrics = {
     totalRevenue: practices.reduce((sum, p) => sum + p.revenue, 0),
     totalPatients: practices.reduce((sum, p) => sum + p.patients, 0),
     totalAppointments: practices.reduce((sum, p) => sum + p.appointments, 0),
-    avgRevenue: practices.reduce((sum, p) => sum + p.revenue, 0) / practices.length
+    avgRevenue: practices.reduce((sum, p) => sum + p.revenue, 0) / practices.length,
+    avgChairUtilization: practices.reduce((sum, p) => sum + p.chairUtilization, 0) / practices.length,
+    avgTreatmentAcceptance: practices.reduce((sum, p) => sum + p.treatmentAcceptance, 0) / practices.length,
+    totalMissedAppointments: practices.reduce((sum, p) => sum + p.missedAppointments, 0),
+    avgInsuranceSuccess: practices.reduce((sum, p) => sum + p.insuranceClaimSuccess, 0) / practices.length
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'above_target': return 'text-green-600 bg-green-50 border-green-200';
+      case 'at_risk': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'needs_attention': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'above_target': return <CheckCircle className="h-4 w-4" />;
+      case 'at_risk': return <AlertTriangle className="h-4 w-4" />;
+      case 'needs_attention': return <TrendingDown className="h-4 w-4" />;
+      default: return <Activity className="h-4 w-4" />;
+    }
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Multi-Practice Analytics</h1>
-          <p className="text-muted-foreground">Comprehensive insights across all practice locations</p>
+          <h1 className="text-3xl font-bold text-foreground">Multi-Practice Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Comprehensive insights & AI-powered recommendations across all practice locations</p>
         </div>
         <div className="flex gap-4">
           <Select value={selectedPractice} onValueChange={setSelectedPractice}>
@@ -86,49 +246,100 @@ export default function MultiPracticeAnalytics() {
         </div>
       </div>
 
-      {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Enhanced Key Metrics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Network Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalMetrics.totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">+12.5% from last period</p>
+            <Progress value={85} className="mt-2" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Chair Utilization</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalMetrics.totalPatients.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+8.3% from last period</p>
+            <div className="text-2xl font-bold">{Math.round(totalMetrics.avgChairUtilization)}%</div>
+            <p className="text-xs text-muted-foreground">Network average</p>
+            <Progress value={totalMetrics.avgChairUtilization} className="mt-2" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Treatment Acceptance</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalMetrics.totalAppointments.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+6.7% from last period</p>
+            <div className="text-2xl font-bold">{Math.round(totalMetrics.avgTreatmentAcceptance)}%</div>
+            <p className="text-xs text-muted-foreground">Average across practices</p>
+            <Progress value={totalMetrics.avgTreatmentAcceptance} className="mt-2" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Practice Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">No-Show Rate</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${Math.round(totalMetrics.avgRevenue).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+9.2% from last period</p>
+            <div className="text-2xl font-bold">{Math.round((totalMetrics.totalMissedAppointments / totalMetrics.totalAppointments) * 100)}%</div>
+            <p className="text-xs text-muted-foreground">Network average</p>
+            <Progress value={(totalMetrics.totalMissedAppointments / totalMetrics.totalAppointments) * 100} className="mt-2" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Insurance Success</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Math.round(totalMetrics.avgInsuranceSuccess)}%</div>
+            <p className="text-xs text-muted-foreground">Claim approval rate</p>
+            <Progress value={totalMetrics.avgInsuranceSuccess} className="mt-2" />
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Insights Panel */}
+      <Card className="border-l-4 border-l-blue-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI-Powered Insights & Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {aiInsights.map((insight, index) => (
+              <div key={index} className="p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2 rounded-full ${
+                    insight.type === 'warning' ? 'bg-yellow-100 text-yellow-600' :
+                    insight.type === 'optimization' ? 'bg-blue-100 text-blue-600' :
+                    insight.type === 'opportunity' ? 'bg-green-100 text-green-600' :
+                    'bg-purple-100 text-purple-600'
+                  }`}>
+                    {insight.type === 'warning' && <AlertTriangle className="h-4 w-4" />}
+                    {insight.type === 'optimization' && <Target className="h-4 w-4" />}
+                    {insight.type === 'opportunity' && <TrendingUp className="h-4 w-4" />}
+                    {insight.type === 'prediction' && <Brain className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{insight.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Suggested Action: {insight.action}</p>
+                    <Badge variant="outline" className="mt-2 text-xs">{insight.practice}</Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Practice Comparison */}
       <Card>
@@ -168,56 +379,191 @@ export default function MultiPracticeAnalytics() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="revenue" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="revenue">Revenue Trends</TabsTrigger>
-          <TabsTrigger value="patients">Patient Flow</TabsTrigger>
-          <TabsTrigger value="treatments">Treatment Analysis</TabsTrigger>
-          <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="overview">Branch Insights</TabsTrigger>
+          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue Analysis</TabsTrigger>
+          <TabsTrigger value="efficiency">Staff Efficiency</TabsTrigger>
+          <TabsTrigger value="predictions">AI Predictions</TabsTrigger>
+          <TabsTrigger value="map">Branch Map</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="revenue" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6">
+          {/* Practice Comparison KPIs with Color Coding */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            {practices.map((practice) => (
+              <Card key={practice.id} className={`border-l-4 ${
+                practice.status === 'above_target' ? 'border-l-green-500' :
+                practice.status === 'at_risk' ? 'border-l-yellow-500' :
+                'border-l-red-500'
+              }`}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{practice.name}</CardTitle>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getStatusColor(practice.status)}`}>
+                      {getStatusIcon(practice.status)}
+                      <span className="capitalize">{practice.status.replace('_', ' ')}</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Revenue</p>
+                      <p className="font-semibold">${practice.revenue.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Target: ${practice.target.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Chair Utilization</p>
+                      <p className="font-semibold">{practice.chairUtilization}%</p>
+                      <Progress value={practice.chairUtilization} className="mt-1" />
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Treatment Acceptance</p>
+                      <p className="font-semibold">{practice.treatmentAcceptance}%</p>
+                      <Progress value={practice.treatmentAcceptance} className="mt-1" />
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">No-Shows</p>
+                      <p className="font-semibold">{practice.missedAppointments}</p>
+                      <p className="text-xs text-muted-foreground">This month</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Insurance Claims</span>
+                      <span className="font-semibold">{practice.insuranceClaimSuccess}%</span>
+                    </div>
+                    <Progress value={practice.insuranceClaimSuccess} className="mt-1" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Revenue by Practice (6 Months)</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-600" />
+                Cross-Practice Performance Leaderboard
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, '']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="downtown" stroke="#8884d8" strokeWidth={2} name="Downtown" />
-                  <Line type="monotone" dataKey="westside" stroke="#82ca9d" strokeWidth={2} name="Westside" />
-                  <Line type="monotone" dataKey="northside" stroke="#ffc658" strokeWidth={2} name="Northside" />
-                  <Line type="monotone" dataKey="southside" stroke="#ff7300" strokeWidth={2} name="Southside" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {topPerformers.map((performer, index) => (
+                  <div key={index} className="flex items-center gap-4 p-4 rounded-lg border bg-muted/30">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                      index === 0 ? 'bg-yellow-500' :
+                      index === 1 ? 'bg-gray-400' :
+                      index === 2 ? 'bg-orange-600' :
+                      'bg-blue-500'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{performer.name}</h3>
+                      <p className="text-sm text-muted-foreground">{performer.practice}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{performer.value}</p>
+                      <p className="text-xs text-muted-foreground">{performer.metric}</p>
+                    </div>
+                    {index === 0 && <Star className="h-5 w-5 text-yellow-500" />}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="patients" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Flow Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={patientFlow}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="practice" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="new" stackId="a" fill="#8884d8" name="New Patients" />
-                  <Bar dataKey="returning" stackId="a" fill="#82ca9d" name="Returning Patients" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <TabsContent value="revenue" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Service Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={serviceRevenue}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="service" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, '']} />
+                    <Legend />
+                    <Bar dataKey="downtown" stackId="a" fill="#8884d8" name="Downtown" />
+                    <Bar dataKey="westside" stackId="a" fill="#82ca9d" name="Westside" />
+                    <Bar dataKey="northside" stackId="a" fill="#ffc658" name="Northside" />
+                    <Bar dataKey="southside" stackId="a" fill="#ff7300" name="Southside" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trends (6 Months)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, '']} />
+                    <Legend />
+                    <Line type="monotone" dataKey="downtown" stroke="#8884d8" strokeWidth={2} name="Downtown" />
+                    <Line type="monotone" dataKey="westside" stroke="#82ca9d" strokeWidth={2} name="Westside" />
+                    <Line type="monotone" dataKey="northside" stroke="#ffc658" strokeWidth={2} name="Northside" />
+                    <Line type="monotone" dataKey="southside" stroke="#ff7300" strokeWidth={2} name="Southside" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="efficiency" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Staff Efficiency Heatmap</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <RadarChart data={staffEfficiency}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="practice" />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                    <Radar name="Productivity" dataKey="productivity" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                    <Radar name="Satisfaction" dataKey="satisfaction" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+                    <Radar name="Efficiency" dataKey="efficiency" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
+                    <Radar name="Retention" dataKey="retention" stroke="#ff7300" fill="#ff7300" fillOpacity={0.6} />
+                    <Legend />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient Flow Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={patientFlow}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="practice" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="new" stackId="a" fill="#8884d8" name="New Patients" />
+                    <Bar dataKey="returning" stackId="a" fill="#82ca9d" name="Returning Patients" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="treatments" className="space-y-6">
@@ -272,57 +618,105 @@ export default function MultiPracticeAnalytics() {
           </div>
         </TabsContent>
 
-        <TabsContent value="performance" className="space-y-6">
+        <TabsContent value="predictions" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Efficiency Metrics
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  AI Predictive Analytics
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {practices.map((practice) => (
-                  <div key={practice.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div>
-                      <h4 className="font-medium">{practice.name}</h4>
-                      <p className="text-sm text-muted-foreground">Patients per day: {Math.round(practice.appointments / 30)}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold">${Math.round(practice.revenue / practice.patients)}</div>
-                      <div className="text-sm text-muted-foreground">Revenue per patient</div>
-                    </div>
-                  </div>
-                ))}
+                <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
+                  <h4 className="font-semibold text-purple-800">Staffing Optimization</h4>
+                  <p className="text-sm text-purple-700 mt-1">Westside Dental needs 2 additional hygienists next month to handle predicted 25% appointment increase.</p>
+                  <Button size="sm" className="mt-2" variant="outline">View Details</Button>
+                </div>
+                <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <h4 className="font-semibold text-green-800">Revenue Opportunity</h4>
+                  <p className="text-sm text-green-700 mt-1">Downtown location has 15% capacity for premium cosmetic services based on patient demographics.</p>
+                  <Button size="sm" className="mt-2" variant="outline">Implement</Button>
+                </div>
+                <div className="p-4 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200">
+                  <h4 className="font-semibold text-orange-800">Risk Alert</h4>
+                  <p className="text-sm text-orange-700 mt-1">Southside practice showing early indicators of patient drop-off. Immediate intervention recommended.</p>
+                  <Button size="sm" className="mt-2" variant="outline">Take Action</Button>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Performance Rankings
-                </CardTitle>
+                <CardTitle>Revenue Leak Detection</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {practices
-                  .sort((a, b) => b.revenue - a.revenue)
-                  .map((practice, index) => (
-                    <div key={practice.id} className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
+              <CardContent>
+                <div className="space-y-4">
+                  {practices.map((practice) => (
+                    <div key={practice.id} className="p-3 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{practice.name}</h4>
-                        <p className="text-sm text-muted-foreground">${practice.revenue.toLocaleString()} revenue</p>
+                        <Badge variant={practice.status === 'above_target' ? 'default' : practice.status === 'at_risk' ? 'outline' : 'destructive'}>
+                          {practice.status === 'above_target' ? 'Optimal' : practice.status === 'at_risk' ? 'Monitor' : 'Action Needed'}
+                        </Badge>
                       </div>
-                      <Badge variant={index === 0 ? "default" : "secondary"}>
-                        {index === 0 ? "Top" : `#${index + 1}`}
-                      </Badge>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Potential Revenue Leak:</span>
+                          <span className="font-medium">${((practice.target - practice.revenue) > 0 ? (practice.target - practice.revenue) : 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Efficiency Score:</span>
+                          <span className="font-medium">{practice.chairUtilization}%</span>
+                        </div>
+                      </div>
                     </div>
                   ))}
+                </div>
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="map" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Interactive Branch Map View
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative h-96 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border border-blue-200 flex items-center justify-center">
+                <div className="text-center">
+                  <MapPin className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-blue-800">Interactive Map Coming Soon</h3>
+                  <p className="text-blue-600 mt-2">Real-time practice locations with color-coded performance indicators</p>
+                </div>
+                
+                {/* Simulated map pins */}
+                <div className="absolute top-20 left-20 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
+                <div className="absolute top-32 right-24 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white shadow-lg"></div>
+                <div className="absolute bottom-32 left-32 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
+                <div className="absolute bottom-20 right-20 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
+              </div>
+              
+              {/* Map Legend */}
+              <div className="mt-4 flex justify-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm">Above Target</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-sm">At Risk</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="text-sm">Needs Attention</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
