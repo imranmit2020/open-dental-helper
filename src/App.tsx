@@ -41,6 +41,9 @@ import SmartOperations from "./pages/SmartOperations";
 import RevenueManagement from "./pages/RevenueManagement";
 import PatientConcierge from "./pages/PatientConcierge";
 import ComplianceSecurity from "./pages/ComplianceSecurity";
+import TeledentistryEnhanced from "./pages/TeledentistryEnhanced";
+import ReputationManagement from "./pages/ReputationManagement";
+import LeadConversion from "./pages/LeadConversion";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -117,6 +120,9 @@ function App() {
             <Route path="revenue-management" element={<RevenueManagement />} />
             <Route path="patient-concierge" element={<PatientConcierge />} />
             <Route path="compliance-security" element={<ComplianceSecurity />} />
+            <Route path="teledentistry-enhanced" element={<TeledentistryEnhanced />} />
+            <Route path="reputation-management" element={<ReputationManagement />} />
+            <Route path="lead-conversion" element={<LeadConversion />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
