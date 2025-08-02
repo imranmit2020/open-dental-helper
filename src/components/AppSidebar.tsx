@@ -16,7 +16,15 @@ import {
   Bot,
   Video,
   TrendingUp,
-  Mail
+  Mail,
+  Scan,
+  ClipboardList,
+  MicVocal,
+  HeartHandshake,
+  Cog,
+  DollarSign,
+  MessageSquare,
+  Lock
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -66,6 +74,13 @@ const aiItems = [
   { title: "AI Marketing", url: "/ai-marketing", icon: Target },
 ];
 
+const clinicalItems = [
+  { title: "X-Ray Diagnostics", url: "/xray-diagnostics", icon: Scan },
+  { title: "Treatment Plans", url: "/treatment-plans", icon: ClipboardList },
+  { title: "Voice-to-Chart", url: "/voice-to-chart", icon: MicVocal },
+  { title: "Chairside Assistant", url: "/chairside-assistant", icon: HeartHandshake },
+];
+
 const reportsItems = [
   { title: "Practice Analytics", url: "/reports", icon: BarChart3 },
   { title: "Patient Insights", url: "/reports/patients", icon: Users },
@@ -74,6 +89,13 @@ const reportsItems = [
 const enterpriseItems = [
   { title: "Multi-Practice Analytics", url: "/multi-practice-analytics", icon: TrendingUp },
   { title: "Marketing Automation", url: "/marketing-automation", icon: Mail },
+  { title: "Smart Operations", url: "/smart-operations", icon: Cog },
+  { title: "Revenue Management", url: "/revenue-management", icon: DollarSign },
+];
+
+const complianceItems = [
+  { title: "Compliance & Security", url: "/compliance-security", icon: Lock },
+  { title: "Patient Concierge", url: "/patient-concierge", icon: MessageSquare },
 ];
 
 export function AppSidebar() {
@@ -194,6 +216,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Clinical AI Tools */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            Clinical AI
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {clinicalItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* AI Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
@@ -239,11 +282,32 @@ export function AppSidebar() {
         {/* Enterprise Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            Enterprise
+            Enterprise & Operations
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {enterpriseItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Patient Experience & Compliance */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            Patient & Compliance
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {complianceItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
