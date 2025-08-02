@@ -1,50 +1,80 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Layout } from "@/components/Layout";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import Layout from "@/components/Layout";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import PatientDashboard from "./pages/PatientDashboard";
-import PracticeDashboard from "./pages/PracticeDashboard";
 import DentistDashboard from "./pages/DentistDashboard";
-import AIMarketing from "./pages/AIMarketing";
-import Patients from "./pages/Patients";
+import PracticeDashboard from "./pages/PracticeDashboard";
 import Schedule from "./pages/Schedule";
-import AIVoiceNotes from "./pages/AIVoiceNotes";
+import Patients from "./pages/Patients";
 import MedicalHistory from "./pages/MedicalHistory";
-import PracticeAnalytics from "./pages/PracticeAnalytics";
-import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
 import ConsentForms from "./pages/ConsentForms";
+import { VoiceTranscription } from "./pages/VoiceTranscription";
+import { Translation } from "./pages/Translation";
+import AIVoiceNotes from "./pages/AIVoiceNotes";
+import { VoiceAgent } from "./pages/VoiceAgent";
+import { ImageAnalysis } from "./pages/ImageAnalysis";
+import AIMarketing from "./pages/AIMarketing";
+import PracticeAnalytics from "./pages/PracticeAnalytics";
+import { PredictiveAnalytics } from "./pages/PredictiveAnalytics";
+import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return <>{children}</>;
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+function App() {
+  return (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <SidebarProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/patient-dashboard" element={<Layout><PatientDashboard /></Layout>} />
-          <Route path="/practice-dashboard" element={<Layout><PracticeDashboard /></Layout>} />
-          <Route path="/dentist-dashboard" element={<Layout><DentistDashboard /></Layout>} />
-          <Route path="/ai-marketing" element={<Layout><AIMarketing /></Layout>} />
-          <Route path="/patients" element={<Layout><Patients /></Layout>} />
-          <Route path="/patients/history" element={<Layout><MedicalHistory /></Layout>} />
-          <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
-          <Route path="/reports" element={<Layout><PracticeAnalytics /></Layout>} />
-          <Route path="/ai-voice-notes" element={<Layout><AIVoiceNotes /></Layout>} />
-          <Route path="/consent-forms" element={<Layout><ConsentForms /></Layout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Index />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="patient-dashboard" element={<PatientDashboard />} />
+            <Route path="dentist-dashboard" element={<DentistDashboard />} />
+            <Route path="practice-dashboard" element={<PracticeDashboard />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="patients" element={<Patients />} />
+            <Route path="medical-history" element={<MedicalHistory />} />
+            <Route path="consent-forms" element={<ConsentForms />} />
+            <Route path="voice-transcription" element={<VoiceTranscription />} />
+            <Route path="translation" element={<Translation />} />
+            <Route path="ai-voice-notes" element={<AIVoiceNotes />} />
+            <Route path="voice-agent" element={<VoiceAgent />} />
+            <Route path="image-analysis" element={<ImageAnalysis />} />
+            <Route path="ai-marketing" element={<AIMarketing />} />
+            <Route path="practice-analytics" element={<PracticeAnalytics />} />
+            <Route path="predictive-analytics" element={<PredictiveAnalytics />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </SidebarProvider>
     </TooltipProvider>
-  </QueryClientProvider>
-);
+  );
+}
 
 export default App;

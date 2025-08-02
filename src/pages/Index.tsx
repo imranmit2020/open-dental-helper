@@ -1,9 +1,11 @@
 import { CalendarIcon, Clock, Star, Users, Shield, Heart, Zap, Brain, BarChart3, Mic, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 const Index = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Hero Section */}
