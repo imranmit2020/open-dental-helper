@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+// TODO: Language context and i18n will be implemented later
+// Currently commented out for future implementation
+
+import React, { createContext, useContext, ReactNode } from 'react';
+// import { useTranslation } from 'react-i18next';
 
 export interface Language {
   code: string;
@@ -46,91 +49,46 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [selectedLanguage, setSelectedLanguageState] = useState<Language>(SUPPORTED_LANGUAGES[0]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { i18n, t } = useTranslation();
-
-  // Load saved language from localStorage
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage) {
-      const language = SUPPORTED_LANGUAGES.find(l => l.code === savedLanguage);
-      if (language) {
-        setSelectedLanguageState(language);
-        i18n.changeLanguage(language.code);
-      }
-    }
-  }, [i18n]);
-
-  // Update document direction for RTL languages
-  useEffect(() => {
-    document.dir = selectedLanguage.rtl ? 'rtl' : 'ltr';
-    document.documentElement.lang = selectedLanguage.code;
-  }, [selectedLanguage]);
+  // TODO: Implement language context functionality
+  // For now, provide default English language support
+  const selectedLanguage = SUPPORTED_LANGUAGES[0]; // Default to English
+  const isLoading = false;
 
   const setSelectedLanguage = async (language: Language) => {
-    setIsLoading(true);
-    try {
-      setSelectedLanguageState(language);
-      localStorage.setItem('selectedLanguage', language.code);
-      await i18n.changeLanguage(language.code);
-    } catch (error) {
-      console.error('Failed to change language:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implement language switching
+    console.log('Language switching will be implemented later:', language);
   };
 
-  const isRTL = selectedLanguage.rtl || false;
+  const isRTL = false; // Default to LTR
 
   const getLocale = (): string => {
-    // Map language codes to full locales for better formatting
-    const localeMap: Record<string, string> = {
-      'en': 'en-US',
-      'es': 'es-ES',
-      'fr': 'fr-FR',
-      'de': 'de-DE',
-      'it': 'it-IT',
-      'pt': 'pt-PT',
-      'ru': 'ru-RU',
-      'zh': 'zh-CN',
-      'ja': 'ja-JP',
-      'ar': 'ar-SA',
-      'hi': 'hi-IN',
-      'ko': 'ko-KR',
-      'tr': 'tr-TR',
-      'nl': 'nl-NL',
-      'sv': 'sv-SE',
-      'no': 'no-NO',
-      'da': 'da-DK',
-      'fi': 'fi-FI',
-      'pl': 'pl-PL',
-      'th': 'th-TH',
-    };
-    
-    return localeMap[selectedLanguage.code] || selectedLanguage.code;
+    return 'en-US'; // Default locale
   };
 
   const formatDate = (date: Date, options?: Intl.DateTimeFormatOptions): string => {
     try {
-      return new Intl.DateTimeFormat(getLocale(), {
+      return new Intl.DateTimeFormat('en-US', {
         dateStyle: 'medium',
         timeStyle: 'short',
         ...options,
       }).format(date);
     } catch (error) {
-      // Fallback to ISO string if formatting fails
       return date.toLocaleDateString();
     }
   };
 
   const formatNumber = (number: number, options?: Intl.NumberFormatOptions): string => {
     try {
-      return new Intl.NumberFormat(getLocale(), options).format(number);
+      return new Intl.NumberFormat('en-US', options).format(number);
     } catch (error) {
-      // Fallback to string conversion
       return number.toString();
     }
+  };
+
+  // Simple fallback translation function
+  const t = (key: string, options?: any): string => {
+    // TODO: Implement proper i18n translation
+    return key; // Return the key as-is for now
   };
 
   return (

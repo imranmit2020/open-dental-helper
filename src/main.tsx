@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./hooks/useAuth.tsx";
 import App from "./App.tsx";
 import "./index.css";
-import "./i18n";
+// TODO: i18n import will be enabled when implemented
+// import "./i18n";
 
 const queryClient = new QueryClient();
 

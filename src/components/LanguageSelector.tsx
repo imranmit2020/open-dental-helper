@@ -1,3 +1,6 @@
+// TODO: Language selector will be implemented later
+// Currently commented out for future implementation
+
 import { useState } from "react";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +19,8 @@ export function LanguageSelector({ variant = "default", className }: LanguageSel
   const { selectedLanguage, setSelectedLanguage, isLoading } = useLanguage();
 
   const handleLanguageSelect = (language: Language) => {
-    setSelectedLanguage(language);
+    // TODO: Implement language selection
+    console.log('Language selection will be implemented later:', language);
     setOpen(false);
   };
 
@@ -61,6 +65,28 @@ export function LanguageSelector({ variant = "default", className }: LanguageSel
     }
   };
 
+  // TODO: Remove this component or implement proper functionality
+  // For now, return a disabled placeholder
+  return (
+    <div className="opacity-50 pointer-events-none">
+      <Button
+        variant="outline"
+        disabled={true}
+        className={cn(
+          "justify-between",
+          variant === "compact" && "h-8 px-2",
+          variant === "minimal" && "border-none bg-transparent hover:bg-accent",
+          className
+        )}
+        size={getButtonSize()}
+      >
+        {getButtonContent()}
+      </Button>
+    </div>
+  );
+
+  /*
+  // TODO: Full implementation for future use
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -112,4 +138,5 @@ export function LanguageSelector({ variant = "default", className }: LanguageSel
       </PopoverContent>
     </Popover>
   );
+  */
 }
