@@ -74,8 +74,10 @@
   },
   "dashboard": {
     "title": "Panel de control",
+    "welcome": "Bienvenido de nuevo, John!",
+    "overview": "Aquí está su resumen de salud dental y próximas citas",
     "welcomeBack": "Bienvenido de nuevo",
-    "overview": "Resumen",
+    "upcomingAppointments": "Próximas citas",
     "todaysAppointments": "Citas de hoy",
     "revenue": "Ingresos",
     "patients": "Pacientes",
@@ -232,6 +234,7 @@
     "generateReports": "Generar informes"
   },
   "currency": {
+    "title": "Moneda y finanzas",
     "selectCurrency": "Seleccionar moneda",
     "currentCurrency": "Moneda actual",
     "exchangeRate": "Tipo de cambio",
@@ -243,13 +246,24 @@
     "targetCurrency": "Moneda objetivo"
   },
   "language": {
-    "selectLanguage": "Seleccionar idioma",
+    "languageSettings": "Idioma y región",
+    "selectLanguage": "Idioma de visualización",
     "currentLanguage": "Idioma actual",
     "changeLanguage": "Cambiar idioma",
     "searchLanguages": "Buscar idiomas...",
-    "languageSettings": "Configuración de idioma",
     "autoDetect": "Detectar automáticamente",
     "default": "Predeterminado"
+  },
+  "settings": {
+    "description": "Configure sus preferencias regionales y configuración del sistema",
+    "languageDescription": "Establezca su idioma preferido y formato regional",
+    "currencyDescription": "Configure su moneda preferida y opciones de visualización financiera",
+    "regionalInfo": "Información regional",
+    "languageCode": "Código de idioma",
+    "textDirection": "Dirección del texto",
+    "rtl": "Derecha a izquierda",
+    "ltr": "Izquierda a derecha",
+    "dateFormat": "Formato de fecha"
   },
   "medical": {
     "teeth": "Dientes",
