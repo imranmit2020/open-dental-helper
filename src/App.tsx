@@ -13,6 +13,7 @@ import DentistDashboard from "./pages/DentistDashboard";
 import PracticeDashboard from "./pages/PracticeDashboard";
 import Schedule from "./pages/Schedule";
 import Patients from "./pages/Patients";
+import PatientProfile from "./pages/PatientProfile";
 import MedicalHistory from "./pages/MedicalHistory";
 import ConsentForms from "./pages/ConsentForms";
 import { VoiceTranscription } from "./pages/VoiceTranscription";
@@ -59,6 +60,7 @@ function App() {
             <Route path="practice-dashboard" element={<PracticeDashboard />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="patients" element={<Patients />} />
+            <Route path="patients/:id" element={<PatientProfile />} />
             <Route path="medical-history" element={<MedicalHistory />} />
             <Route path="consent-forms" element={<ConsentForms />} />
             <Route path="voice-transcription" element={<VoiceTranscription />} />

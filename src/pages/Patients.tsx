@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export default function Patients() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([
 
@@ -284,7 +286,12 @@ export default function Patients() {
                   <p className="text-xs text-muted-foreground font-medium">Insurance</p>
                   <p className="text-sm font-semibold">{patient.insurance}</p>
                 </div>
-                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
+                  onClick={() => navigate(`/patients/${patient.id}`)}
+                >
                   View Details
                 </Button>
               </div>
