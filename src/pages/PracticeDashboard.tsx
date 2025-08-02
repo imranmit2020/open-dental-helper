@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { 
   Users, 
   Calendar, 
@@ -32,7 +34,7 @@ const PracticeDashboard = () => {
     },
     {
       title: "Monthly Revenue",
-      value: "$87,450",
+      value: 87450,
       change: "+18%",
       changeType: "positive" as const,
       icon: DollarSign,
@@ -136,7 +138,13 @@ const PracticeDashboard = () => {
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-2xl font-bold">
+                  {stat.title === "Monthly Revenue" ? (
+                    <CurrencyDisplay amount={stat.value as number} variant="large" />
+                  ) : (
+                    stat.value
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   <span className={`${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
                     {stat.change}

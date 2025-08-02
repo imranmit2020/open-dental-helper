@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, CheckCircle, Clock, DollarSign, FileText, RefreshCw, Zap } from 'lucide-react';
+import { CurrencyDisplay } from '@/components/CurrencyDisplay';
 import { AIInsuranceService } from '@/services/AIInsuranceService';
 import { toast } from 'sonner';
 
@@ -140,9 +141,11 @@ const InsuranceBilling = () => {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$3,420</div>
+            <div className="text-2xl font-bold">
+              <CurrencyDisplay amount={3420} variant="large" />
+            </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-red-600">↗ $450</span> flagged claims
+              <span className="text-red-600">↗ <CurrencyDisplay amount={450} variant="small" /></span> flagged claims
             </p>
           </CardContent>
         </Card>

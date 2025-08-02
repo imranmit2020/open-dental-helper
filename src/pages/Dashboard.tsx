@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { 
   Users, 
   Calendar, 
@@ -37,7 +39,7 @@ export default function Dashboard() {
     },
     {
       title: "Revenue Forecast",
-      value: "$4,560",
+      value: 4560,
       subtitle: "Week",
       icon: DollarSign,
       color: "text-success"
@@ -62,7 +64,7 @@ export default function Dashboard() {
     { 
       type: "revenue", 
       title: "Revenue Recovery", 
-      message: "Call these 3 patients to recover $1,200", 
+      message: "Call these 3 patients to recover lost revenue", 
       action: "View List",
       priority: "high"
     },
@@ -133,7 +135,13 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {kpi.title === "Revenue Forecast" ? (
+                    <CurrencyDisplay amount={kpi.value as number} variant="large" />
+                  ) : (
+                    kpi.value
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground mt-1">{kpi.subtitle}</p>
               </CardContent>
             </Card>
