@@ -1,8 +1,11 @@
+// TODO: Uncomment and implement when ready for AI background removal
+/*
 import { pipeline, env } from '@huggingface/transformers';
 
 // Configure transformers.js
 env.allowLocalModels = false;
 env.useBrowserCache = false;
+*/
 
 const MAX_IMAGE_DIMENSION = 1024;
 
@@ -32,6 +35,10 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 }
 
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
+  // TODO: Implement AI background removal with @huggingface/transformers
+  throw new Error('Background removal not implemented yet. Enable in BackgroundRemovalService.ts');
+  
+  /*
   try {
     console.log('Starting background removal process...');
     
@@ -125,6 +132,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     console.error('Error removing background:', error);
     throw error;
   }
+  */
 };
 
 export const loadImage = (file: Blob): Promise<HTMLImageElement> => {
