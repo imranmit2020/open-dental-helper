@@ -53,10 +53,16 @@
     "group": "Group"
   },
   "navigation": {
+    "patientPortal": "Patient Portal",
+    "practiceManagement": "Practice Management", 
+    "patientManagement": "Patient Management",
+    "scheduling": "Scheduling",
+    "aiFeatures": "AI Features",
+    "analytics": "Analytics",
+    "enterprise": "Enterprise",
     "dashboard": "Dashboard",
     "patients": "Patients",
     "schedule": "Schedule",
-    "analytics": "Analytics",
     "marketing": "Marketing",
     "insurance": "Insurance & Billing",
     "teledentistry": "Teledentistry",

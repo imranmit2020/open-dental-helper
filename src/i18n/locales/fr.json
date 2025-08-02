@@ -53,10 +53,16 @@
     "group": "Grouper"
   },
   "navigation": {
+    "patientPortal": "Portail patient",
+    "practiceManagement": "Gestion du cabinet",
+    "patientManagement": "Gestion des patients",
+    "scheduling": "Planification",
+    "aiFeatures": "Fonctionnalités IA",
+    "analytics": "Analyses",
+    "enterprise": "Entreprise",
     "dashboard": "Tableau de bord",
     "patients": "Patients",
     "schedule": "Planning",
-    "analytics": "Analyses",
     "marketing": "Marketing",
     "insurance": "Assurance et facturation",
     "teledentistry": "Télédentisterie",
