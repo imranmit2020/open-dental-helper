@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, FileText, Heart, MapPin, Phone, User } from "lucide-react";
+import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 const PatientDashboard = () => {
   const upcomingAppointments = [
@@ -59,10 +60,14 @@ const PatientDashboard = () => {
               Here's your dental health overview and upcoming appointments
             </p>
           </div>
-          <Button className="lg:w-auto">
-            <Calendar className="w-4 h-4 mr-2" />
-            Book New Appointment
-          </Button>
+          <NewAppointmentForm 
+            trigger={
+              <Button className="lg:w-auto">
+                <Calendar className="w-4 h-4 mr-2" />
+                Book New Appointment
+              </Button>
+            }
+          />
         </div>
 
         {/* Health Metrics */}
