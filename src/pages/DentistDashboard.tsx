@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import PatientNotesDialog from "@/components/PatientNotesDialog";
 import { 
   Calendar, 
   Clock, 
@@ -145,10 +146,14 @@ const DentistDashboard = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
-              <FileText className="w-4 h-4 mr-2" />
-              Patient Notes
-            </Button>
+            <PatientNotesDialog 
+              trigger={
+                <Button variant="outline">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Patient Notes
+                </Button>
+              }
+            />
             <Button onClick={() => navigate('/schedule')}>
               <Calendar className="w-4 h-4 mr-2" />
               View Full Schedule
