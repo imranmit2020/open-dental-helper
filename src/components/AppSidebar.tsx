@@ -113,7 +113,7 @@ export function AppSidebar() {
         {/* Patient Portal */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.patientPortal', 'Patient Portal')}
+            Patient Portal
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -134,7 +134,7 @@ export function AppSidebar() {
         {/* Practice Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.practiceManagement', 'Practice Management')}
+            Practice Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -155,7 +155,7 @@ export function AppSidebar() {
         {/* Patient Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.patientManagement', 'Patient Management')}
+            Patient Management
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -176,7 +176,7 @@ export function AppSidebar() {
         {/* Scheduling */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.scheduling', 'Scheduling')}
+            Scheduling
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -197,7 +197,7 @@ export function AppSidebar() {
         {/* AI Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.aiFeatures', 'AI Features')}
+            AI Features
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -218,7 +218,7 @@ export function AppSidebar() {
         {/* Reports */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.analytics', 'Analytics')}
+            Analytics
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -239,7 +239,7 @@ export function AppSidebar() {
         {/* Enterprise Features */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-            {t('navigation.enterprise', 'Enterprise')}
+            Enterprise
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -265,7 +265,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <NavLink to="/settings" className={getNavCls}>
                     <Settings className="h-4 w-4 text-current" />
-                    {!isCollapsed && <span className="font-medium">{t('common.settings', 'Settings')}</span>}
+                    {!isCollapsed && <span className="font-medium">Settings</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
