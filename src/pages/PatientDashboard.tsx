@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Calendar, Clock, FileText, Heart, MapPin, Phone, User } from "lucide-re
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 const PatientDashboard = () => {
-  const upcomingAppointments = [
+  const [appointments, setAppointments] = useState([
     {
       id: 1,
       type: "Routine Cleaning",
@@ -22,7 +23,18 @@ const PatientDashboard = () => {
       doctor: "Dr. Michael Chen",
       status: "pending"
     }
-  ];
+  ]);
+
+  const handleAppointmentAdded = (newAppointment: any) => {
+    setAppointments(prev => [...prev, {
+      id: newAppointment.id,
+      type: newAppointment.type,
+      date: newAppointment.date,
+      time: newAppointment.time,
+      doctor: newAppointment.provider,
+      status: newAppointment.status
+    }]);
+  };
 
   const recentTreatments = [
     {
@@ -61,6 +73,7 @@ const PatientDashboard = () => {
             </p>
           </div>
           <NewAppointmentForm 
+            onAppointmentAdded={handleAppointmentAdded}
             trigger={
               <Button className="lg:w-auto">
                 <Calendar className="w-4 h-4 mr-2" />
@@ -104,7 +117,7 @@ const PatientDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {upcomingAppointments.map((appointment) => (
+              {appointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
