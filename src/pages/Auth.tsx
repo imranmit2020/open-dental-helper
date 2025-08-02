@@ -180,7 +180,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
+    <div className="h-screen w-full bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
