@@ -33,6 +33,14 @@ import MultiPracticeAnalytics from "./pages/MultiPracticeAnalytics";
 import MarketingAutomation from "./pages/MarketingAutomation";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import XRayDiagnostics from "./pages/XRayDiagnostics";
+import TreatmentPlanGenerator from "./pages/TreatmentPlanGenerator";
+import VoiceToChart from "./pages/VoiceToChart";
+import ChairsideAssistant from "./pages/ChairsideAssistant";
+import SmartOperations from "./pages/SmartOperations";
+import RevenueManagement from "./pages/RevenueManagement";
+import PatientConcierge from "./pages/PatientConcierge";
+import ComplianceSecurity from "./pages/ComplianceSecurity";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -101,6 +109,14 @@ function App() {
             <Route path="reports" element={<PracticeAnalytics />} />
             <Route path="patient-insights" element={<PracticeAnalytics />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="xray-diagnostics" element={<XRayDiagnostics />} />
+            <Route path="treatment-plans" element={<TreatmentPlanGenerator />} />
+            <Route path="voice-to-chart" element={<VoiceToChart />} />
+            <Route path="chairside-assistant" element={<ChairsideAssistant />} />
+            <Route path="smart-operations" element={<SmartOperations />} />
+            <Route path="revenue-management" element={<RevenueManagement />} />
+            <Route path="patient-concierge" element={<PatientConcierge />} />
+            <Route path="compliance-security" element={<ComplianceSecurity />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
