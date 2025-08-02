@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSecurityManager } from "@/hooks/useSecurityManager";
 import { Eye, EyeOff, Stethoscope, ArrowLeft } from "lucide-react";
 
 export default function Auth() {
@@ -22,6 +23,7 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackFailedLogin, checkAccountLock } = useSecurityManager();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -39,12 +41,27 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
+      // Check if account is locked before attempting login
+      const isLocked = await checkAccountLock(email);
+      if (isLocked) {
+        toast({
+          title: "Account Temporarily Locked",
+          description: "Too many failed login attempts. Please try again later.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        // Track failed login attempt
+        await trackFailedLogin(email, error.message);
+        
         if (error.message.includes("Invalid login credentials")) {
           toast({
             title: "Invalid credentials",
