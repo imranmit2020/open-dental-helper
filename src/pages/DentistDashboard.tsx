@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 import { 
   Calendar, 
   Clock, 
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 
 const DentistDashboard = () => {
+  const navigate = useNavigate();
   const todaySchedule = [
     {
       id: 1,
@@ -147,7 +149,7 @@ const DentistDashboard = () => {
               <FileText className="w-4 h-4 mr-2" />
               Patient Notes
             </Button>
-            <Button>
+            <Button onClick={() => navigate('/schedule')}>
               <Calendar className="w-4 h-4 mr-2" />
               View Full Schedule
             </Button>
