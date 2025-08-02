@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -254,7 +255,9 @@ export default function MultiPracticeAnalytics() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalMetrics.totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              <CurrencyDisplay amount={totalMetrics.totalRevenue} variant="large" />
+            </div>
             <p className="text-xs text-muted-foreground">+12.5% from last period</p>
             <Progress value={85} className="mt-2" />
           </CardContent>
@@ -411,8 +414,8 @@ export default function MultiPracticeAnalytics() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Revenue</p>
-                      <p className="font-semibold">${practice.revenue.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">Target: ${practice.target.toLocaleString()}</p>
+                      <CurrencyDisplay amount={practice.revenue} variant="small" className="font-semibold" />
+                      <p className="text-xs text-muted-foreground">Target: <CurrencyDisplay amount={practice.target} variant="compact" /></p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Chair Utilization</p>

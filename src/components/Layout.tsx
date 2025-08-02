@@ -1,4 +1,5 @@
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -62,7 +63,8 @@ const Layout = () => {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-4 px-4">
+            <CurrencySelector variant="minimal" showRefreshButton={false} />
             <Button
               variant="ghost"
               size="sm"

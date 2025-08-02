@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
@@ -54,7 +55,8 @@ function App() {
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <SidebarProvider>
+      <CurrencyProvider>
+        <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -99,6 +101,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </SidebarProvider>
+      </CurrencyProvider>
     </TooltipProvider>
   );
 }
