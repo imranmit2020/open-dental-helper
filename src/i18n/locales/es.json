@@ -97,9 +97,34 @@
     "viewSchedule": "Ver horario",
     "generateReport": "Generar informe"
   },
+  "dentist": {
+    "generalDentistry": "Odontología general",
+    "appointmentsToday": "8 citas hoy",
+    "patientNotes": "Notas del paciente",
+    "viewFullSchedule": "Ver horario completo",
+    "todaySchedule": "Horario de hoy",
+    "yourAppointments": "Sus citas para hoy",
+    "aiInsights": "Insights clínicos IA",
+    "aiRecommendations": "Recomendaciones y predicciones impulsadas por IA",
+    "patientAlerts": "Alertas de pacientes",
+    "medicalInfo": "Información médica importante",
+    "recentTreatments": "Tratamientos recientes",
+    "completedProcedures": "Últimos procedimientos completados",
+    "quickActions": "Acciones rápidas",
+    "addEmergencySlot": "Agregar cita de emergencia",
+    "createTreatmentPlan": "Crear plan de tratamiento",
+    "requestFeedback": "Solicitar comentarios"
+  },
   "patients": {
-    "title": "Pacientes",
+    "title": "Gestión de pacientes",
+    "description": "Gestione sus registros de pacientes con insights impulsados por IA",
+    "searchPlaceholder": "Buscar pacientes por nombre, correo o teléfono...",
+    "advancedFilters": "Filtros avanzados",
     "totalPatients": "Total de pacientes",
+    "patientRecords": "Registros de pacientes",
+    "patientsFound": "pacientes encontrados",
+    "aiInsights": "Insights IA disponibles",
+    "viewDetails": "Ver detalles",
     "newPatients": "Nuevos pacientes",
     "activePatients": "Pacientes activos",
     "patientName": "Nombre del paciente",
@@ -332,6 +357,14 @@
     "agreeToTerms": "Acepto los términos y condiciones",
     "privacyPolicy": "Política de privacidad",
     "termsOfService": "Términos de servicio"
+  },
+  "voiceAgent": {
+    "title": "Agente de voz IA",
+    "description": "Asistente dental virtual 24/7 para programación de citas y soporte al paciente",
+    "apiConfiguration": "Configuración de ElevenLabs",
+    "apiDescription": "Ingrese su clave API de ElevenLabs para habilitar la funcionalidad del agente de voz",
+    "controlTitle": "Control del agente de voz",
+    "controlDescription": "Inicie una conversación con su asistente dental IA"
   },
   "messages": {
     "success": "Éxito",

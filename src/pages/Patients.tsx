@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useLanguage } from "@/contexts/LanguageContext";
 import NewPatientForm from "@/components/NewPatientForm";
 import { 
   Search, 
@@ -20,6 +21,7 @@ import {
 
 export default function Patients() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState([
 
@@ -111,9 +113,9 @@ export default function Patients() {
       <div className="flex items-center justify-between animate-fade-in">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Patient Management
+            {t('patients.title', 'Patient Management')}
           </h1>
-          <p className="text-muted-foreground text-lg">Manage your patient records with AI-powered insights</p>
+          <p className="text-muted-foreground text-lg">{t('patients.description', 'Manage your patient records with AI-powered insights')}</p>
         </div>
         <NewPatientForm onPatientAdded={handlePatientAdded} />
       </div>
@@ -124,17 +126,17 @@ export default function Patients() {
           <div className="flex flex-col sm:flex-row gap-6">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
-                placeholder="Search patients by name, email, or phone..."
-                value={searchTerm}
+               <Input
+                 placeholder={t('patients.searchPlaceholder', 'Search patients by name, email, or phone...')}
+                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12 h-12 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl"
               />
             </div>
             <Button variant="outline" className="h-12 px-6 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
               <Filter className="h-5 w-5 mr-2" />
-              Advanced Filters
-            </Button>
+               {t('patients.advancedFilters', 'Advanced Filters')}
+             </Button>
           </div>
         </CardContent>
       </Card>
@@ -145,7 +147,7 @@ export default function Patients() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground font-medium">Total Patients</p>
+                <p className="text-sm text-muted-foreground font-medium">{t('patients.totalPatients', 'Total Patients')}</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">1,247</p>
                 <p className="text-xs text-success flex items-center gap-1">
                   <span className="w-1 h-1 bg-success rounded-full"></span>
@@ -219,12 +221,12 @@ export default function Patients() {
         <CardHeader className="pb-6">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Patient Records
-              </CardTitle>
-              <CardDescription className="text-base mt-2">
-                {filteredPatients.length} patients found • AI-powered insights available
-              </CardDescription>
+               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                 {t('patients.patientRecords', 'Patient Records')}
+               </CardTitle>
+               <CardDescription className="text-base mt-2">
+                 {filteredPatients.length} {t('patients.patientsFound', 'patients found')} • {t('patients.aiInsights', 'AI-powered insights available')}
+               </CardDescription>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" className="hover:bg-primary/5">Export</Button>
@@ -290,10 +292,10 @@ export default function Patients() {
                   variant="ghost" 
                   size="sm" 
                   className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/10"
-                  onClick={() => navigate(`/patients/${patient.id}`)}
-                >
-                  View Details
-                </Button>
+                   onClick={() => navigate(`/patients/${patient.id}`)}
+                 >
+                   {t('patients.viewDetails', 'View Details')}
+                 </Button>
               </div>
             </div>
           ))}

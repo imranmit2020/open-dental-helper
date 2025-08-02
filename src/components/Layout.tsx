@@ -8,12 +8,14 @@ import { Outlet, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar } from "./AppSidebar";
 
 const Layout = () => {
   const location = useLocation();
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const getBreadcrumbFromPath = (path: string) => {
     const segments = path.split('/').filter(Boolean);
@@ -74,7 +76,7 @@ const Layout = () => {
               className="gap-2"
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.logout', 'Sign Out')}
             </Button>
           </div>
         </header>

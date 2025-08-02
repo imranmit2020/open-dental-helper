@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import PatientNotesDialog from "@/components/PatientNotesDialog";
 import { 
   Calendar, 
@@ -18,6 +19,7 @@ import {
 
 const DentistDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const todaySchedule = [
     {
       id: 1,
@@ -141,7 +143,7 @@ const DentistDashboard = () => {
                 Dr. Sarah Wilson
               </h1>
               <p className="text-muted-foreground mt-1">
-                General Dentistry • 8 appointments today
+                {t('dentist.generalDentistry', 'General Dentistry')} • {t('dentist.appointmentsToday', '8 appointments today')}
               </p>
             </div>
           </div>
@@ -150,13 +152,13 @@ const DentistDashboard = () => {
               trigger={
                 <Button variant="outline">
                   <FileText className="w-4 h-4 mr-2" />
-                  Patient Notes
+                  {t('dentist.patientNotes', 'Patient Notes')}
                 </Button>
               }
             />
             <Button onClick={() => navigate('/schedule')}>
               <Calendar className="w-4 h-4 mr-2" />
-              View Full Schedule
+              {t('dentist.viewFullSchedule', 'View Full Schedule')}
             </Button>
           </div>
         </div>
@@ -168,10 +170,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Today's Schedule
+                  {t('dentist.todaySchedule', "Today's Schedule")}
                 </CardTitle>
                 <CardDescription>
-                  Your appointments for today
+                  {t('dentist.yourAppointments', 'Your appointments for today')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -212,10 +214,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5" />
-                  AI Clinical Insights
+                  {t('dentist.aiInsights', 'AI Clinical Insights')}
                 </CardTitle>
                 <CardDescription>
-                  AI-powered recommendations and predictions
+                  {t('dentist.aiRecommendations', 'AI-powered recommendations and predictions')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -244,10 +246,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5" />
-                  Patient Alerts
+                  {t('dentist.patientAlerts', 'Patient Alerts')}
                 </CardTitle>
                 <CardDescription>
-                  Important medical information
+                  {t('dentist.medicalInfo', 'Important medical information')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -276,10 +278,10 @@ const DentistDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Stethoscope className="w-5 h-5" />
-                  Recent Treatments
+                  {t('dentist.recentTreatments', 'Recent Treatments')}
                 </CardTitle>
                 <CardDescription>
-                  Latest completed procedures
+                  {t('dentist.completedProcedures', 'Latest completed procedures')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -308,20 +310,20 @@ const DentistDashboard = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>{t('dentist.quickActions', 'Quick Actions')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <Users className="w-4 h-4 mr-2" />
-                  Add Emergency Slot
+                  {t('dentist.addEmergencySlot', 'Add Emergency Slot')}
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="w-4 h-4 mr-2" />
-                  Create Treatment Plan
+                  {t('dentist.createTreatmentPlan', 'Create Treatment Plan')}
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Star className="w-4 h-4 mr-2" />
-                  Request Feedback
+                  {t('dentist.requestFeedback', 'Request Feedback')}
                 </Button>
               </CardContent>
             </Card>

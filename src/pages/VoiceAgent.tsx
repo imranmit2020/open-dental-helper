@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VoiceAgentProps {}
 
 export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
+  const { t } = useLanguage();
   const [apiKey, setApiKey] = useState(localStorage.getItem('elevenlabs_api_key') || '');
   const [agentId, setAgentId] = useState('dental-assistant-001');
   const [isConnected, setIsConnected] = useState(false);
@@ -144,9 +146,9 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold gradient-text">AI Voice Agent</h1>
+        <h1 className="text-4xl font-bold gradient-text">{t('voiceAgent.title', 'AI Voice Agent')}</h1>
         <p className="text-lg text-muted-foreground">
-          24/7 Virtual dental assistant for appointment scheduling and patient support
+          {t('voiceAgent.description', '24/7 Virtual dental assistant for appointment scheduling and patient support')}
         </p>
       </div>
 
@@ -155,10 +157,10 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
-            ElevenLabs Configuration
+            {t('voiceAgent.apiConfiguration', 'ElevenLabs Configuration')}
           </CardTitle>
           <CardDescription>
-            Enter your ElevenLabs API key to enable voice agent functionality
+            {t('voiceAgent.apiDescription', 'Enter your ElevenLabs API key to enable voice agent functionality')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -194,7 +196,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PhoneCall className="w-5 h-5" />
-            Voice Agent Control
+            {t('voiceAgent.controlTitle', 'Voice Agent Control')}
             {isConnected && (
               <Badge className="bg-success text-success-foreground">
                 Connected
@@ -202,7 +204,7 @@ export const VoiceAgent: React.FC<VoiceAgentProps> = () => {
             )}
           </CardTitle>
           <CardDescription>
-            Start a conversation with your AI dental assistant
+            {t('voiceAgent.controlDescription', 'Start a conversation with your AI dental assistant')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
