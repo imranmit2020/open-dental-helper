@@ -24,7 +24,10 @@ import {
   Cog,
   DollarSign,
   MessageSquare,
-  Lock
+  Lock,
+  Star,
+  UserPlus,
+  VideoIcon
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -63,6 +66,7 @@ const schedulingItems = [
   { title: "Appointment Calendar", url: "/schedule", icon: Calendar },
   { title: "AI Smart Scheduling", url: "/ai-scheduling", icon: Bot },
   { title: "Teledentistry", url: "/teledentistry", icon: Video },
+  { title: "Enhanced Teledentistry", url: "/teledentistry-enhanced", icon: VideoIcon },
 ];
 
 const aiItems = [
@@ -91,6 +95,8 @@ const enterpriseItems = [
   { title: "Marketing Automation", url: "/marketing-automation", icon: Mail },
   { title: "Smart Operations", url: "/smart-operations", icon: Cog },
   { title: "Revenue Management", url: "/revenue-management", icon: DollarSign },
+  { title: "Reputation Management", url: "/reputation-management", icon: Star },
+  { title: "Lead Conversion AI", url: "/lead-conversion", icon: UserPlus },
 ];
 
 const complianceItems = [
