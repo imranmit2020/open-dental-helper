@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 
 export default function PracticeAnalytics() {
+  const { t } = useLanguage();
   const revolutionaryMetrics = [
     {
       title: "AI Predictive Success Rate",
@@ -139,8 +141,8 @@ export default function PracticeAnalytics() {
               <Sparkles className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">Revolutionary Practice Analytics</h1>
-              <p className="text-xl text-purple-100 mt-2">AI-Powered Insights Beyond Traditional Analytics</p>
+              <h1 className="text-4xl font-bold">{t('analytics.title', 'Revolutionary Practice Analytics')}</h1>
+              <p className="text-xl text-purple-100 mt-2">{t('analytics.subtitle', 'AI-Powered Insights Beyond Traditional Analytics')}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -206,7 +208,7 @@ export default function PracticeAnalytics() {
             <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600">
               <Brain className="h-6 w-6 text-white" />
             </div>
-            Revolutionary AI Insights
+            {t('analytics.aiInsights', 'Revolutionary AI Insights')}
             <Badge className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">BETA</Badge>
           </CardTitle>
           <CardDescription className="text-base">
@@ -276,7 +278,7 @@ export default function PracticeAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Eye className="h-6 w-6 text-primary" />
-                Advanced Patient Behavior Analytics
+                {t('analytics.patientBehavior', 'Advanced Patient Behavior Analytics')}
               </CardTitle>
               <CardDescription>
                 Deep learning analysis of patient interaction patterns and treatment responses
@@ -311,7 +313,7 @@ export default function PracticeAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Heart className="h-6 w-6 text-red-500" />
-                Real-Time Biometric Analysis
+                {t('analytics.biometricAnalysis', 'Real-Time Biometric Analysis')}
               </CardTitle>
               <CardDescription>
                 Revolutionary patient monitoring using wearable integration and vital sign analysis
@@ -351,7 +353,7 @@ export default function PracticeAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Sparkles className="h-6 w-6 text-purple-500" />
-                Quantum-Level Practice Metrics
+                {t('analytics.quantumMetrics', 'Quantum-Level Practice Metrics')}
               </CardTitle>
               <CardDescription>
                 Molecular and cellular-level treatment analysis using quantum computing principles
@@ -376,7 +378,7 @@ export default function PracticeAnalytics() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Brain className="h-6 w-6 text-blue-500" />
-                Future Practice Predictions
+                {t('analytics.futurePredictions', 'Future Practice Predictions')}
               </CardTitle>
               <CardDescription>
                 AI-powered forecasting for practice growth, patient outcomes, and market trends

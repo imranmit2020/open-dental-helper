@@ -6,6 +6,7 @@ import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Building, 
   TrendingUp, 
@@ -179,6 +180,7 @@ const staffEfficiency = [
 ];
 
 export default function MultiPracticeAnalytics() {
+  const { t } = useLanguage();
   const [selectedPractice, setSelectedPractice] = useState("all");
   const [timeRange, setTimeRange] = useState("6months");
   const [activeTab, setActiveTab] = useState("overview");
@@ -216,16 +218,16 @@ export default function MultiPracticeAnalytics() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Multi-Practice Analytics Dashboard</h1>
-          <p className="text-muted-foreground">Comprehensive insights & AI-powered recommendations across all practice locations</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('multiPractice.title', 'Multi-Practice Analytics Dashboard')}</h1>
+          <p className="text-muted-foreground">{t('multiPractice.description', 'Comprehensive insights & AI-powered recommendations across all practice locations')}</p>
         </div>
         <div className="flex gap-4">
           <Select value={selectedPractice} onValueChange={setSelectedPractice}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select Practice" />
+              <SelectValue placeholder={t('multiPractice.selectPractice', 'Select Practice')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Practices</SelectItem>
+              <SelectItem value="all">{t('multiPractice.allPractices', 'All Practices')}</SelectItem>
               {practices.map((practice) => (
                 <SelectItem key={practice.id} value={practice.id.toString()}>
                   {practice.name}
@@ -251,7 +253,7 @@ export default function MultiPracticeAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Network Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('multiPractice.networkRevenue', 'Network Revenue')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -264,7 +266,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chair Utilization</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('multiPractice.chairUtilization', 'Chair Utilization')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -275,7 +277,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Treatment Acceptance</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('multiPractice.treatmentAcceptance', 'Treatment Acceptance')}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -286,7 +288,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">No-Show Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('multiPractice.noShowRate', 'No-Show Rate')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -297,7 +299,7 @@ export default function MultiPracticeAnalytics() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Insurance Success</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('multiPractice.insuranceSuccess', 'Insurance Success')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -313,7 +315,7 @@ export default function MultiPracticeAnalytics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-600" />
-            AI-Powered Insights & Recommendations
+            {t('multiPractice.aiInsights', 'AI-Powered Insights & Recommendations')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -349,7 +351,7 @@ export default function MultiPracticeAnalytics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Practice Performance Comparison
+            {t('multiPractice.practiceComparison', 'Practice Performance Comparison')}
           </CardTitle>
         </CardHeader>
         <CardContent>
