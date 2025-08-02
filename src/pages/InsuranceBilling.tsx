@@ -6,10 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, CheckCircle, Clock, DollarSign, FileText, RefreshCw, Zap } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/CurrencyDisplay';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { AIInsuranceService } from '@/services/AIInsuranceService';
 import { toast } from 'sonner';
 
 const InsuranceBilling = () => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [claims, setClaims] = useState([]);
   const [verifications, setVerifications] = useState([]);
@@ -98,12 +100,12 @@ const InsuranceBilling = () => {
     <div className="container mx-auto py-8 space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">AI Insurance & Billing</h1>
-          <p className="text-muted-foreground">Automated verification, claim processing, and error detection</p>
+          <h1 className="text-3xl font-bold">{t('insurance.title', 'AI Insurance & Billing')}</h1>
+          <p className="text-muted-foreground">{t('insurance.description', 'Automated verification, claim processing, and error detection')}</p>
         </div>
         <Button onClick={() => window.location.reload()} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh Data
+          {t('insurance.refreshData', 'Refresh Data')}
         </Button>
       </div>
 
@@ -111,7 +113,7 @@ const InsuranceBilling = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Claims Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('insurance.claimsPending', 'Claims Pending')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -124,7 +126,7 @@ const InsuranceBilling = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Approval Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('insurance.approvalRate', 'Average Approval Rate')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -137,7 +139,7 @@ const InsuranceBilling = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue at Risk</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('insurance.revenueAtRisk', 'Revenue at Risk')}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -152,7 +154,7 @@ const InsuranceBilling = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Processing Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('insurance.processingTime', 'AI Processing Time')}</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -166,17 +168,17 @@ const InsuranceBilling = () => {
 
       <Tabs defaultValue="claims" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="claims">Claims Management</TabsTrigger>
-          <TabsTrigger value="verification">Insurance Verification</TabsTrigger>
-          <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
+          <TabsTrigger value="claims">{t('insurance.claimsManagement', 'Claims Management')}</TabsTrigger>
+          <TabsTrigger value="verification">{t('insurance.insuranceVerification', 'Insurance Verification')}</TabsTrigger>
+          <TabsTrigger value="analytics">{t('insurance.aiAnalytics', 'AI Analytics')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="claims" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>AI-Powered Claims Processing</CardTitle>
+              <CardTitle>{t('insurance.aiClaimsProcessing', 'AI-Powered Claims Processing')}</CardTitle>
               <CardDescription>
-                Automated claim review with intelligent error detection and approval prediction
+                {t('insurance.claimsDescription', 'Automated claim review with intelligent error detection and approval prediction')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -209,11 +211,11 @@ const InsuranceBilling = () => {
                         onClick={() => handlePredictClaim(claim.id, claim.codes)}
                         disabled={loading}
                       >
-                        Re-analyze
+                        {t('insurance.reAnalyze', 'Re-analyze')}
                       </Button>
                       {claim.status === 'flagged' && (
                         <Button size="sm" variant="outline" className="text-orange-600">
-                          Fix Issues
+                          {t('insurance.fixIssues', 'Fix Issues')}
                         </Button>
                       )}
                     </div>

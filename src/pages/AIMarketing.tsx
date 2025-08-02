@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   Brain, 
   Target, 
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 const AIMarketing = () => {
+  const { t } = useLanguage();
   const campaignStats = [
     {
       title: "Active Campaigns",
@@ -151,20 +153,20 @@ const AIMarketing = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              AI Marketing Hub
+              {t('marketing.title', 'AI Marketing Hub')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Intelligent marketing automation and campaign optimization
+              {t('marketing.description', 'Intelligent marketing automation and campaign optimization')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline">
               <Brain className="w-4 h-4 mr-2" />
-              AI Suggestions
+              {t('marketing.aiSuggestions', 'AI Suggestions')}
             </Button>
             <Button>
               <Zap className="w-4 h-4 mr-2" />
-              Create Campaign
+              {t('marketing.createCampaign', 'Create Campaign')}
             </Button>
           </div>
         </div>
@@ -199,10 +201,10 @@ const AIMarketing = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="w-5 h-5" />
-                  Active Campaigns
+                  {t('marketing.activeCampaigns', 'Active Campaigns')}
                 </CardTitle>
                 <CardDescription>
-                  Monitor and manage your marketing campaigns
+                  {t('marketing.campaignsDescription', 'Monitor and manage your marketing campaigns')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -249,10 +251,10 @@ const AIMarketing = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5" />
-                  AI Marketing Insights
+                  {t('marketing.aiInsights', 'AI Marketing Insights')}
                 </CardTitle>
                 <CardDescription>
-                  Data-driven recommendations to optimize your campaigns
+                  {t('marketing.insightsDescription', 'Data-driven recommendations to optimize your campaigns')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -337,24 +339,24 @@ const AIMarketing = () => {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Marketing Tools</CardTitle>
+                <CardTitle>{t('marketing.tools', 'Marketing Tools')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <Mail className="w-4 h-4 mr-2" />
-                  Email Campaign
+                  {t('marketing.emailCampaign', 'Email Campaign')}
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  Social Media Post
+                  {t('marketing.socialPost', 'Social Media Post')}
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Phone className="w-4 h-4 mr-2" />
-                  SMS Campaign
+                  {t('marketing.smsCampaign', 'SMS Campaign')}
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Star className="w-4 h-4 mr-2" />
-                  Review Manager
+                  {t('marketing.reviewManager', 'Review Manager')}
                 </Button>
               </CardContent>
             </Card>
