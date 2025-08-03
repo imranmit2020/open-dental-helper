@@ -37,27 +37,27 @@ export default function PracticeAnalytics() {
   const { t } = useLanguage();
   const revolutionaryMetrics = [
     {
-      title: "AI Predictive Success Rate",
-      value: "94.7%",
-      change: "+12.3% vs traditional",
+      title: "Quantum AI Success Rate",
+      value: "98.9%",
+      change: "+23.4% vs traditional",
       icon: Brain,
       color: "text-purple-600",
       gradient: "from-purple-500 to-indigo-600",
-      description: "Treatment success prediction using ML algorithms"
+      description: "Quantum-enhanced treatment prediction algorithms"
     },
     {
-      title: "Patient Risk Score",
-      value: "Low",
-      change: "3 high-risk identified",
+      title: "Quantum Risk Assessment",
+      value: "Ultra-Low",
+      change: "2 quantum states identified",
       icon: Shield,
       color: "text-green-600",
       gradient: "from-green-500 to-emerald-600",
-      description: "Real-time risk assessment using biomarkers"
+      description: "Quantum biomarker analysis and risk prediction"
     },
     {
-      title: "Neural Revenue Optimization",
-      value: "$47,240",
-      change: "+23.7% AI optimized",
+      title: "Quantum Revenue Optimization",
+      value: "$67,840",
+      change: "+47.2% quantum optimized",
       icon: Zap,
       color: "text-yellow-600",
       gradient: "from-yellow-500 to-orange-600",

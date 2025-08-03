@@ -44,6 +44,8 @@ import ComplianceSecurity from "./pages/ComplianceSecurity";
 import TeledentistryEnhanced from "./pages/TeledentistryEnhanced";
 import ReputationManagement from "./pages/ReputationManagement";
 import LeadConversion from "./pages/LeadConversion";
+import QuantumDentalAI from "./pages/QuantumDentalAI";
+import QuantumScheduling from "./pages/QuantumScheduling";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -98,6 +100,8 @@ function App() {
             <Route path="ai-marketing" element={<AIMarketing />} />
             <Route path="ai/marketing" element={<AIMarketing />} />
             <Route path="practice-analytics" element={<PracticeAnalytics />} />
+            <Route path="quantum-dental-ai" element={<QuantumDentalAI />} />
+            <Route path="quantum-scheduling" element={<QuantumScheduling />} />
             <Route path="ai/analytics" element={<PracticeAnalytics />} />
             <Route path="predictive-analytics" element={<PredictiveAnalytics />} />
             <Route path="ai/predictive-analytics" element={<PredictiveAnalytics />} />
