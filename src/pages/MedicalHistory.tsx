@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import VoiceRecorder from "@/components/VoiceRecorder";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +47,8 @@ export default function MedicalHistory() {
   const [loading, setLoading] = useState(true);
   const [isNewRecordOpen, setIsNewRecordOpen] = useState(false);
   const [isNewMedicationOpen, setIsNewMedicationOpen] = useState(false);
+  const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
+  const [generatedPrescription, setGeneratedPrescription] = useState('');
   const [newRecordForm, setNewRecordForm] = useState({
     title: '',
     record_type: '',
@@ -301,6 +304,153 @@ export default function MedicalHistory() {
       toast({
         title: "Error",
         description: "Failed to add medication",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVoiceTranscription = (text: string) => {
+    // Parse the voice input and fill form fields intelligently
+    const lowerText = text.toLowerCase();
+    
+    // Extract medication name (usually the first drug name mentioned)
+    const medicationMatch = lowerText.match(/(?:take|prescribe|give|medication|drug)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)/);
+    if (medicationMatch && !newMedicationForm.medication_name) {
+      setNewMedicationForm(prev => ({
+        ...prev,
+        medication_name: medicationMatch[1].split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ')
+      }));
+    }
+
+    // Extract dosage
+    const dosageMatch = lowerText.match(/(\d+(?:\.\d+)?\s*(?:mg|milligrams?|g|grams?|ml|milliliters?|units?|tablets?|capsules?|pills?))/i);
+    if (dosageMatch && !newMedicationForm.dosage) {
+      setNewMedicationForm(prev => ({
+        ...prev,
+        dosage: dosageMatch[1]
+      }));
+    }
+
+    // Extract frequency
+    if (lowerText.includes('once a day') || lowerText.includes('once daily') || lowerText.includes('one time a day')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'Once daily' }));
+    } else if (lowerText.includes('twice a day') || lowerText.includes('twice daily') || lowerText.includes('two times a day')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'Twice daily' }));
+    } else if (lowerText.includes('three times a day') || lowerText.includes('three times daily')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'Three times daily' }));
+    } else if (lowerText.includes('four times a day') || lowerText.includes('four times daily')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'Four times daily' }));
+    } else if (lowerText.includes('as needed') || lowerText.includes('when needed') || lowerText.includes('prn')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'As needed' }));
+    } else if (lowerText.includes('before meals') || lowerText.includes('before eating')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'Before meals' }));
+    } else if (lowerText.includes('after meals') || lowerText.includes('after eating')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'After meals' }));
+    } else if (lowerText.includes('at bedtime') || lowerText.includes('before bed')) {
+      setNewMedicationForm(prev => ({ ...prev, frequency: 'At bedtime' }));
+    }
+
+    // Extract duration or notes
+    const durationMatch = lowerText.match(/for\s+(\d+)\s+(days?|weeks?|months?)/);
+    if (durationMatch && !newMedicationForm.notes) {
+      setNewMedicationForm(prev => ({
+        ...prev,
+        notes: `Take for ${durationMatch[1]} ${durationMatch[2]}`
+      }));
+    }
+
+    // If no specific fields were filled, put the full text in notes
+    if (!medicationMatch && !dosageMatch && !newMedicationForm.notes) {
+      setNewMedicationForm(prev => ({
+        ...prev,
+        notes: text
+      }));
+    }
+
+    toast({
+      title: "Voice Input Processed",
+      description: "Medication details have been extracted from your voice input",
+    });
+  };
+
+  const generatePrescription = async () => {
+    if (!selectedPatientData || !newMedicationForm.medication_name) {
+      toast({
+        title: "Missing Information",
+        description: "Please ensure patient is selected and medication name is provided",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-prescription', {
+        body: {
+          medicationName: newMedicationForm.medication_name,
+          patientInfo: {
+            name: `${selectedPatientData.first_name} ${selectedPatientData.last_name}`,
+            age: getAge(selectedPatientData.date_of_birth)
+          },
+          diagnosis: 'General dental treatment',
+          dosage: newMedicationForm.dosage,
+          frequency: newMedicationForm.frequency
+        }
+      });
+
+      if (error) throw error;
+
+      setGeneratedPrescription(data.prescription);
+      setIsPrescriptionOpen(true);
+
+      toast({
+        title: "Prescription Generated",
+        description: "AI-powered prescription has been created",
+      });
+    } catch (error) {
+      console.error('Error generating prescription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate prescription",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const speakPrescription = async () => {
+    if (!generatedPrescription) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          text: generatedPrescription,
+          voice: 'alloy'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.audioContent) {
+        // Convert base64 to audio and play
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        await audio.play();
+      }
+    } catch (error) {
+      console.error('Text-to-speech error:', error);
+      toast({
+        title: "Speech Error",
+        description: "Failed to convert text to speech",
         variant: "destructive",
       });
     }
@@ -797,11 +947,17 @@ export default function MedicalHistory() {
 
       {/* New Medication Dialog */}
       <Dialog open={isNewMedicationOpen} onOpenChange={setIsNewMedicationOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle>Add New Medication</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Add New Medication
+              <VoiceRecorder 
+                onTranscription={handleVoiceTranscription}
+                className="ml-auto"
+              />
+            </DialogTitle>
             <DialogDescription>
-              Add a new medication for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}.
+              Add a new medication for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}. Use voice input or fill the form manually.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -833,7 +989,7 @@ export default function MedicalHistory() {
               <Label htmlFor="frequency" className="text-right">
                 Frequency
               </Label>
-              <Select onValueChange={(value) => setNewMedicationForm({...newMedicationForm, frequency: value})}>
+              <Select value={newMedicationForm.frequency} onValueChange={(value) => setNewMedicationForm({...newMedicationForm, frequency: value})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
@@ -908,12 +1064,66 @@ export default function MedicalHistory() {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => setIsNewMedicationOpen(false)}>
               Cancel
             </Button>
+            <Button 
+              variant="secondary"
+              onClick={generatePrescription}
+              disabled={!newMedicationForm.medication_name}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Generate Prescription
+            </Button>
             <Button onClick={handleCreateMedication}>
               Add Medication
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prescription Dialog */}
+      <Dialog open={isPrescriptionOpen} onOpenChange={setIsPrescriptionOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Generated Prescription
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={speakPrescription}
+                className="ml-auto"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Listen
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              AI-generated prescription based on medication details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-muted/30 p-6 rounded-lg border">
+              <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
+                {generatedPrescription}
+              </pre>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsPrescriptionOpen(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                navigator.clipboard.writeText(generatedPrescription);
+                toast({
+                  title: "Copied",
+                  description: "Prescription copied to clipboard",
+                });
+              }}
+            >
+              Copy to Clipboard
             </Button>
           </DialogFooter>
         </DialogContent>
