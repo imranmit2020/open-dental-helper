@@ -174,7 +174,7 @@ export default function MedicalHistory() {
   };
 
   const filteredPatients = patients.filter(patient =>
-    `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+    `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
@@ -248,7 +248,7 @@ export default function MedicalHistory() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{`${patient.first_name} ${patient.last_name}`}</p>
+                    <p className="font-semibold text-sm truncate">{`${patient.first_name || ''} ${patient.last_name || ''}`}</p>
                     <p className="text-xs text-muted-foreground">Age {getAge(patient.date_of_birth)}</p>
                     <p className={`text-xs font-medium ${getRiskColor(patient.risk_level || 'low')}`}>
                       {patient.risk_level || 'low'} risk
@@ -268,24 +268,26 @@ export default function MedicalHistory() {
               <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-2xl animate-fade-in">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                          {`${selectedPatientData.first_name?.[0] || ''}${selectedPatientData.last_name?.[0] || ''}`}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h2 className="text-2xl font-bold">{`${selectedPatientData.first_name} ${selectedPatientData.last_name}`}</h2>
-                        <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                          <span>Age: {getAge(selectedPatientData.date_of_birth)}</span>
-                          <span>Last Visit: {selectedPatientData.last_visit ? new Date(selectedPatientData.last_visit).toLocaleDateString() : 'N/A'}</span>
-                          <span className={`font-medium ${getRiskColor(selectedPatientData.risk_level || 'low')}`}>
-                            Risk: {selectedPatientData.risk_level || 'low'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                     <div className="flex items-center gap-4">
+                       <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg">
+                         <AvatarImage src="" />
+                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
+                           {selectedPatientData ? `${selectedPatientData.first_name?.[0] || ''}${selectedPatientData.last_name?.[0] || ''}` : 'P'}
+                         </AvatarFallback>
+                       </Avatar>
+                       <div>
+                         <h2 className="text-2xl font-bold">
+                           {selectedPatientData ? `${selectedPatientData.first_name || ''} ${selectedPatientData.last_name || ''}` : 'Loading...'}
+                         </h2>
+                         <div className="flex gap-4 text-sm text-muted-foreground mt-1">
+                           <span>Age: {selectedPatientData ? getAge(selectedPatientData.date_of_birth) : 'N/A'}</span>
+                           <span>Last Visit: {selectedPatientData?.last_visit ? new Date(selectedPatientData.last_visit).toLocaleDateString() : 'N/A'}</span>
+                           <span className={`font-medium ${getRiskColor(selectedPatientData?.risk_level || 'low')}`}>
+                             Risk: {selectedPatientData?.risk_level || 'low'}
+                           </span>
+                         </div>
+                       </div>
+                     </div>
                     <Button 
                       onClick={handleViewProfile}
                       variant="outline" 
