@@ -45,6 +45,7 @@ export default function MedicalHistory() {
   const [medicalConditions, setMedicalConditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isNewRecordOpen, setIsNewRecordOpen] = useState(false);
+  const [isNewMedicationOpen, setIsNewMedicationOpen] = useState(false);
   const [newRecordForm, setNewRecordForm] = useState({
     title: '',
     record_type: '',
@@ -53,6 +54,15 @@ export default function MedicalHistory() {
     description: '',
     visit_date: new Date().toISOString().split('T')[0],
     status: 'completed'
+  });
+  const [newMedicationForm, setNewMedicationForm] = useState({
+    medication_name: '',
+    dosage: '',
+    frequency: '',
+    status: 'active',
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: '',
+    notes: ''
   });
 
   useEffect(() => {
@@ -209,6 +219,88 @@ export default function MedicalHistory() {
       toast({
         title: "Error",
         description: "Failed to create medical record",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNewMedication = () => {
+    if (!selectedPatient) {
+      toast({
+        title: "No Patient Selected",
+        description: "Please select a patient first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsNewMedicationOpen(true);
+  };
+
+  const handleCreateMedication = async () => {
+    if (!selectedPatient || !newMedicationForm.medication_name) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter medication name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Get the current user's profile ID
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error('Could not find user profile');
+      }
+
+      const { error } = await supabase
+        .from('medications')
+        .insert({
+          patient_id: selectedPatient,
+          medication_name: newMedicationForm.medication_name,
+          dosage: newMedicationForm.dosage,
+          frequency: newMedicationForm.frequency,
+          status: newMedicationForm.status,
+          start_date: newMedicationForm.start_date,
+          end_date: newMedicationForm.end_date || null,
+          notes: newMedicationForm.notes,
+          prescribed_by: profileData.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Medication added successfully",
+      });
+
+      // Reset form and close dialog
+      setNewMedicationForm({
+        medication_name: '',
+        dosage: '',
+        frequency: '',
+        status: 'active',
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: '',
+        notes: ''
+      });
+      setIsNewMedicationOpen(false);
+
+      // Refresh patient data
+      if (selectedPatient) {
+        fetchPatientData(selectedPatient);
+      }
+    } catch (error) {
+      console.error('Error creating medication:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add medication",
         variant: "destructive",
       });
     }
@@ -468,10 +560,20 @@ export default function MedicalHistory() {
                 <TabsContent value="medications" className="space-y-4">
                   <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Pill className="h-5 w-5" />
-                        Current Medications
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Pill className="h-5 w-5" />
+                          Current Medications
+                        </CardTitle>
+                        <Button 
+                          onClick={handleNewMedication}
+                          size="sm"
+                          className="bg-gradient-to-r from-primary to-secondary text-white hover:scale-105 transition-all duration-300"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Medication
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {medications.length > 0 ? medications.map((med, index) => (
@@ -688,6 +790,130 @@ export default function MedicalHistory() {
             </Button>
             <Button onClick={handleCreateRecord}>
               Create Record
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Medication Dialog */}
+      <Dialog open={isNewMedicationOpen} onOpenChange={setIsNewMedicationOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Medication</DialogTitle>
+            <DialogDescription>
+              Add a new medication for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="medication_name" className="text-right">
+                Medication *
+              </Label>
+              <Input
+                id="medication_name"
+                value={newMedicationForm.medication_name}
+                onChange={(e) => setNewMedicationForm({...newMedicationForm, medication_name: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., Amoxicillin"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dosage" className="text-right">
+                Dosage
+              </Label>
+              <Input
+                id="dosage"
+                value={newMedicationForm.dosage}
+                onChange={(e) => setNewMedicationForm({...newMedicationForm, dosage: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., 500mg"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="frequency" className="text-right">
+                Frequency
+              </Label>
+              <Select onValueChange={(value) => setNewMedicationForm({...newMedicationForm, frequency: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Once daily">Once daily</SelectItem>
+                  <SelectItem value="Twice daily">Twice daily</SelectItem>
+                  <SelectItem value="Three times daily">Three times daily</SelectItem>
+                  <SelectItem value="Four times daily">Four times daily</SelectItem>
+                  <SelectItem value="Every 4 hours">Every 4 hours</SelectItem>
+                  <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
+                  <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
+                  <SelectItem value="Every 12 hours">Every 12 hours</SelectItem>
+                  <SelectItem value="As needed">As needed (PRN)</SelectItem>
+                  <SelectItem value="Before meals">Before meals</SelectItem>
+                  <SelectItem value="After meals">After meals</SelectItem>
+                  <SelectItem value="At bedtime">At bedtime</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="start_date" className="text-right">
+                Start Date
+              </Label>
+              <Input
+                id="start_date"
+                type="date"
+                value={newMedicationForm.start_date}
+                onChange={(e) => setNewMedicationForm({...newMedicationForm, start_date: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="end_date" className="text-right">
+                End Date
+              </Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={newMedicationForm.end_date}
+                onChange={(e) => setNewMedicationForm({...newMedicationForm, end_date: e.target.value})}
+                className="col-span-3"
+                placeholder="Leave empty for ongoing"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="med_status" className="text-right">
+                Status
+              </Label>
+              <Select value={newMedicationForm.status} onValueChange={(value) => setNewMedicationForm({...newMedicationForm, status: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="discontinued">Discontinued</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="med_notes" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="med_notes"
+                value={newMedicationForm.notes}
+                onChange={(e) => setNewMedicationForm({...newMedicationForm, notes: e.target.value})}
+                className="col-span-3"
+                placeholder="Special instructions, side effects, etc..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewMedicationOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateMedication}>
+              Add Medication
             </Button>
           </DialogFooter>
         </DialogContent>
