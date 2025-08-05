@@ -9,13 +9,27 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Generate prescription function called');
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { medicationName, patientInfo, diagnosis, dosage, frequency } = await req.json();
+    // Check if OpenAI API key is available
+    if (!openAIApiKey) {
+      console.error('OpenAI API key not found in environment variables');
+      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const requestBody = await req.json();
+    console.log('Request body:', requestBody);
+    
+    const { medicationName, patientInfo, diagnosis, dosage, frequency } = requestBody;
 
     const prompt = `Generate a professional medical prescription for the following:
 
