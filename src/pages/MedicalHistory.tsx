@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Plus, 
@@ -24,87 +28,136 @@ import {
 } from "lucide-react";
 
 export default function MedicalHistory() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState<number | null>(1);
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [medications, setMedications] = useState<any[]>([]);
+  const [allergies, setAllergies] = useState<any[]>([]);
+  const [medicalConditions, setMedicalConditions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const patients = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      age: 32,
-      avatar: "",
-      lastVisit: "2024-01-15",
-      conditions: ["Gingivitis", "Cavity"],
-      riskLevel: "low"
-    },
-    {
-      id: 2,
-      name: "Mike Davis", 
-      age: 45,
-      avatar: "",
-      lastVisit: "2024-01-10",
-      conditions: ["Periodontitis", "Crown Replacement"],
-      riskLevel: "medium"
-    },
-    {
-      id: 3,
-      name: "Emily Chen",
-      age: 28,
-      avatar: "",
-      lastVisit: "2023-12-20", 
-      conditions: ["Root Canal", "Wisdom Teeth"],
-      riskLevel: "high"
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPatient) {
+      fetchPatientData(selectedPatient);
     }
-  ];
+  }, [selectedPatient]);
 
-  const medicalRecords = [
-    {
-      id: 1,
-      date: "2024-01-15",
-      type: "Routine Checkup",
-      dentist: "Dr. Smith",
-      diagnosis: "Mild gingivitis, cavity in tooth #14",
-      treatment: "Scaling, filling placement",
-      notes: "Patient showed improvement in oral hygiene. Recommend fluoride toothpaste.",
-      images: 2,
-      status: "completed"
-    },
-    {
-      id: 2,
-      date: "2023-11-20",
-      type: "Follow-up",
-      dentist: "Dr. Johnson",
-      diagnosis: "Healing well post-extraction",
-      treatment: "Suture removal, wound check",
-      notes: "Extraction site healing normally. No complications observed.",
-      images: 1,
-      status: "completed"
-    },
-    {
-      id: 3,
-      date: "2023-10-05",
-      type: "Emergency Visit",
-      dentist: "Dr. Smith",
-      diagnosis: "Severe toothache, infected molar",
-      treatment: "Root canal therapy initiated",
-      notes: "Patient experienced severe pain. Emergency root canal performed.",
-      images: 3,
-      status: "in-progress"
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      setPatients(data || []);
+      if (data && data.length > 0 && !selectedPatient) {
+        setSelectedPatient(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patients",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const medications = [
-    { name: "Amoxicillin", dosage: "500mg", frequency: "3x daily", duration: "7 days", prescribed: "2024-01-15" },
-    { name: "Ibuprofen", dosage: "400mg", frequency: "As needed", duration: "PRN", prescribed: "2024-01-15" },
-    { name: "Chlorhexidine", dosage: "0.2%", frequency: "2x daily", duration: "14 days", prescribed: "2023-11-20" }
-  ];
+  const fetchPatientData = async (patientId: string) => {
+    try {
+      // Fetch medical records
+      const { data: recordsData } = await supabase
+        .from('medical_records')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('visit_date', { ascending: false });
 
-  const allergies = ["Penicillin", "Latex"];
-  const medicalConditions = ["Diabetes Type 2", "Hypertension"];
+      // Fetch medications
+      const { data: medicationsData } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
+
+      // Fetch allergies
+      const { data: allergiesData } = await supabase
+        .from('allergies')
+        .select('*')
+        .eq('patient_id', patientId);
+
+      // Fetch medical conditions
+      const { data: conditionsData } = await supabase
+        .from('medical_conditions')
+        .select('*')
+        .eq('patient_id', patientId);
+
+      setMedicalRecords(recordsData || []);
+      setMedications(medicationsData || []);
+      setAllergies(allergiesData || []);
+      setMedicalConditions(conditionsData || []);
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patient data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNewRecord = () => {
+    if (selectedPatient) {
+      navigate(`/patients/${selectedPatient}`);
+    } else {
+      toast({
+        title: "No Patient Selected",
+        description: "Please select a patient first",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewProfile = () => {
+    if (selectedPatient) {
+      navigate(`/patients/${selectedPatient}`);
+    } else {
+      toast({
+        title: "No Patient Selected", 
+        description: "Please select a patient first",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 'Unknown';
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-success/10 text-success border-success/20";
+      case "active": return "bg-success/10 text-success border-success/20";
       case "in-progress": return "bg-warning/10 text-warning border-warning/20";
       case "pending": return "bg-muted/10 text-muted-foreground border-muted/20";
       default: return "bg-muted/10 text-muted-foreground border-muted/20";
@@ -120,7 +173,19 @@ export default function MedicalHistory() {
     }
   };
 
+  const filteredPatients = patients.filter(patient =>
+    `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 space-y-8">
@@ -137,7 +202,10 @@ export default function MedicalHistory() {
             <Download className="h-4 w-4 mr-2" />
             Export Records
           </Button>
-          <Button className="bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 rounded-xl px-6">
+          <Button 
+            onClick={handleNewRecord}
+            className="bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 rounded-xl px-6"
+          >
             <Plus className="h-5 w-5 mr-2" />
             New Record
           </Button>
@@ -162,7 +230,7 @@ export default function MedicalHistory() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {patients.map((patient) => (
+            {filteredPatients.map((patient) => (
               <div
                 key={patient.id}
                 onClick={() => setSelectedPatient(patient.id)}
@@ -174,16 +242,16 @@ export default function MedicalHistory() {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 ring-2 ring-background shadow-md">
-                    <AvatarImage src={patient.avatar} />
+                    <AvatarImage src="" />
                     <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold">
-                      {patient.name.split(' ').map(n => n[0]).join('')}
+                      {`${patient.first_name?.[0] || ''}${patient.last_name?.[0] || ''}`}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{patient.name}</p>
-                    <p className="text-xs text-muted-foreground">Age {patient.age}</p>
-                    <p className={`text-xs font-medium ${getRiskColor(patient.riskLevel)}`}>
-                      {patient.riskLevel} risk
+                    <p className="font-semibold text-sm truncate">{`${patient.first_name} ${patient.last_name}`}</p>
+                    <p className="text-xs text-muted-foreground">Age {getAge(patient.date_of_birth)}</p>
+                    <p className={`text-xs font-medium ${getRiskColor(patient.risk_level || 'low')}`}>
+                      {patient.risk_level || 'low'} risk
                     </p>
                   </div>
                 </div>
@@ -202,23 +270,27 @@ export default function MedicalHistory() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg">
-                        <AvatarImage src={selectedPatientData.avatar} />
+                        <AvatarImage src="" />
                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                          {selectedPatientData.name.split(' ').map(n => n[0]).join('')}
+                          {`${selectedPatientData.first_name?.[0] || ''}${selectedPatientData.last_name?.[0] || ''}`}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h2 className="text-2xl font-bold">{selectedPatientData.name}</h2>
+                        <h2 className="text-2xl font-bold">{`${selectedPatientData.first_name} ${selectedPatientData.last_name}`}</h2>
                         <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                          <span>Age: {selectedPatientData.age}</span>
-                          <span>Last Visit: {new Date(selectedPatientData.lastVisit).toLocaleDateString()}</span>
-                          <span className={`font-medium ${getRiskColor(selectedPatientData.riskLevel)}`}>
-                            Risk: {selectedPatientData.riskLevel}
+                          <span>Age: {getAge(selectedPatientData.date_of_birth)}</span>
+                          <span>Last Visit: {selectedPatientData.last_visit ? new Date(selectedPatientData.last_visit).toLocaleDateString() : 'N/A'}</span>
+                          <span className={`font-medium ${getRiskColor(selectedPatientData.risk_level || 'low')}`}>
+                            Risk: {selectedPatientData.risk_level || 'low'}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <Button variant="outline" className="hover:bg-primary/5 rounded-xl">
+                    <Button 
+                      onClick={handleViewProfile}
+                      variant="outline" 
+                      className="hover:bg-primary/5 rounded-xl"
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       View Full Profile
                     </Button>
@@ -248,13 +320,13 @@ export default function MedicalHistory() {
                 </TabsList>
 
                 <TabsContent value="records" className="space-y-4">
-                  {medicalRecords.map((record, index) => (
+                  {medicalRecords.length > 0 ? medicalRecords.map((record, index) => (
                     <Card key={record.id} className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold">{record.type}</h3>
+                              <h3 className="text-lg font-bold">{record.record_type || record.title}</h3>
                               <Badge variant="outline" className={getStatusColor(record.status)}>
                                 {record.status}
                               </Badge>
@@ -262,15 +334,15 @@ export default function MedicalHistory() {
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(record.date).toLocaleDateString()}
+                                {record.visit_date ? new Date(record.visit_date).toLocaleDateString() : 'N/A'}
                               </span>
                               <span className="flex items-center gap-1">
                                 <User className="h-3 w-3" />
-                                {record.dentist}
+                                {record.dentist_id || 'Dr. Smith'}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Camera className="h-3 w-3" />
-                                {record.images} images
+                                {record.attachments?.length || 0} images
                               </span>
                             </div>
                           </div>
@@ -283,21 +355,28 @@ export default function MedicalHistory() {
                           <div className="space-y-3">
                             <div>
                               <p className="text-sm font-medium text-muted-foreground mb-1">Diagnosis</p>
-                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.diagnosis}</p>
+                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.diagnosis || 'No diagnosis recorded'}</p>
                             </div>
                             <div>
                               <p className="text-sm font-medium text-muted-foreground mb-1">Treatment</p>
-                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.treatment}</p>
+                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.treatment || 'No treatment recorded'}</p>
                             </div>
                           </div>
                           <div>
                             <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-                            <p className="text-sm bg-muted/30 p-3 rounded-lg h-full">{record.notes}</p>
+                            <p className="text-sm bg-muted/30 p-3 rounded-lg h-full">{record.description || 'No notes available'}</p>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : (
+                    <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                      <CardContent className="p-6 text-center">
+                        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No medical records found</p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="medications" className="space-y-4">
@@ -309,19 +388,24 @@ export default function MedicalHistory() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {medications.map((med, index) => (
+                      {medications.length > 0 ? medications.map((med, index) => (
                         <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                           <div className="space-y-1">
-                            <p className="font-semibold">{med.name}</p>
+                            <p className="font-semibold">{med.medication_name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {med.dosage} • {med.frequency} • {med.duration}
+                              {med.dosage} • {med.frequency} • {med.status}
                             </p>
                           </div>
                           <div className="text-right text-sm text-muted-foreground">
-                            <p>Prescribed: {new Date(med.prescribed).toLocaleDateString()}</p>
+                            <p>Start: {med.start_date ? new Date(med.start_date).toLocaleDateString() : 'N/A'}</p>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center text-muted-foreground py-4">
+                          <Pill className="h-12 w-12 mx-auto mb-2" />
+                          <p>No medications recorded</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -335,33 +419,43 @@ export default function MedicalHistory() {
                           Allergies
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {allergies.map((allergy, index) => (
-                            <Badge key={index} variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
-                              {allergy}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                       <CardContent>
+                         <div className="space-y-2">
+                           {allergies.length > 0 ? allergies.map((allergy, index) => (
+                             <Badge key={index} variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                               {allergy.allergen}
+                             </Badge>
+                           )) : (
+                             <div className="text-center text-muted-foreground py-4">
+                               <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                               <p className="text-sm">No allergies recorded</p>
+                             </div>
+                           )}
+                         </div>
+                       </CardContent>
+                     </Card>
 
-                    <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-warning">
-                          <Heart className="h-5 w-5" />
-                          Medical Conditions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {medicalConditions.map((condition, index) => (
-                            <Badge key={index} variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                              {condition}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
+                     <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                       <CardHeader>
+                         <CardTitle className="flex items-center gap-2 text-warning">
+                           <Heart className="h-5 w-5" />
+                           Medical Conditions
+                         </CardTitle>
+                       </CardHeader>
+                       <CardContent>
+                         <div className="space-y-2">
+                           {medicalConditions.length > 0 ? medicalConditions.map((condition, index) => (
+                             <Badge key={index} variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                               {condition.condition_name}
+                             </Badge>
+                           )) : (
+                             <div className="text-center text-muted-foreground py-4">
+                               <Heart className="h-8 w-8 mx-auto mb-2" />
+                               <p className="text-sm">No conditions recorded</p>
+                             </div>
+                           )}
+                         </div>
+                       </CardContent>
                     </Card>
                   </div>
                 </TabsContent>
