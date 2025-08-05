@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,62 +26,111 @@ export default function Patients() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { logPatientView } = useAuditLog();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState([
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalPatients: 0,
+    activeTreatments: 0,
+    overdueCheckups: 0,
+    appointmentsThisMonth: 0
+  });
 
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@email.com",
-      phone: "(555) 123-4567",
-      lastVisit: "2024-01-15",
-      nextAppointment: "2024-02-01",
-      status: "active",
-      riskLevel: "low",
-      avatar: "",
-      age: 32,
-      insurance: "Delta Dental"
-    },
-    {
-      id: 2,
-      name: "Mike Davis",
-      email: "mike.davis@email.com",
-      phone: "(555) 234-5678",
-      lastVisit: "2024-01-10",
-      nextAppointment: "2024-01-25",
-      status: "treatment",
-      riskLevel: "medium",
-      avatar: "",
-      age: 45,
-      insurance: "MetLife"
-    },
-    {
-      id: 3,
-      name: "Emily Chen",
-      email: "emily.chen@email.com",
-      phone: "(555) 345-6789",
-      lastVisit: "2023-12-20",
-      nextAppointment: null,
-      status: "overdue",
-      riskLevel: "high",
-      avatar: "",
-      age: 28,
-      insurance: "Cigna"
-    },
-    {
-      id: 4,
-      name: "Robert Wilson",
-      email: "robert.wilson@email.com",
-      phone: "(555) 456-7890",
-      lastVisit: "2024-01-12",
-      nextAppointment: "2024-02-05",
-      status: "active",
-      riskLevel: "low",
-      avatar: "",
-      age: 38,
-      insurance: "Aetna"
+  useEffect(() => {
+    if (user) {
+      fetchPatients();
+      fetchStats();
     }
-  ]);
+  }, [user]);
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      // Get total patients count
+      const { count: totalCount } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true });
+
+      // Get active treatments count
+      const { count: treatmentCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'scheduled');
+
+      // Get overdue checkups (patients with no recent appointments)
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      
+      const { count: overdueCount } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true })
+        .lt('last_visit', sixMonthsAgo.toISOString().split('T')[0]);
+
+      // Get appointments this month
+      const thisMonth = new Date();
+      const firstDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
+      const lastDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 0);
+
+      const { count: monthlyCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('appointment_date', firstDay.toISOString())
+        .lte('appointment_date', lastDay.toISOString())
+        .eq('status', 'completed');
+
+      setStats({
+        totalPatients: totalCount || 0,
+        activeTreatments: treatmentCount || 0,
+        overdueCheckups: overdueCount || 0,
+        appointmentsThisMonth: monthlyCount || 0
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const getAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 'N/A';
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const getPatientStatus = (patient: any) => {
+    if (!patient.last_visit) return 'new';
+    
+    const lastVisit = new Date(patient.last_visit);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    if (lastVisit < sixMonthsAgo) return 'overdue';
+    if (lastVisit < threeMonthsAgo) return 'due';
+    return 'active';
+  };
 
   const handlePatientAdded = (newPatient: any) => {
     setPatients(prev => [...prev, newPatient]);
@@ -104,10 +155,21 @@ export default function Patients() {
   };
 
   const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.phone.includes(searchTerm)
+    `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (patient.phone || '').includes(searchTerm)
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading patients...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 space-y-8">
@@ -150,10 +212,10 @@ export default function Patients() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground font-medium">Total Patients</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">1,247</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{stats.totalPatients}</p>
                 <p className="text-xs text-success flex items-center gap-1">
                   <span className="w-1 h-1 bg-success rounded-full"></span>
-                  +12% from last month
+                  Active patients
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center shadow-lg">
@@ -168,10 +230,10 @@ export default function Patients() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground font-medium">Active Treatments</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-warning to-orange-500 bg-clip-text text-transparent">32</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-warning to-orange-500 bg-clip-text text-transparent">{stats.activeTreatments}</p>
                 <p className="text-xs text-warning flex items-center gap-1">
                   <span className="w-1 h-1 bg-warning rounded-full"></span>
-                  4 urgent cases
+                  Scheduled appointments
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-warning/20 to-warning/10 rounded-xl flex items-center justify-center shadow-lg">
@@ -186,10 +248,10 @@ export default function Patients() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground font-medium">Overdue Checkups</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-destructive to-red-600 bg-clip-text text-transparent">18</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-destructive to-red-600 bg-clip-text text-transparent">{stats.overdueCheckups}</p>
                 <p className="text-xs text-destructive flex items-center gap-1">
                   <span className="w-1 h-1 bg-destructive rounded-full"></span>
-                  Requires attention
+                  Need follow-up
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-destructive/20 to-destructive/10 rounded-xl flex items-center justify-center shadow-lg">
@@ -204,7 +266,7 @@ export default function Patients() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground font-medium">This Month</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-success to-green-600 bg-clip-text text-transparent">156</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-success to-green-600 bg-clip-text text-transparent">{stats.appointmentsThisMonth}</p>
                 <p className="text-xs text-success flex items-center gap-1">
                   <span className="w-1 h-1 bg-success rounded-full"></span>
                   Appointments completed
@@ -245,27 +307,29 @@ export default function Patients() {
             >
               <div className="flex items-center gap-6">
                 <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg group-hover:ring-primary/30 transition-all duration-300">
-                  <AvatarImage src={patient.avatar} />
+                  <AvatarImage src="" />
                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                    {patient.name.split(' ').map(n => n[0]).join('')}
+                    {(patient.first_name?.[0] || '') + (patient.last_name?.[0] || '')}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{patient.name}</h3>
-                    <Badge variant="outline" className={`${getStatusColor(patient.status)} font-medium px-3 py-1`}>
-                      {patient.status}
+                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
+                      {patient.first_name} {patient.last_name}
+                    </h3>
+                    <Badge variant="outline" className={`${getStatusColor(getPatientStatus(patient))} font-medium px-3 py-1`}>
+                      {getPatientStatus(patient)}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-6 text-muted-foreground">
                     <span className="flex items-center gap-2 hover:text-primary transition-colors">
                       <Mail className="h-4 w-4" />
-                      {patient.email}
+                      {patient.email || 'No email'}
                     </span>
                     <span className="flex items-center gap-2 hover:text-primary transition-colors">
                       <Phone className="h-4 w-4" />
-                      {patient.phone}
+                      {patient.phone || 'No phone'}
                     </span>
                   </div>
                 </div>
@@ -274,21 +338,25 @@ export default function Patients() {
               <div className="flex items-center gap-8">
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Age</p>
-                  <p className="text-lg font-bold">{patient.age}</p>
+                  <p className="text-lg font-bold">{getAge(patient.date_of_birth)}</p>
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Last Visit</p>
-                  <p className="text-sm font-semibold">{new Date(patient.lastVisit).toLocaleDateString()}</p>
+                  <p className="text-sm font-semibold">
+                    {patient.last_visit ? new Date(patient.last_visit).toLocaleDateString() : 'No visits'}
+                  </p>
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Risk Level</p>
-                  <p className={`text-sm font-bold ${getRiskColor(patient.riskLevel)} uppercase tracking-wide`}>
-                    {patient.riskLevel}
+                  <p className={`text-sm font-bold ${getRiskColor(patient.risk_level)} uppercase tracking-wide`}>
+                    {patient.risk_level}
                   </p>
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Insurance</p>
-                  <p className="text-sm font-semibold">{patient.insurance}</p>
+                  <p className="text-sm font-semibold">
+                    {patient.insurance_info?.provider || 'No insurance'}
+                  </p>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -298,7 +366,7 @@ export default function Patients() {
                     // Log patient access for HIPAA compliance
                     logPatientView(patient.id.toString(), {
                       action_context: 'patient_list_view',
-                      patient_name: patient.name,
+                      patient_name: `${patient.first_name} ${patient.last_name}`,
                       timestamp: new Date().toISOString()
                     });
                     navigate(`/patients/${patient.id}`);
