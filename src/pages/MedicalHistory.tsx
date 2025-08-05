@@ -155,6 +155,18 @@ export default function MedicalHistory() {
     }
 
     try {
+      // Get the current user's profile ID
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error('Could not find user profile');
+      }
+
       const { error } = await supabase
         .from('medical_records')
         .insert({
@@ -166,7 +178,7 @@ export default function MedicalHistory() {
           description: newRecordForm.description,
           visit_date: newRecordForm.visit_date,
           status: newRecordForm.status,
-          dentist_id: user?.id
+          dentist_id: profileData.id
         });
 
       if (error) throw error;
