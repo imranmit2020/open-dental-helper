@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLanguage } from "@/contexts/LanguageContext";
 import NewPatientForm from "@/components/NewPatientForm";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -19,7 +21,8 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  X
 } from "lucide-react";
 
 export default function Patients() {
@@ -30,6 +33,13 @@ export default function Patients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    riskLevel: "",
+    ageRange: "",
+    insurance: ""
+  });
   const [stats, setStats] = useState({
     totalPatients: 0,
     activeTreatments: 0,
@@ -154,11 +164,52 @@ export default function Patients() {
     }
   };
 
-  const filteredPatients = patients.filter(patient =>
-    `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (patient.phone || '').includes(searchTerm)
-  );
+  const clearFilters = () => {
+    setFilters({
+      status: "",
+      riskLevel: "",
+      ageRange: "",
+      insurance: ""
+    });
+    setSearchTerm("");
+  };
+
+  const filteredPatients = patients.filter(patient => {
+    // Text search filter
+    const matchesSearch = !searchTerm || 
+      `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.phone || '').includes(searchTerm);
+
+    // Status filter
+    const matchesStatus = !filters.status || getPatientStatus(patient) === filters.status;
+
+    // Risk level filter
+    const matchesRisk = !filters.riskLevel || patient.risk_level === filters.riskLevel;
+
+    // Age range filter
+    const matchesAge = !filters.ageRange || (() => {
+      const age = getAge(patient.date_of_birth);
+      if (age === 'N/A') return false;
+      const ageNum = parseInt(age.toString());
+      switch (filters.ageRange) {
+        case 'under18': return ageNum < 18;
+        case '18-30': return ageNum >= 18 && ageNum <= 30;
+        case '31-50': return ageNum >= 31 && ageNum <= 50;
+        case '51-70': return ageNum >= 51 && ageNum <= 70;
+        case 'over70': return ageNum > 70;
+        default: return true;
+      }
+    })();
+
+    // Insurance filter
+    const matchesInsurance = !filters.insurance || (() => {
+      const hasInsurance = patient.insurance_info?.provider;
+      return filters.insurance === 'with' ? hasInsurance : !hasInsurance;
+    })();
+
+    return matchesSearch && matchesStatus && matchesRisk && matchesAge && matchesInsurance;
+  });
 
   if (loading) {
     return (
@@ -197,10 +248,90 @@ export default function Patients() {
                 className="pl-12 h-12 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl"
               />
             </div>
-            <Button variant="outline" className="h-12 px-6 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
-              <Filter className="h-5 w-5 mr-2" />
-               Advanced Filters
-             </Button>
+            <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-12 px-6 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
+                  <Filter className="h-5 w-5 mr-2" />
+                  Advanced Filters
+                  {(filters.status || filters.riskLevel || filters.ageRange || filters.insurance) && (
+                    <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                      {Object.values(filters).filter(Boolean).length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-6" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Advanced Filters</h4>
+                    <Button variant="ghost" size="sm" onClick={clearFilters}>
+                      <X className="h-4 w-4 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Status</label>
+                      <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="due">Due for Visit</SelectItem>
+                          <SelectItem value="overdue">Overdue</SelectItem>
+                          <SelectItem value="new">New Patient</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Risk Level</label>
+                      <Select value={filters.riskLevel} onValueChange={(value) => setFilters(prev => ({ ...prev, riskLevel: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select risk level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Risk</SelectItem>
+                          <SelectItem value="medium">Medium Risk</SelectItem>
+                          <SelectItem value="high">High Risk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Age Range</label>
+                      <Select value={filters.ageRange} onValueChange={(value) => setFilters(prev => ({ ...prev, ageRange: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select age range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="under18">Under 18</SelectItem>
+                          <SelectItem value="18-30">18-30</SelectItem>
+                          <SelectItem value="31-50">31-50</SelectItem>
+                          <SelectItem value="51-70">51-70</SelectItem>
+                          <SelectItem value="over70">Over 70</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Insurance</label>
+                      <Select value={filters.insurance} onValueChange={(value) => setFilters(prev => ({ ...prev, insurance: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select insurance status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="with">With Insurance</SelectItem>
+                          <SelectItem value="without">Without Insurance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
       </Card>
