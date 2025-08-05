@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,60 +30,155 @@ import {
 
 export default function PatientProfile() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { logPatientView } = useAuditLog();
   
-  // Mock patient data - would come from database
-  const patient = {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "(555) 123-4567",
-    age: 32,
-    nextAppointment: "2024-02-01 10:30 AM",
-    lastVisit: "2024-01-15",
-    status: "active",
-    riskLevel: "low",
-    avatar: "",
-    insurance: "Delta Dental",
-    address: "123 Main St, Boston, MA 02101",
-    emergencyContact: "John Johnson - (555) 987-6543"
+  const [patient, setPatient] = useState<any>(null);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
+  const [consentForms, setConsentForms] = useState<any[]>([]);
+  const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
+  const [medications, setMedications] = useState<any[]>([]);
+  const [allergies, setAllergies] = useState<any[]>([]);
+  const [medicalConditions, setMedicalConditions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id && user) {
+      fetchPatientData();
+      logPatientView(id);
+    }
+  }, [id, user]);
+
+  const fetchPatientData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch patient details
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (patientError) throw patientError;
+      setPatient(patientData);
+
+      // Fetch appointments
+      const { data: appointmentsData } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('patient_id', id)
+        .order('appointment_date', { ascending: false });
+
+      setAppointments(appointmentsData || []);
+
+      // Fetch medical records
+      const { data: recordsData } = await supabase
+        .from('medical_records')
+        .select('*')
+        .eq('patient_id', id)
+        .order('visit_date', { ascending: false });
+
+      setMedicalRecords(recordsData || []);
+
+      // Fetch consent forms
+      const { data: consentData } = await supabase
+        .from('consent_forms')
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      setConsentForms(consentData || []);
+
+      // Fetch treatment plans
+      const { data: treatmentData } = await supabase
+        .from('treatment_plans')
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      setTreatmentPlans(treatmentData || []);
+
+      // Fetch medications
+      const { data: medicationsData } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('patient_id', id)
+        .order('created_at', { ascending: false });
+
+      setMedications(medicationsData || []);
+
+      // Fetch allergies
+      const { data: allergiesData } = await supabase
+        .from('allergies')
+        .select('*')
+        .eq('patient_id', id);
+
+      setAllergies(allergiesData || []);
+
+      // Fetch medical conditions
+      const { data: conditionsData } = await supabase
+        .from('medical_conditions')
+        .select('*')
+        .eq('patient_id', id);
+
+      setMedicalConditions(conditionsData || []);
+
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const treatments = [
-    { id: 1, date: "2024-01-15", procedure: "Dental Cleaning", status: "completed", cost: "$120" },
-    { id: 2, date: "2024-02-01", procedure: "Crown Replacement", status: "scheduled", cost: "$850" },
-    { id: 3, date: "2024-02-15", procedure: "Follow-up", status: "pending", cost: "$75" }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading patient data...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const insuranceClaims = [
-    { id: 1, date: "2024-01-15", amount: "$120", status: "approved", claimNumber: "CLM-2024-001" },
-    { id: 2, date: "2024-01-10", amount: "$350", status: "pending", claimNumber: "CLM-2024-002" },
-    { id: 3, date: "2023-12-20", amount: "$200", status: "rejected", claimNumber: "CLM-2023-089" }
-  ];
+  if (!patient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Patient not found</p>
+        </div>
+      </div>
+    );
+  }
 
-  const aiSuggestions = [
-    {
-      id: 1,
-      type: "treatment",
-      priority: "high",
-      title: "Crown Recommended - Tooth #14",
-      description: "Based on X-ray analysis, significant decay detected. Recommend crown placement within 30 days.",
-      confidence: 89
-    },
-    {
-      id: 2,
-      type: "prevention", 
-      priority: "medium",
-      title: "Gum Health Alert",
-      description: "Early signs of gingivitis detected. Recommend more frequent cleanings and improved oral hygiene.",
-      confidence: 76
+  const getAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 'N/A';
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
-  ];
+    return age;
+  };
 
-  const communications = [
-    { id: 1, type: "call", date: "2024-01-20", content: "Reminder call for upcoming appointment", status: "completed" },
-    { id: 2, type: "sms", date: "2024-01-18", content: "Appointment confirmation sent", status: "delivered" },
-    { id: 3, type: "email", date: "2024-01-15", content: "Post-treatment care instructions", status: "opened" }
-  ];
+  const getNextAppointment = () => {
+    const future = appointments.filter(apt => new Date(apt.appointment_date) > new Date());
+    return future.length > 0 ? new Date(future[0].appointment_date).toLocaleString() : 'No upcoming appointments';
+  };
+
+  const getRecentTreatments = () => {
+    return medicalRecords.slice(0, 3).map(record => ({
+      id: record.id,
+      date: record.visit_date || record.created_at,
+      procedure: record.title || record.record_type,
+      status: record.status || 'completed',
+      cost: '$0' // Would need billing data
+    }));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -120,38 +218,50 @@ export default function PatientProfile() {
               <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
                 <AvatarImage src={patient.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-2xl">
-                  {patient.name.split(' ').map(n => n[0]).join('')}
+                  {(patient.first_name?.[0] || '') + (patient.last_name?.[0] || '')}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-3xl font-bold">{patient.name}</h1>
-                  <Badge variant="outline" className={`${getStatusColor(patient.status)} font-medium px-3 py-1`}>
-                    {patient.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-6 text-muted-foreground">
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Age {patient.age}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Next: {patient.nextAppointment}
-                  </span>
-                </div>
-                <div className="flex items-center gap-6 text-muted-foreground">
-                  <span className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    {patient.email}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {patient.phone}
-                  </span>
-                </div>
-              </div>
+                 <div className="space-y-2">
+                   <div className="flex items-center gap-4">
+                     <h1 className="text-3xl font-bold">{patient.first_name} {patient.last_name}</h1>
+                     <Badge variant="outline" className={`${getStatusColor('active')} font-medium px-3 py-1`}>
+                       Active
+                     </Badge>
+                   </div>
+                   <div className="flex items-center gap-6 text-muted-foreground">
+                     <span className="flex items-center gap-2">
+                       <Calendar className="h-4 w-4" />
+                       Age {getAge(patient.date_of_birth)}
+                     </span>
+                     <span className="flex items-center gap-2">
+                       <Clock className="h-4 w-4" />
+                       Next: {getNextAppointment()}
+                     </span>
+                   </div>
+                   <div className="flex items-center gap-6 text-muted-foreground">
+                     <span className="flex items-center gap-2">
+                       <Mail className="h-4 w-4" />
+                       {patient.email || 'No email'}
+                     </span>
+                     <span className="flex items-center gap-2">
+                       <Phone className="h-4 w-4" />
+                       {patient.phone || 'No phone'}
+                     </span>
+                   </div>
+                   <div className="flex items-center gap-6 text-muted-foreground">
+                     <span className="flex items-center gap-2">
+                       Risk Level: <Badge variant="outline" className={`${getStatusColor(patient.risk_level)} text-xs`}>
+                         {patient.risk_level}
+                       </Badge>
+                     </span>
+                     {patient.last_visit && (
+                       <span className="flex items-center gap-2">
+                         Last Visit: {new Date(patient.last_visit).toLocaleDateString()}
+                       </span>
+                     )}
+                   </div>
+                 </div>
             </div>
 
             {/* Quick Actions Panel */}
@@ -202,21 +312,24 @@ export default function PatientProfile() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {treatments.map((treatment) => (
-                  <div key={treatment.id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className="space-y-1">
-                      <p className="font-semibold">{treatment.procedure}</p>
-                      <p className="text-sm text-muted-foreground">{treatment.date}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className={getStatusColor(treatment.status)}>
-                        {treatment.status}
-                      </Badge>
-                      <span className="font-semibold text-primary">{treatment.cost}</span>
-                    </div>
-                  </div>
-                ))}
+               <CardContent className="space-y-4">
+                 {getRecentTreatments().map((treatment) => (
+                   <div key={treatment.id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                     <div className="space-y-1">
+                       <p className="font-semibold">{treatment.procedure}</p>
+                       <p className="text-sm text-muted-foreground">{new Date(treatment.date).toLocaleDateString()}</p>
+                     </div>
+                     <div className="flex items-center gap-3">
+                       <Badge variant="outline" className={getStatusColor(treatment.status)}>
+                         {treatment.status}
+                       </Badge>
+                       <span className="font-semibold text-primary">{treatment.cost}</span>
+                     </div>
+                   </div>
+                 ))}
+                 {getRecentTreatments().length === 0 && (
+                   <p className="text-muted-foreground text-center py-4">No treatment history available</p>
+                 )}
               </CardContent>
             </Card>
 
@@ -228,36 +341,29 @@ export default function PatientProfile() {
                   Upcoming Procedures
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border border-warning/30 bg-warning/5 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="font-semibold">Crown Replacement</p>
-                      <p className="text-sm text-muted-foreground">February 1, 2024 at 10:30 AM</p>
-                      <p className="text-xs text-warning">⚠️ Pre-medication required</p>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <p className="font-bold text-primary">$850</p>
-                      <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                        Scheduled
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 border border-border/50 rounded-lg bg-muted/10">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="font-semibold">Follow-up Checkup</p>
-                      <p className="text-sm text-muted-foreground">February 15, 2024 at 2:00 PM</p>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <p className="font-bold text-primary">$75</p>
-                      <Badge variant="outline" className="bg-muted/10 text-muted-foreground border-muted/20">
-                        Pending
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+               <CardContent className="space-y-4">
+                 {appointments.filter(apt => new Date(apt.appointment_date) > new Date()).slice(0, 2).map((appointment) => (
+                   <div key={appointment.id} className="p-4 border border-warning/30 bg-warning/5 rounded-lg">
+                     <div className="flex items-center justify-between">
+                       <div className="space-y-1">
+                         <p className="font-semibold">{appointment.title}</p>
+                         <p className="text-sm text-muted-foreground">{new Date(appointment.appointment_date).toLocaleString()}</p>
+                         {appointment.notes && (
+                           <p className="text-xs text-warning">📝 {appointment.notes}</p>
+                         )}
+                       </div>
+                       <div className="text-right space-y-1">
+                         <p className="font-bold text-primary">Duration: {appointment.duration}min</p>
+                         <Badge variant="outline" className={getStatusColor(appointment.status)}>
+                           {appointment.status}
+                         </Badge>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+                 {appointments.filter(apt => new Date(apt.appointment_date) > new Date()).length === 0 && (
+                   <p className="text-muted-foreground text-center py-4">No upcoming appointments scheduled</p>
+                 )}
               </CardContent>
             </Card>
           </div>
@@ -274,37 +380,43 @@ export default function PatientProfile() {
                   Insurance Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="font-semibold">Delta Dental PPO</p>
-                      <p className="text-sm text-muted-foreground">Member ID: DD123456789</p>
-                      <p className="text-sm text-muted-foreground">Group: 00123</p>
-                    </div>
-                    <CheckCircle className="h-8 w-8 text-success" />
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-success/20">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Annual Max</p>
-                        <p className="font-semibold">$1,500</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Used</p>
-                        <p className="font-semibold">$420</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Remaining</p>
-                        <p className="font-semibold text-success">$1,080</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Deductible</p>
-                        <p className="font-semibold">$50 (Met)</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+               <CardContent className="space-y-4">
+                 {patient.insurance_info ? (
+                   <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
+                     <div className="flex items-center justify-between">
+                       <div className="space-y-1">
+                         <p className="font-semibold">{patient.insurance_info.provider || 'Insurance Provider'}</p>
+                         <p className="text-sm text-muted-foreground">Member ID: {patient.insurance_info.member_id || 'N/A'}</p>
+                         <p className="text-sm text-muted-foreground">Group: {patient.insurance_info.group || 'N/A'}</p>
+                       </div>
+                       <CheckCircle className="h-8 w-8 text-success" />
+                     </div>
+                     <div className="mt-3 pt-3 border-t border-success/20">
+                       <div className="grid grid-cols-2 gap-4 text-sm">
+                         <div>
+                           <p className="text-muted-foreground">Annual Max</p>
+                           <p className="font-semibold">${patient.insurance_info.annual_max || 'N/A'}</p>
+                         </div>
+                         <div>
+                           <p className="text-muted-foreground">Used</p>
+                           <p className="font-semibold">${patient.insurance_info.used || '0'}</p>
+                         </div>
+                         <div>
+                           <p className="text-muted-foreground">Remaining</p>
+                           <p className="font-semibold text-success">${(patient.insurance_info.annual_max || 0) - (patient.insurance_info.used || 0)}</p>
+                         </div>
+                         <div>
+                           <p className="text-muted-foreground">Deductible</p>
+                           <p className="font-semibold">${patient.insurance_info.deductible || 'N/A'}</p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="p-4 border border-border/50 rounded-lg text-center">
+                     <p className="text-muted-foreground">No insurance information on file</p>
+                   </div>
+                 )}
               </CardContent>
             </Card>
 
@@ -321,21 +433,24 @@ export default function PatientProfile() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {insuranceClaims.map((claim) => (
-                  <div key={claim.id} className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-sm">{claim.claimNumber}</p>
-                      <p className="text-xs text-muted-foreground">{claim.date}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">{claim.amount}</span>
-                      <Badge variant="outline" className={getStatusColor(claim.status)}>
-                        {claim.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+               <CardContent className="space-y-3">
+                 {consentForms.slice(0, 3).map((form) => (
+                   <div key={form.id} className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                     <div className="space-y-1">
+                       <p className="font-semibold text-sm">{form.treatment_type} Consent</p>
+                       <p className="text-xs text-muted-foreground">{new Date(form.created_at).toLocaleDateString()}</p>
+                     </div>
+                     <div className="flex items-center gap-3">
+                       <span className="font-semibold">{form.submitted_at ? 'Signed' : 'Pending'}</span>
+                       <Badge variant="outline" className={getStatusColor(form.status)}>
+                         {form.status}
+                       </Badge>
+                     </div>
+                   </div>
+                 ))}
+                 {consentForms.length === 0 && (
+                   <p className="text-muted-foreground text-center py-4">No consent forms on file</p>
+                 )}
               </CardContent>
             </Card>
           </div>
@@ -353,41 +468,47 @@ export default function PatientProfile() {
                 Based on X-ray analysis and treatment history
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {aiSuggestions.map((suggestion) => (
-                <div key={suggestion.id} className="p-6 border border-border/50 rounded-lg bg-gradient-to-r from-muted/10 to-accent/5 hover:shadow-lg transition-all">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3">
-                        <AlertTriangle className={`h-5 w-5 ${getPriorityColor(suggestion.priority)}`} />
-                        <h3 className="font-semibold text-lg">{suggestion.title}</h3>
-                        <Badge variant="outline" className={`${getPriorityColor(suggestion.priority)} border-current`}>
-                          {suggestion.priority} priority
-                        </Badge>
-                      </div>
-                      <p className="text-muted-foreground">{suggestion.description}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">AI Confidence:</span>
-                        <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
-                            style={{ width: `${suggestion.confidence}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-semibold">{suggestion.confidence}%</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button variant="outline" size="sm">
-                        Review X-ray
-                      </Button>
-                      <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80">
-                        Schedule
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+             <CardContent className="space-y-4">
+               {treatmentPlans.slice(0, 3).map((plan) => (
+                 <div key={plan.id} className="p-6 border border-border/50 rounded-lg bg-gradient-to-r from-muted/10 to-accent/5 hover:shadow-lg transition-all">
+                   <div className="flex items-start justify-between">
+                     <div className="space-y-3 flex-1">
+                       <div className="flex items-center gap-3">
+                         <AlertTriangle className={`h-5 w-5 ${getPriorityColor(plan.priority)}`} />
+                         <h3 className="font-semibold text-lg">{plan.plan_name}</h3>
+                         <Badge variant="outline" className={`${getPriorityColor(plan.priority)} border-current`}>
+                           {plan.priority} priority
+                         </Badge>
+                       </div>
+                       <p className="text-muted-foreground">{plan.notes || 'Treatment plan details'}</p>
+                       <div className="flex items-center gap-4 text-sm">
+                         <span className="text-muted-foreground">Status: <strong>{plan.status}</strong></span>
+                         {plan.total_cost && (
+                           <span className="text-muted-foreground">Cost: <strong>${plan.total_cost}</strong></span>
+                         )}
+                         {plan.estimated_duration && (
+                           <span className="text-muted-foreground">Duration: <strong>{plan.estimated_duration} weeks</strong></span>
+                         )}
+                       </div>
+                     </div>
+                     <div className="flex gap-2 ml-4">
+                       <Button variant="outline" size="sm">
+                         View Details
+                       </Button>
+                       <Button size="sm" className="bg-gradient-to-r from-primary to-primary/80">
+                         Schedule
+                       </Button>
+                     </div>
+                   </div>
+                 </div>
+               ))}
+               {treatmentPlans.length === 0 && (
+                 <div className="text-center py-8">
+                   <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                   <p className="text-muted-foreground">No AI treatment recommendations available</p>
+                   <p className="text-sm text-muted-foreground mt-2">Schedule an examination to get AI-powered insights</p>
+                 </div>
+               )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -408,23 +529,45 @@ export default function PatientProfile() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {communications.map((comm) => (
-                <div key={comm.id} className="flex items-center gap-4 p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+              {consentForms.slice(0, 5).map((form) => (
+                <div key={form.id} className="flex items-center gap-4 p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    {comm.type === 'call' && <Phone className="h-4 w-4 text-primary" />}
-                    {comm.type === 'sms' && <MessageCircle className="h-4 w-4 text-primary" />}
-                    {comm.type === 'email' && <Mail className="h-4 w-4 text-primary" />}
+                    <FileText className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="font-semibold capitalize">{comm.type}</p>
-                    <p className="text-sm text-muted-foreground">{comm.content}</p>
-                    <p className="text-xs text-muted-foreground">{comm.date}</p>
+                    <p className="font-semibold">{form.treatment_type} Consent Form</p>
+                    <p className="text-sm text-muted-foreground">
+                      {form.submitted_at ? `Signed on ${new Date(form.submitted_at).toLocaleDateString()}` : 'Awaiting signature'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Created: {new Date(form.created_at).toLocaleDateString()}</p>
                   </div>
-                  <Badge variant="outline" className={getStatusColor(comm.status)}>
-                    {comm.status}
+                  <Badge variant="outline" className={getStatusColor(form.status)}>
+                    {form.status}
                   </Badge>
                 </div>
               ))}
+              {medications.slice(0, 3).map((medication) => (
+                <div key={medication.id} className="flex items-center gap-4 p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <Pill className="h-4 w-4 text-secondary" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="font-semibold">Prescribed: {medication.medication_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {medication.dosage} - {medication.frequency}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {medication.start_date} to {medication.end_date || 'Ongoing'}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={getStatusColor(medication.status)}>
+                    {medication.status}
+                  </Badge>
+                </div>
+              ))}
+              {consentForms.length === 0 && medications.length === 0 && (
+                <p className="text-muted-foreground text-center py-4">No communication history available</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
