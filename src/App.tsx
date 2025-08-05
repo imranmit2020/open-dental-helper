@@ -112,7 +112,7 @@ function App() {
             <Route path="teledentistry" element={<Teledentistry />} />
             <Route path="multi-practice-analytics" element={<MultiPracticeAnalytics />} />
             <Route path="marketing-automation" element={<MarketingAutomation />} />
-            <Route path="reports/patients" element={<PatientProfile />} />
+            <Route path="reports/patients" element={<PracticeAnalytics />} />
             <Route path="reports" element={<PracticeAnalytics />} />
             <Route path="patient-insights" element={<PracticeAnalytics />} />
             <Route path="settings" element={<Settings />} />
