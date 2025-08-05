@@ -56,7 +56,7 @@ const practiceDashboards = [
 
 const patientItems = [
   { title: "Patient Management", url: "/patients", icon: Users },
-  { title: "Medical History", url: "/patients/history", icon: FileText },
+  { title: "Medical History", url: "/medical-history", icon: FileText },
   { title: "Consent Forms", url: "/consent-forms", icon: Shield },
   { title: "Treatment Plans", url: "/patients/treatments", icon: Stethoscope },
   { title: "Insurance & Billing", url: "/insurance-billing", icon: CreditCard },
