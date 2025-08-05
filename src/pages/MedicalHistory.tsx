@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -40,6 +44,16 @@ export default function MedicalHistory() {
   const [allergies, setAllergies] = useState<any[]>([]);
   const [medicalConditions, setMedicalConditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isNewRecordOpen, setIsNewRecordOpen] = useState(false);
+  const [newRecordForm, setNewRecordForm] = useState({
+    title: '',
+    record_type: '',
+    diagnosis: '',
+    treatment: '',
+    description: '',
+    visit_date: new Date().toISOString().split('T')[0],
+    status: 'completed'
+  });
 
   useEffect(() => {
     fetchPatients();
@@ -119,12 +133,70 @@ export default function MedicalHistory() {
   };
 
   const handleNewRecord = () => {
-    if (selectedPatient) {
-      navigate(`/patients/${selectedPatient}`);
-    } else {
+    if (!selectedPatient) {
       toast({
         title: "No Patient Selected",
         description: "Please select a patient first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsNewRecordOpen(true);
+  };
+
+  const handleCreateRecord = async () => {
+    if (!selectedPatient || !newRecordForm.title || !newRecordForm.record_type) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('medical_records')
+        .insert({
+          patient_id: selectedPatient,
+          title: newRecordForm.title,
+          record_type: newRecordForm.record_type,
+          diagnosis: newRecordForm.diagnosis,
+          treatment: newRecordForm.treatment,
+          description: newRecordForm.description,
+          visit_date: newRecordForm.visit_date,
+          status: newRecordForm.status,
+          dentist_id: user?.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Medical record created successfully",
+      });
+
+      // Reset form and close dialog
+      setNewRecordForm({
+        title: '',
+        record_type: '',
+        diagnosis: '',
+        treatment: '',
+        description: '',
+        visit_date: new Date().toISOString().split('T')[0],
+        status: 'completed'
+      });
+      setIsNewRecordOpen(false);
+
+      // Refresh patient data
+      if (selectedPatient) {
+        fetchPatientData(selectedPatient);
+      }
+    } catch (error) {
+      console.error('Error creating medical record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create medical record",
         variant: "destructive",
       });
     }
@@ -489,6 +561,125 @@ export default function MedicalHistory() {
           )}
         </div>
       </div>
+
+      {/* New Record Dialog */}
+      <Dialog open={isNewRecordOpen} onOpenChange={setIsNewRecordOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create New Medical Record</DialogTitle>
+            <DialogDescription>
+              Add a new medical record for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title *
+              </Label>
+              <Input
+                id="title"
+                value={newRecordForm.title}
+                onChange={(e) => setNewRecordForm({...newRecordForm, title: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., Routine Checkup"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="record_type" className="text-right">
+                Type *
+              </Label>
+              <Select onValueChange={(value) => setNewRecordForm({...newRecordForm, record_type: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select record type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="routine_checkup">Routine Checkup</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                  <SelectItem value="filling">Filling</SelectItem>
+                  <SelectItem value="root_canal">Root Canal</SelectItem>
+                  <SelectItem value="extraction">Extraction</SelectItem>
+                  <SelectItem value="crown">Crown</SelectItem>
+                  <SelectItem value="emergency">Emergency Visit</SelectItem>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="follow_up">Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="visit_date" className="text-right">
+                Visit Date
+              </Label>
+              <Input
+                id="visit_date"
+                type="date"
+                value={newRecordForm.visit_date}
+                onChange={(e) => setNewRecordForm({...newRecordForm, visit_date: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="diagnosis" className="text-right">
+                Diagnosis
+              </Label>
+              <Input
+                id="diagnosis"
+                value={newRecordForm.diagnosis}
+                onChange={(e) => setNewRecordForm({...newRecordForm, diagnosis: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., Mild gingivitis, cavity in tooth #14"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="treatment" className="text-right">
+                Treatment
+              </Label>
+              <Input
+                id="treatment"
+                value={newRecordForm.treatment}
+                onChange={(e) => setNewRecordForm({...newRecordForm, treatment: e.target.value})}
+                className="col-span-3"
+                placeholder="e.g., Scaling, filling placement"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="description"
+                value={newRecordForm.description}
+                onChange={(e) => setNewRecordForm({...newRecordForm, description: e.target.value})}
+                className="col-span-3"
+                placeholder="Additional notes and observations..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select value={newRecordForm.status} onValueChange={(value) => setNewRecordForm({...newRecordForm, status: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewRecordOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateRecord}>
+              Create Record
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
