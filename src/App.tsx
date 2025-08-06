@@ -46,6 +46,7 @@ import ReputationManagement from "./pages/ReputationManagement";
 import LeadConversion from "./pages/LeadConversion";
 import QuantumDentalAI from "./pages/QuantumDentalAI";
 import QuantumScheduling from "./pages/QuantumScheduling";
+import MarketIntelligence from "./pages/MarketIntelligence";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -127,6 +128,7 @@ function App() {
             <Route path="teledentistry-enhanced" element={<TeledentistryEnhanced />} />
             <Route path="reputation-management" element={<ReputationManagement />} />
             <Route path="lead-conversion" element={<LeadConversion />} />
+            <Route path="market-intelligence" element={<MarketIntelligence />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

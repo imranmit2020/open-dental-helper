@@ -27,7 +27,9 @@ import {
   Lock,
   Star,
   UserPlus,
-  VideoIcon
+  VideoIcon,
+  Database,
+  TrendingUp as TrendIcon
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -95,6 +97,7 @@ const enterpriseItems = [
   { title: "Marketing Automation", url: "/marketing-automation", icon: Mail },
   { title: "Smart Operations", url: "/smart-operations", icon: Cog },
   { title: "Revenue Management", url: "/revenue-management", icon: DollarSign },
+  { title: "Market Intelligence", url: "/market-intelligence", icon: Database },
   { title: "Reputation Management", url: "/reputation-management", icon: Star },
   { title: "Lead Conversion AI", url: "/lead-conversion", icon: UserPlus },
 ];
