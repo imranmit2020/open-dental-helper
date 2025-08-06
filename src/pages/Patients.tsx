@@ -49,20 +49,38 @@ export default function Patients() {
 
   useEffect(() => {
     if (user) {
-      fetchPatients();
-      fetchStats();
+      // Add a small delay to ensure auth context is established
+      const timer = setTimeout(() => {
+        fetchPatients();
+        fetchStats();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [user]);
 
   const fetchPatients = async () => {
     try {
       setLoading(true);
+      console.log('Fetching patients for user:', user?.id);
+      
+      // Ensure we have a valid session before making the query
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No active session found');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('patients')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched patients:', data?.length || 0);
       setPatients(data || []);
     } catch (error) {
       console.error('Error fetching patients:', error);
