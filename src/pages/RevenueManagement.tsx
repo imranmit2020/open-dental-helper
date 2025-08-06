@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -14,9 +16,17 @@ import {
   CreditCard,
   FileText,
   Phone,
-  Target
+  Target,
+  Search,
+  Shield,
+  Zap,
+  MessageSquare,
+  Calendar,
+  TrendingDown as LeakIcon
 } from "lucide-react";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
+import { RevenueOptimizationService } from "@/services/RevenueOptimizationService";
+import { useToast } from "@/hooks/use-toast";
 
 interface InsuranceVerification {
   patientName: string;
@@ -50,6 +60,78 @@ interface RevenueOpportunity {
 
 export default function RevenueManagement() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('this_month');
+  const [loading, setLoading] = useState(false);
+  const [insuranceData, setInsuranceData] = useState<any>(null);
+  const [revenueLeaks, setRevenueLeaks] = useState<any[]>([]);
+  const [noShowPredictions, setNoShowPredictions] = useState<any[]>([]);
+  const [searchPatient, setSearchPatient] = useState('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadRevenueData();
+  }, []);
+
+  const loadRevenueData = async () => {
+    setLoading(true);
+    try {
+      const [leakageData, predictions] = await Promise.all([
+        RevenueOptimizationService.detectRevenueLeakage(),
+        RevenueOptimizationService.predictNoShows({
+          start: new Date(),
+          end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        })
+      ]);
+      setRevenueLeaks(leakageData);
+      setNoShowPredictions(predictions);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load revenue optimization data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInsuranceVerification = async (patientId: string) => {
+    setLoading(true);
+    try {
+      const eligibility = await RevenueOptimizationService.verifyInsuranceWithCoPay(
+        patientId, 
+        ['D1110', 'D2140']
+      );
+      setInsuranceData(eligibility);
+      toast({
+        title: "Verification Complete",
+        description: `Co-pay estimated at $${eligibility.estimatedCoPay}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to verify insurance",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendReminder = async (prediction: any) => {
+    try {
+      const reminder = await RevenueOptimizationService.generateAutomatedReminder(prediction);
+      toast({
+        title: "Reminder Scheduled",
+        description: `${reminder.channel.toUpperCase()} reminder will be sent at ${reminder.sendTime.toLocaleString()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to schedule reminder",
+        variant: "destructive"
+      });
+    }
+  };
 
   const mockInsuranceVerifications: InsuranceVerification[] = [
     {
@@ -212,24 +294,152 @@ export default function RevenueManagement() {
       </div>
 
       <Tabs defaultValue="insurance" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full">
-          <TabsTrigger value="insurance">Insurance Verification</TabsTrigger>
-          <TabsTrigger value="claims">Claim Tracking</TabsTrigger>
+        <TabsList className="grid grid-cols-5 w-full">
+          <TabsTrigger value="insurance">Real-Time Insurance</TabsTrigger>
+          <TabsTrigger value="leakage">Revenue Leakage</TabsTrigger>
+          <TabsTrigger value="noshows">No-Show Prediction</TabsTrigger>
           <TabsTrigger value="opportunities">Revenue Opportunities</TabsTrigger>
           <TabsTrigger value="forecasting">Revenue Forecasting</TabsTrigger>
         </TabsList>
 
-        {/* Insurance Verification */}
+        {/* Real-Time Insurance Verification */}
         <TabsContent value="insurance" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Real-Time Insurance Verification
+                <Shield className="w-5 h-5" />
+                Real-Time Insurance Verification & Co-Pay Estimation
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="patient-search">Search Patient</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="patient-search"
+                      placeholder="Enter patient name or ID"
+                      value={searchPatient}
+                      onChange={(e) => setSearchPatient(e.target.value)}
+                    />
+                    <Button 
+                      onClick={() => handleInsuranceVerification('patient-123')}
+                      disabled={loading || !searchPatient}
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Verify
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {insuranceData && (
+                <Card className="bg-green-50 border-green-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{insuranceData.patientName}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Insurance Provider</p>
+                        <p className="font-medium">{insuranceData.insuranceProvider}</p>
+                        <p className="text-xs text-muted-foreground">{insuranceData.policyNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Estimated Co-Pay</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          <CurrencyDisplay amount={insuranceData.estimatedCoPay} />
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Status</p>
+                        <Badge className="bg-green-100 text-green-800">Active</Badge>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Coverage Levels</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>Preventive:</span>
+                            <span className="font-medium">{insuranceData.coverage.preventive}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Basic:</span>
+                            <span className="font-medium">{insuranceData.coverage.basic}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Major:</span>
+                            <span className="font-medium">{insuranceData.coverage.major}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Deductible</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>Total:</span>
+                            <span className="font-medium"><CurrencyDisplay amount={insuranceData.deductible.total} /></span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Met:</span>
+                            <span className="font-medium text-green-600"><CurrencyDisplay amount={insuranceData.deductible.met} /></span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Remaining:</span>
+                            <span className="font-medium"><CurrencyDisplay amount={insuranceData.deductible.remaining} /></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Annual Maximum</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>Total:</span>
+                            <span className="font-medium"><CurrencyDisplay amount={insuranceData.annualMaximum.total} /></span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Used:</span>
+                            <span className="font-medium text-orange-600"><CurrencyDisplay amount={insuranceData.annualMaximum.used} /></span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Remaining:</span>
+                            <span className="font-medium text-green-600"><CurrencyDisplay amount={insuranceData.annualMaximum.remaining} /></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium mb-2">Recommended Billing Codes:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {insuranceData.recommendedBillingCodes.map((code: string, index: number) => (
+                            <Badge key={index} variant="outline">{code}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium mb-2">Eligibility Notes:</p>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {insuranceData.eligibilityNotes.map((note: string, index: number) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
+                              {note}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick verification examples */}
               <div className="space-y-4">
+                <h4 className="font-medium">Recent Verifications</h4>
                 {mockInsuranceVerifications.map((verification, index) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -263,20 +473,273 @@ export default function RevenueManagement() {
                       </div>
                     </div>
 
-                    {verification.status === 'verified' && (
-                      <div className="mt-3">
-                        <Progress 
-                          value={(verification.remainingBenefits / verification.annualMax) * 100} 
-                          className="h-2"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Benefits utilization: {Math.round(((verification.annualMax - verification.remainingBenefits) / verification.annualMax) * 100)}%
-                        </p>
-                      </div>
-                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="mt-3"
+                      onClick={() => handleInsuranceVerification(verification.patientName)}
+                      disabled={loading}
+                    >
+                      <Zap className="w-3 h-3 mr-1" />
+                      Re-verify & Get Co-pay
+                    </Button>
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* AI-Driven Revenue Leakage Detection */}
+        <TabsContent value="leakage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LeakIcon className="w-5 h-5" />
+                AI-Driven Revenue Leakage Detection
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <p>Analyzing revenue patterns...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card className="bg-red-50 border-red-200">
+                      <CardContent className="p-4 text-center">
+                        <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-500" />
+                        <p className="text-2xl font-bold text-red-600">
+                          <CurrencyDisplay amount={revenueLeaks.reduce((sum, leak) => sum + leak.potentialRevenue, 0)} />
+                        </p>
+                        <p className="text-sm text-red-700">Total Revenue at Risk</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-orange-50 border-orange-200">
+                      <CardContent className="p-4 text-center">
+                        <Clock className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+                        <p className="text-2xl font-bold text-orange-600">
+                          {revenueLeaks.filter(leak => leak.priority === 'high').length}
+                        </p>
+                        <p className="text-sm text-orange-700">High Priority Issues</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardContent className="p-4 text-center">
+                        <Target className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                        <p className="text-2xl font-bold text-blue-600">
+                          {revenueLeaks.length}
+                        </p>
+                        <p className="text-sm text-blue-700">Total Issues Detected</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {revenueLeaks.map((leak, index) => (
+                    <Card key={leak.id} className={`${leak.priority === 'high' ? 'border-red-200' : leak.priority === 'medium' ? 'border-orange-200' : 'border-yellow-200'}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold">{leak.patientName}</h4>
+                              <Badge className={`${leak.priority === 'high' ? 'bg-red-100 text-red-800' : leak.priority === 'medium' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                {leak.priority} priority
+                              </Badge>
+                              <Badge variant="outline" className="capitalize">
+                                {leak.type.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">{leak.description}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-green-600">
+                              <CurrencyDisplay amount={leak.potentialRevenue} />
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {Math.round(leak.aiConfidence * 100)}% AI confidence
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm font-medium text-blue-800">Solution:</p>
+                            <p className="text-sm text-blue-700">{leak.solution}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm font-medium text-green-800">Action Required:</p>
+                            <p className="text-sm text-green-700">{leak.actionRequired}</p>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground">
+                              Estimated recovery time: {leak.estimatedRecoveryTime}
+                            </p>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Resolve Issue
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Predictive No-Show and Cancellation AI */}
+        <TabsContent value="noshows" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Predictive No-Show & Cancellation AI
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <p>Analyzing appointment patterns...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <Card className="bg-red-50 border-red-200">
+                      <CardContent className="p-4 text-center">
+                        <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-500" />
+                        <p className="text-2xl font-bold text-red-600">
+                          {noShowPredictions.filter(p => p.noShowProbability > 0.7).length}
+                        </p>
+                        <p className="text-sm text-red-700">High Risk</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-orange-50 border-orange-200">
+                      <CardContent className="p-4 text-center">
+                        <Clock className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+                        <p className="text-2xl font-bold text-orange-600">
+                          {noShowPredictions.filter(p => p.noShowProbability > 0.5 && p.noShowProbability <= 0.7).length}
+                        </p>
+                        <p className="text-sm text-orange-700">Medium Risk</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardContent className="p-4 text-center">
+                        <CurrencyDisplay 
+                          amount={noShowPredictions.reduce((sum, p) => sum + p.appointmentValue, 0)} 
+                          className="text-2xl font-bold text-blue-600"
+                        />
+                        <p className="text-sm text-blue-700">Revenue at Risk</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-green-50 border-green-200">
+                      <CardContent className="p-4 text-center">
+                        <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                        <p className="text-2xl font-bold text-green-600">
+                          {noShowPredictions.filter(p => p.noShowProbability <= 0.5).length}
+                        </p>
+                        <p className="text-sm text-green-700">Low Risk</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {noShowPredictions.map((prediction, index) => (
+                    <Card key={prediction.appointmentId} className={`${prediction.noShowProbability > 0.7 ? 'border-red-200' : prediction.noShowProbability > 0.5 ? 'border-orange-200' : 'border-green-200'}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold">{prediction.patientName}</h4>
+                              <Badge className={`${prediction.noShowProbability > 0.7 ? 'bg-red-100 text-red-800' : prediction.noShowProbability > 0.5 ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
+                                {Math.round(prediction.noShowProbability * 100)}% no-show risk
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {prediction.treatmentType} • {prediction.appointmentDate.toLocaleDateString()} at {prediction.appointmentDate.toLocaleTimeString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold">
+                              <CurrencyDisplay amount={prediction.appointmentValue} />
+                            </p>
+                            <p className="text-xs text-muted-foreground">Appointment Value</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-sm font-medium mb-2">Risk Factors:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {prediction.riskFactors.map((factor: string, i: number) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {factor}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-medium mb-2">Recommended Actions:</p>
+                            <div className="space-y-2">
+                              {prediction.recommendedActions.map((action: any, i: number) => (
+                                <div key={i} className="flex items-center gap-2 text-sm">
+                                  <MessageSquare className="w-4 h-4 text-blue-500" />
+                                  <span className="font-medium">{action.action}</span>
+                                  <span className="text-muted-foreground">({action.timing})</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {action.channel}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {prediction.incentives.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Available Incentives:</p>
+                              <div className="space-y-1">
+                                {prediction.incentives.map((incentive: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between text-sm">
+                                    <span>{incentive.description}</span>
+                                    <span className="font-medium text-green-600">
+                                      <CurrencyDisplay amount={incentive.value} />
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleSendReminder(prediction)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <MessageSquare className="w-3 h-3 mr-1" />
+                              Send Reminder
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Phone className="w-3 h-3 mr-1" />
+                              Schedule Call
+                            </Button>
+                            {prediction.incentives.length > 0 && (
+                              <Button size="sm" variant="outline" className="text-green-600">
+                                <Target className="w-3 h-3 mr-1" />
+                                Offer Incentive
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
