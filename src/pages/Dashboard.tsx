@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuditLog } from "@/hooks/useAuditLog";
+import { useToast } from "@/hooks/use-toast";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { 
   Users, 
@@ -30,6 +34,41 @@ import { useNavigate } from "react-router-dom";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { logAction } = useAuditLog();
+  const { toast } = useToast();
+
+  // Audit logging on dashboard access
+  useEffect(() => {
+    if (user) {
+      logAction({
+        action: 'VIEW_DASHBOARD',
+        resource_type: 'dashboard',
+        details: { timestamp: new Date().toISOString() }
+      }).catch(error => {
+        console.error('Failed to log dashboard access:', error);
+        toast({
+          title: "Logging Error",
+          description: "Failed to record audit log",
+          variant: "destructive"
+        });
+      });
+    }
+  }, [user, logAction]);
+
+  // Log navigation actions
+  const handleNavigation = (route: string, title: string) => {
+    if (user) {
+      logAction({
+        action: 'NAVIGATE_FROM_DASHBOARD',
+        resource_type: 'navigation',
+        details: { target_route: route, target_title: title }
+      }).catch(error => {
+        console.error('Failed to log navigation:', error);
+      });
+    }
+    navigate(route);
+  };
 
   const mainKPIs = [
     {
@@ -219,7 +258,7 @@ export default function Dashboard() {
                   key={tile.title}
                   variant="outline"
                   className="h-20 flex flex-col gap-2 hover:scale-105 transition-transform"
-                  onClick={() => navigate(tile.route)}
+                  onClick={() => handleNavigation(tile.route, tile.title)}
                 >
                   <div className={`p-2 rounded-lg ${tile.color}`}>
                     <Icon className="h-5 w-5 text-white" />

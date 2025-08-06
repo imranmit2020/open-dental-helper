@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuditLog } from "@/hooks/useAuditLog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar,
   Clock,
@@ -17,8 +20,71 @@ import NewAppointmentForm from "@/components/NewAppointmentForm";
 
 export default function Schedule() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { logAction } = useAuditLog();
+  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
+
+  // Audit logging on page access
+  useEffect(() => {
+    if (user) {
+      logAction({
+        action: 'VIEW_SCHEDULE',
+        resource_type: 'schedule',
+        details: { date: currentDate.toISOString(), view }
+      }).catch(error => {
+        console.error('Failed to log schedule access:', error);
+        toast({
+          title: "Logging Error",
+          description: "Failed to record audit log",
+          variant: "destructive"
+        });
+      });
+    }
+  }, [user, logAction]);
+
+  // Log view changes
+  const handleViewChange = (newView: 'day' | 'week' | 'month') => {
+    setView(newView);
+    if (user) {
+      logAction({
+        action: 'CHANGE_SCHEDULE_VIEW',
+        resource_type: 'schedule',
+        details: { previous_view: view, new_view: newView }
+      }).catch(error => {
+        console.error('Failed to log view change:', error);
+      });
+    }
+  };
+
+  // Log date navigation
+  const handleDateNavigation = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (view === 'day') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    } else if (view === 'week') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    } else {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    }
+    setCurrentDate(newDate);
+    
+    if (user) {
+      logAction({
+        action: 'NAVIGATE_SCHEDULE',
+        resource_type: 'schedule',
+        details: { 
+          direction, 
+          previous_date: currentDate.toISOString(), 
+          new_date: newDate.toISOString(),
+          view 
+        }
+      }).catch(error => {
+        console.error('Failed to log date navigation:', error);
+      });
+    }
+  };
 
   const appointments = [
     {
@@ -104,15 +170,7 @@ export default function Schedule() {
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (view === 'day') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
-    } else if (view === 'week') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
-    } else {
-      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
-    }
-    setCurrentDate(newDate);
+    handleDateNavigation(direction);
   };
 
   return (
@@ -156,7 +214,7 @@ export default function Schedule() {
                   key={viewType}
                   variant={view === viewType ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setView(viewType)}
+                  onClick={() => handleViewChange(viewType)}
                 >
                   {viewType.charAt(0).toUpperCase() + viewType.slice(1)}
                 </Button>

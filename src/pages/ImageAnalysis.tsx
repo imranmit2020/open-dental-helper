@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, Scissors, Sparkles, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuditLog } from '@/hooks/useAuditLog';
 import { removeBackground, loadImage, enhanceImage } from '@/services/BackgroundRemovalService';
 
 export const ImageAnalysis: React.FC = () => {
@@ -12,16 +14,60 @@ export const ImageAnalysis: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { logAction, logImageAnalysisAccess } = useAuditLog();
+
+  // Audit logging on page access
+  useEffect(() => {
+    if (user) {
+      logAction({
+        action: 'VIEW_IMAGE_ANALYSIS',
+        resource_type: 'image_analysis',
+        details: { timestamp: new Date().toISOString() }
+      }).catch(error => {
+        console.error('Failed to log image analysis access:', error);
+        toast({
+          title: "Logging Error",
+          description: "Failed to record audit log",
+          variant: "destructive"
+        });
+      });
+    }
+  }, [user, logAction]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      setProcessedImage(null);
-      
-      // Create preview URL
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      try {
+        setSelectedImage(file);
+        setProcessedImage(null);
+        
+        // Create preview URL
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+
+        // Log file selection
+        if (user) {
+          logAction({
+            action: 'UPLOAD_IMAGE',
+            resource_type: 'image_analysis',
+            details: { 
+              file_name: file.name, 
+              file_size: file.size,
+              file_type: file.type 
+            }
+          }).catch(error => {
+            console.error('Failed to log file selection:', error);
+          });
+        }
+      } catch (error) {
+        console.error('Error handling file selection:', error);
+        toast({
+          title: "File Error",
+          description: "Failed to process selected file",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -44,8 +90,23 @@ export const ImageAnalysis: React.FC = () => {
   const processBackgroundRemoval = async () => {
     if (!selectedImage) return;
 
+    const processingId = Date.now().toString();
     setIsProcessing(true);
+    
     try {
+      // Log processing start
+      if (user) {
+        await logAction({
+          action: 'START_BACKGROUND_REMOVAL',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            file_name: selectedImage.name,
+            processing_type: 'background_removal'
+          }
+        });
+      }
+
       toast({
         title: "Processing Image",
         description: "Removing background using AI...",
@@ -57,12 +118,41 @@ export const ImageAnalysis: React.FC = () => {
       const processedUrl = URL.createObjectURL(processedBlob);
       setProcessedImage(processedUrl);
       
+      // Log successful processing
+      if (user) {
+        await logAction({
+          action: 'COMPLETE_BACKGROUND_REMOVAL',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            success: true,
+            output_size: processedBlob.size
+          }
+        });
+      }
+      
       toast({
         title: "Success!",
         description: "Background removed successfully",
       });
     } catch (error) {
       console.error('Error processing image:', error);
+      
+      // Log processing error
+      if (user) {
+        logAction({
+          action: 'ERROR_BACKGROUND_REMOVAL',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            file_name: selectedImage.name
+          }
+        }).catch(logError => {
+          console.error('Failed to log processing error:', logError);
+        });
+      }
+      
       toast({
         title: "Error",
         description: "Failed to process image. Please try again.",
@@ -76,8 +166,23 @@ export const ImageAnalysis: React.FC = () => {
   const processImageEnhancement = async () => {
     if (!selectedImage) return;
 
+    const processingId = Date.now().toString();
     setIsProcessing(true);
+    
     try {
+      // Log processing start
+      if (user) {
+        await logAction({
+          action: 'START_IMAGE_ENHANCEMENT',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            file_name: selectedImage.name,
+            processing_type: 'enhancement'
+          }
+        });
+      }
+
       toast({
         title: "Enhancing Image",
         description: "Improving lighting and contrast...",
@@ -89,12 +194,41 @@ export const ImageAnalysis: React.FC = () => {
       const enhancedUrl = URL.createObjectURL(enhancedBlob);
       setProcessedImage(enhancedUrl);
       
+      // Log successful processing
+      if (user) {
+        await logAction({
+          action: 'COMPLETE_IMAGE_ENHANCEMENT',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            success: true,
+            output_size: enhancedBlob.size
+          }
+        });
+      }
+      
       toast({
         title: "Success!",
         description: "Image enhanced successfully",
       });
     } catch (error) {
       console.error('Error enhancing image:', error);
+      
+      // Log processing error
+      if (user) {
+        logAction({
+          action: 'ERROR_IMAGE_ENHANCEMENT',
+          resource_type: 'image_analysis',
+          resource_id: processingId,
+          details: { 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            file_name: selectedImage.name
+          }
+        }).catch(logError => {
+          console.error('Failed to log processing error:', logError);
+        });
+      }
+      
       toast({
         title: "Error",
         description: "Failed to enhance image. Please try again.",
@@ -108,12 +242,40 @@ export const ImageAnalysis: React.FC = () => {
   const downloadProcessedImage = () => {
     if (!processedImage) return;
 
-    const link = document.createElement('a');
-    link.href = processedImage;
-    link.download = 'processed-image.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const link = document.createElement('a');
+      link.href = processedImage;
+      link.download = 'processed-image.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Log download action
+      if (user) {
+        logAction({
+          action: 'DOWNLOAD_PROCESSED_IMAGE',
+          resource_type: 'image_analysis',
+          details: { 
+            original_file: selectedImage?.name || 'unknown',
+            download_timestamp: new Date().toISOString()
+          }
+        }).catch(error => {
+          console.error('Failed to log download:', error);
+        });
+      }
+
+      toast({
+        title: "Download Complete",
+        description: "Processed image downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      toast({
+        title: "Download Error",
+        description: "Failed to download processed image",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

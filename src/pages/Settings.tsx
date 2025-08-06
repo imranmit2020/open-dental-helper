@@ -10,6 +10,9 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { Globe, CreditCard, Settings as SettingsIcon, Shield } from 'lucide-react';
 import { AuditLogViewer } from '@/components/AuditLogViewer';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,23 +20,45 @@ export default function Settings() {
   const { selectedLanguage, isRTL, formatDate, t } = useLanguage();
   const { selectedCurrency } = useCurrency();
   const { user } = useAuth();
+  const { logAction } = useAuditLog();
+  const { logUIError } = useErrorLogger();
+  const { toast } = useToast();
 
   // Check if user has admin role for audit logs
   const [userProfile, setUserProfile] = React.useState<any>(null);
 
   React.useEffect(() => {
     if (user) {
+      // Log settings page access
+      logAction({
+        action: 'VIEW_SETTINGS',
+        resource_type: 'settings',
+        details: { timestamp: new Date().toISOString() }
+      }).catch(error => {
+        logUIError(error, 'Settings', 'page_access');
+        toast({
+          title: "Logging Error",
+          description: "Failed to record audit log",
+          variant: "destructive"
+        });
+      });
+
       const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
-        setUserProfile(data);
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+          setUserProfile(data);
+        } catch (error) {
+          logUIError(error as Error, 'Settings', 'fetch_profile');
+          console.error('Failed to fetch user profile:', error);
+        }
       };
       fetchProfile();
     }
-  }, [user]);
+  }, [user, logAction, logUIError]);
 
   const isAdmin = userProfile?.role === 'admin';
 

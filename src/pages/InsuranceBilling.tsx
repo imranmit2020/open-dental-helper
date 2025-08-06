@@ -7,14 +7,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, CheckCircle, Clock, DollarSign, FileText, RefreshCw, Zap } from 'lucide-react';
 import { CurrencyDisplay } from '@/components/CurrencyDisplay';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { useErrorLogger } from '@/hooks/useErrorLogger';
+import { useToast } from '@/hooks/use-toast';
 import { AIInsuranceService } from '@/services/AIInsuranceService';
-import { toast } from 'sonner';
 
 const InsuranceBilling = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { logAction } = useAuditLog();
+  const { logUIError, logAPIError } = useErrorLogger();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [claims, setClaims] = useState([]);
   const [verifications, setVerifications] = useState([]);
+
+  // Audit logging on page access
+  useEffect(() => {
+    if (user) {
+      logAction({
+        action: 'VIEW_INSURANCE_BILLING',
+        resource_type: 'insurance_billing',
+        details: { timestamp: new Date().toISOString() }
+      }).catch(error => {
+        logUIError(error, 'InsuranceBilling', 'page_access');
+        toast({
+          title: "Logging Error",
+          description: "Failed to record audit log",
+          variant: "destructive"
+        });
+      });
+    }
+  }, [user, logAction, logUIError]);
 
   const mockClaims = [
     {
@@ -52,14 +77,37 @@ const InsuranceBilling = () => {
   const handleVerifyInsurance = async (patientId: string) => {
     setLoading(true);
     try {
+      // Log verification start
+      await logAction({
+        action: 'VERIFY_INSURANCE',
+        resource_type: 'insurance_verification',
+        patient_id: patientId,
+        details: { started_at: new Date().toISOString() }
+      });
+
       const verification = await AIInsuranceService.verifyInsurance(patientId, {
         provider: 'Blue Cross Blue Shield',
         policyNumber: 'BC123456789'
       });
-      toast.success('Insurance verified successfully');
-      console.log('Verification result:', verification);
+      
+      // Log successful verification
+      await logAction({
+        action: 'COMPLETE_INSURANCE_VERIFICATION',
+        resource_type: 'insurance_verification',
+        patient_id: patientId,
+        details: { verification_result: verification }
+      });
+
+      toast({
+        title: "Success",
+        description: "Insurance verified successfully"
+      });
     } catch (error) {
-      toast.error('Failed to verify insurance');
+      logAPIError(error as Error, 'verify_insurance', 'POST');
+      toast({
+        title: "Error",
+        description: "Failed to verify insurance"
+      });
     } finally {
       setLoading(false);
     }
@@ -68,11 +116,34 @@ const InsuranceBilling = () => {
   const handlePredictClaim = async (patientId: string, codes: string[]) => {
     setLoading(true);
     try {
+      // Log prediction start
+      await logAction({
+        action: 'PREDICT_CLAIM',
+        resource_type: 'claim_prediction',
+        patient_id: patientId,
+        details: { codes, started_at: new Date().toISOString() }
+      });
+
       const prediction = await AIInsuranceService.predictClaim(patientId, codes);
-      toast.success(`Claim prediction: ${Math.round(prediction.predictedApproval * 100)}% approval probability`);
-      console.log('Claim prediction:', prediction);
+      
+      // Log successful prediction
+      await logAction({
+        action: 'COMPLETE_CLAIM_PREDICTION',
+        resource_type: 'claim_prediction',
+        patient_id: patientId,
+        details: { prediction_result: prediction }
+      });
+
+      toast({
+        title: "Prediction Complete",
+        description: `Claim prediction: ${Math.round(prediction.predictedApproval * 100)}% approval probability`
+      });
     } catch (error) {
-      toast.error('Failed to predict claim');
+      logAPIError(error as Error, 'predict_claim', 'POST');
+      toast({
+        title: "Error",
+        description: "Failed to predict claim"
+      });
     } finally {
       setLoading(false);
     }
