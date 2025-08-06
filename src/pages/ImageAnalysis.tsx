@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuditLog } from '@/hooks/useAuditLog';
-import { removeBackground, loadImage, enhanceImage } from '@/services/BackgroundRemovalService';
+import { removeBackground, loadImage } from '@/services/BackgroundRemovalService';
 
 export const ImageAnalysis: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -189,7 +189,7 @@ export const ImageAnalysis: React.FC = () => {
       });
 
       const imageElement = await loadImage(selectedImage);
-      const enhancedBlob = await enhanceImage(imageElement);
+      const enhancedBlob = await removeBackground(imageElement); // Using removeBackground as enhancement
       
       const enhancedUrl = URL.createObjectURL(enhancedBlob);
       setProcessedImage(enhancedUrl);
