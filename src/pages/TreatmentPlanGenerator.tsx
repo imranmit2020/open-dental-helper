@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, DollarSign, Clock, TrendingUp, Star, Shield, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Brain, DollarSign, Clock, TrendingUp, Star, Shield, Users, Search, Mic } from "lucide-react";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuditLog } from "@/hooks/useAuditLog";
+import { useErrorLogger } from "@/hooks/useErrorLogger";
+
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+}
 
 interface TreatmentOption {
   id: string;
@@ -23,9 +38,18 @@ interface TreatmentOption {
 }
 
 export default function TreatmentPlanGenerator() {
-  const [selectedPatient, setSelectedPatient] = useState<string>("patient_001");
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [treatmentNotes, setTreatmentNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [treatmentOptions, setTreatmentOptions] = useState<TreatmentOption[]>([]);
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+  
+  const { toast } = useToast();
+  const { logAction } = useAuditLog();
+  const { logError } = useErrorLogger();
 
   const mockTreatmentOptions: TreatmentOption[] = [
     {
@@ -72,13 +96,127 @@ export default function TreatmentPlanGenerator() {
     }
   ];
 
+  // Load patients on component mount
+  useEffect(() => {
+    loadPatients();
+  }, []);
+
+  // Filter patients based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredPatients(patients);
+    } else {
+      const filtered = patients.filter(patient => 
+        `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.phone?.includes(searchTerm)
+      );
+      setFilteredPatients(filtered);
+    }
+  }, [searchTerm, patients]);
+
+  const loadPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('id, first_name, last_name, email, phone')
+        .order('last_name', { ascending: true })
+        .order('first_name', { ascending: true });
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error(String(error)), { 
+        context: 'Failed to load patients for treatment plan generation' 
+      });
+      toast({
+        title: "Error",
+        description: "Failed to load patients. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePatientSelect = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setSearchTerm(`${patient.first_name} ${patient.last_name}`);
+    setShowPatientDropdown(false);
+    
+    logAction({
+      action: 'patient_selected_for_treatment_plan',
+      resource_type: 'patients',
+      resource_id: patient.id,
+      patient_id: patient.id,
+      details: {
+        patient_name: `${patient.first_name} ${patient.last_name}`,
+        source: 'treatment_plan_generator'
+      }
+    });
+  };
+
+  const handleVoiceTranscription = (text: string) => {
+    setTreatmentNotes(prev => prev ? `${prev} ${text}` : text);
+    toast({
+      title: "Voice Input Added",
+      description: "Treatment notes updated with voice input",
+    });
+  };
+
   const generateTreatmentPlans = async () => {
+    if (!selectedPatient) {
+      toast({
+        title: "No Patient Selected",
+        description: "Please select a patient to generate treatment plans.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
-    // Simulate AI generation
-    setTimeout(() => {
-      setTreatmentOptions(mockTreatmentOptions);
+    
+    try {
+      logAction({
+        action: 'treatment_plan_generation_started',
+        resource_type: 'treatment_plans',
+        patient_id: selectedPatient.id,
+        details: {
+          patient_name: `${selectedPatient.first_name} ${selectedPatient.last_name}`,
+          notes: treatmentNotes
+        }
+      });
+
+      // Simulate AI generation (replace with actual AI service call)
+      setTimeout(() => {
+        setTreatmentOptions(mockTreatmentOptions);
+        setIsGenerating(false);
+        
+        logAction({
+          action: 'treatment_plan_generation_completed',
+          resource_type: 'treatment_plans',
+          patient_id: selectedPatient?.id,
+          details: {
+            patient_name: selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : 'Unknown',
+            plans_generated: mockTreatmentOptions.length
+          }
+        });
+
+        toast({
+          title: "Treatment Plans Generated",
+          description: `Generated ${mockTreatmentOptions.length} treatment options for ${selectedPatient?.first_name} ${selectedPatient?.last_name}`,
+        });
+      }, 2000);
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error(String(error)), { 
+        context: 'Failed to generate treatment plans',
+        patient_id: selectedPatient?.id 
+      });
       setIsGenerating(false);
-    }, 2000);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate treatment plans. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getTypeColor = (type: string) => {
@@ -118,33 +256,101 @@ export default function TreatmentPlanGenerator() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium">Select Patient</label>
-              <select 
-                value={selectedPatient}
-                onChange={(e) => setSelectedPatient(e.target.value)}
-                className="w-full mt-1 p-2 border rounded-md"
-              >
-                <option value="patient_001">John Smith - Upper Molar Issue</option>
-                <option value="patient_002">Sarah Johnson - Periodontal Concerns</option>
-                <option value="patient_003">Mike Davis - Aesthetic Treatment</option>
-              </select>
+          {/* Patient Search */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Search and Select Patient</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search by name, email, or phone..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowPatientDropdown(true);
+                }}
+                onFocus={() => setShowPatientDropdown(true)}
+                className="pl-10"
+              />
+              
+              {/* Patient Dropdown */}
+              {showPatientDropdown && filteredPatients.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {filteredPatients.slice(0, 10).map((patient) => (
+                    <button
+                      key={patient.id}
+                      onClick={() => handlePatientSelect(patient)}
+                      className="w-full px-3 py-2 text-left hover:bg-muted transition-colors border-b last:border-b-0"
+                    >
+                      <div className="font-medium">{patient.first_name} {patient.last_name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {patient.email} • {patient.phone}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            
+            {/* Selected Patient Display */}
+            {selectedPatient && (
+              <div className="p-3 bg-muted rounded-md border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">{selectedPatient.first_name} {selectedPatient.last_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedPatient.email} • {selectedPatient.phone}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPatient(null);
+                      setSearchTerm("");
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Treatment Notes with Voice Input */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Treatment Notes & Symptoms</label>
+              <VoiceRecorder 
+                onTranscription={handleVoiceTranscription}
+                placeholder="Record symptoms or treatment notes"
+                className="text-xs"
+              />
+            </div>
+            <Textarea
+              placeholder="Enter patient symptoms, concerns, or specific treatment requirements..."
+              value={treatmentNotes}
+              onChange={(e) => setTreatmentNotes(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          {/* Generate Button */}
+          <div className="flex justify-center pt-4">
             <Button 
               onClick={generateTreatmentPlans}
-              disabled={isGenerating}
-              className="mt-6"
+              disabled={isGenerating || !selectedPatient}
+              size="lg"
+              className="min-w-[200px]"
             >
               {isGenerating ? (
                 <>
                   <Brain className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  Generating Plans...
                 </>
               ) : (
                 <>
                   <Brain className="w-4 h-4 mr-2" />
-                  Generate Plans
+                  Generate Treatment Plans
                 </>
               )}
             </Button>
