@@ -72,10 +72,11 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
       }
 
       // Insert patient into Supabase database
+      // Note: user_id should be null for staff-created patients, unless creating for the patient themselves
       const { data: patientData, error } = await supabase
         .from('patients')
         .insert({
-          user_id: user.id,
+          user_id: null, // Staff creates patients without linking to their own user account
           first_name: data.firstName,
           last_name: data.lastName,
           email: data.email,
