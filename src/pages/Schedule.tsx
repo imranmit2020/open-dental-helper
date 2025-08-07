@@ -258,10 +258,10 @@ export default function Schedule() {
 
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm">
-                          {t('schedule.reschedule', 'Reschedule')}
+                          Reschedule
                         </Button>
                         <Button variant="outline" size="sm">
-                          {t('schedule.startVisit', 'Start Visit')}
+                          Start Visit
                         </Button>
                       </div>
                     </div>
