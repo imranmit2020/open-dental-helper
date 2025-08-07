@@ -1010,6 +1010,65 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_users: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          clinic_code: string
+          created_at: string
+          id: string
+          name: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_code: string
+          created_at?: string
+          id?: string
+          name: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           context: string | null
@@ -1231,7 +1290,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_tenant_schema: {
+        Args: {
+          tenant_id_param: string
+          schema_name_param: string
+          clinic_code_param: string
+        }
+        Returns: undefined
+      }
+      get_current_tenant_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_tenant_role: {
+        Args: { _user_id: string; _tenant_id: string }
+        Returns: string
+      }
+      user_belongs_to_tenant: {
+        Args: { _user_id: string; _tenant_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
