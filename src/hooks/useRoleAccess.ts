@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -77,8 +77,7 @@ const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 export function useRoleAccess() {
   const { user } = useAuth();
 
-  // Fetch user profile to get role
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -88,41 +87,76 @@ export function useRoleAccess() {
         .select('role')
         .eq('user_id', user.id)
         .single();
-
-      if (error) throw error;
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
       return data;
     },
     enabled: !!user?.id,
   });
 
-  const userRole = (profile?.role as UserRole) || 'patient';
+  const { data: corporateRole, isLoading: corporateLoading } = useQuery({
+    queryKey: ['corporate-role', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('corporate_users')
+        .select('role, corporation_id, corporations(name)')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching corporate role:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
+  const userRole: UserRole = (profile?.role as UserRole) || 'patient';
+  const isCorporateAdmin = corporateRole?.role === 'admin';
+  const isLoading = profileLoading || corporateLoading;
+  
   const permissions = useMemo(() => {
-    return ROLE_PERMISSIONS[userRole];
+    return ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.patient;
   }, [userRole]);
 
-  const hasRole = (role: UserRole | UserRole[]) => {
-    if (Array.isArray(role)) {
-      return role.includes(userRole);
-    }
-    return userRole === role;
-  };
+  const hasRole = useCallback((role: UserRole | UserRole[]) => {
+    const rolesToCheck = Array.isArray(role) ? role : [role];
+    return rolesToCheck.includes(userRole);
+  }, [userRole]);
 
-  const hasPermission = (permission: keyof RolePermissions) => {
-    return permissions[permission];
-  };
+  const hasPermission = useCallback((permission: keyof RolePermissions) => {
+    return permissions[permission] || false;
+  }, [permissions]);
 
-  const isStaffMember = hasRole(['admin', 'dentist', 'staff']);
-  const isPatient = hasRole('patient');
-  const isAdmin = hasRole('admin');
+  // Check if user can access admin approval dashboard
+  const canAccessAdminApprovals = useCallback(() => {
+    return userRole === 'admin' || isCorporateAdmin;
+  }, [userRole, isCorporateAdmin]);
+
+  // Helper computed values
+  const isStaffMember = ['admin', 'dentist', 'staff'].includes(userRole);
+  const isPatient = userRole === 'patient';
+  const isAdmin = userRole === 'admin';
 
   return {
     userRole,
     permissions,
     hasRole,
     hasPermission,
+    canAccessAdminApprovals,
     isStaffMember,
     isPatient,
     isAdmin,
+    isCorporateAdmin,
+    corporateInfo: corporateRole,
+    isLoading,
   };
 }

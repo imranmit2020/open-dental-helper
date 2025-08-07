@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,9 +32,24 @@ interface ApprovalRequest {
 export default function AdminApprovalDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { canAccessAdminApprovals, userRole, isCorporateAdmin, corporateInfo } = useRoleAccess();
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminNotes, setAdminNotes] = useState<{ [key: string]: string }>({});
+
+  // Check access on component mount
+  if (!canAccessAdminApprovals()) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
+          <p className="text-muted-foreground mt-2">
+            You need clinic admin or corporate admin permissions to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     fetchApprovalRequests();
@@ -250,6 +266,16 @@ export default function AdminApprovalDashboard() {
             <h1 className="text-3xl font-bold text-foreground">User Approval Dashboard</h1>
             <p className="text-muted-foreground mt-2">
               Review and approve new user registrations ({pendingCount} pending)
+              {isCorporateAdmin && corporateInfo?.corporations?.name && (
+                <span className="block text-sm text-primary font-medium">
+                  Corporate Admin • {corporateInfo.corporations.name}
+                </span>
+              )}
+              {userRole === 'admin' && !isCorporateAdmin && (
+                <span className="block text-sm text-primary font-medium">
+                  Clinic Administrator
+                </span>
+              )}
             </p>
           </div>
           <Button onClick={simulateNewRequest} variant="outline">

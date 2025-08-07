@@ -55,8 +55,9 @@ import QuantumDentalAI from "./pages/QuantumDentalAI";
 import QuantumScheduling from "./pages/QuantumScheduling";
 import MarketIntelligence from "./pages/MarketIntelligence";
 import AdminApprovalDashboard from "./pages/AdminApprovalDashboard";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function AuthProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -87,7 +88,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
           <Route path="/patient-signup" element={<PatientSignUp />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/" element={<AuthProtectedRoute><Layout /></AuthProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="patient-dashboard" element={<PatientDashboard />} />
@@ -144,7 +145,11 @@ function App() {
             <Route path="reputation-management" element={<ReputationManagement />} />
             <Route path="lead-conversion" element={<LeadConversion />} />
             <Route path="market-intelligence" element={<MarketIntelligence />} />
-            <Route path="admin/user-approvals" element={<AdminApprovalDashboard />} />
+            <Route path="admin/user-approvals" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <AdminApprovalDashboard />
+              </ProtectedRoute>
+            } />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -19,7 +19,7 @@ export function ProtectedRoute({
   fallbackPath = '/dashboard' 
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
-  const { hasRole, hasPermission } = useRoleAccess();
+  const { hasRole, hasPermission, canAccessAdminApprovals } = useRoleAccess();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -29,8 +29,21 @@ export function ProtectedRoute({
     return <Navigate to="/auth" replace />;
   }
 
-  // Check role requirements
-  if (requiredRoles && !hasRole(requiredRoles)) {
+  // Check role requirements - special case for admin approvals
+  if (requiredRoles?.includes('admin') && window.location.pathname.includes('user-approvals')) {
+    if (!canAccessAdminApprovals()) {
+      return (
+        <div className="p-6">
+          <Alert variant="destructive">
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              You don't have permission to access this page. This requires clinic admin or corporate admin access.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+  } else if (requiredRoles && !hasRole(requiredRoles)) {
     return (
       <div className="p-6">
         <Alert variant="destructive">

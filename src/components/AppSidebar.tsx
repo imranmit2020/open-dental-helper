@@ -35,6 +35,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigationPermissions, NavigationItem } from "@/hooks/useNavigationPermissions";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { supabase } from "@/integrations/supabase/client";
 
 import {
@@ -124,6 +125,7 @@ export function AppSidebar() {
   const { t } = useLanguage();
   const location = useLocation();
   const { filterNavigationItems, userRole, subscribed, isStaffMember, isPatient, isAdmin } = useNavigationPermissions();
+  const { canAccessAdminApprovals } = useRoleAccess();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
   
@@ -133,7 +135,7 @@ export function AppSidebar() {
 
   useEffect(() => {
     const fetchPendingCount = async () => {
-      if (isAdmin) {
+      if (canAccessAdminApprovals()) {
         const { data } = await supabase
           .from('user_approval_requests')
           .select('id')
@@ -166,7 +168,7 @@ export function AppSidebar() {
     // Set up real-time subscriptions
     const channels = [];
     
-    if (isAdmin) {
+    if (canAccessAdminApprovals()) {
       const approvalChannel = supabase
         .channel('pending-approvals-count')
         .on(
@@ -207,7 +209,7 @@ export function AppSidebar() {
         supabase.removeChannel(channel);
       });
     };
-  }, [isAdmin, isStaffMember]);
+  }, [canAccessAdminApprovals, isStaffMember]);
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -478,38 +480,36 @@ export function AppSidebar() {
           </>
         )}
 
-        {/* Admin Tools - Only show for admins */}
-        {visibleAdminItems.length > 0 && (
+        {/* Admin Tools - Show for clinic admins and corporate admins */}
+        {canAccessAdminApprovals() && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Administration
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {visibleAdminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && (
-                          <div className="flex items-center justify-between w-full">
-                            <span className="font-medium">{item.title}</span>
-                            {item.url === "/admin/user-approvals" && pendingApprovalsCount > 0 && (
-                              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                                {pendingApprovalsCount}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {isCollapsed && item.url === "/admin/user-approvals" && pendingApprovalsCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                            {pendingApprovalsCount}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/user-approvals" className={getNavCls}>
+                      <UserPlus className="h-4 w-4 text-current" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">User Approvals</span>
+                          {pendingApprovalsCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                              {pendingApprovalsCount}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {isCollapsed && pendingApprovalsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                          {pendingApprovalsCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
