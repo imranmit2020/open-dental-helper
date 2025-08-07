@@ -25,6 +25,7 @@ import { VoiceTranscriptionService } from "@/services/VoiceTranscriptionService"
 import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import type { Patient } from "@/hooks/usePatients";
 import { debounce } from "@/utils/debounce";
+import { format } from "date-fns";
 
 interface PatientNote {
   id: string;
@@ -101,7 +102,13 @@ const PatientNotesDialog: React.FC<PatientNotesDialogProps> = ({ trigger }) => {
     }
   }, 300), [searchPatients]);
 
-  const [isOpen, setIsOpen] = useState(false);
+const formatDob = (dob?: string | null) => {
+  if (!dob) return "Not available";
+  const d = new Date(dob as string);
+  return isNaN(d.getTime()) ? "Not available" : format(d, "MMM d, yyyy");
+};
+
+const [isOpen, setIsOpen] = useState(false);
 
   const startRecording = async () => {
     if (!voiceService.isSupported()) {
@@ -273,7 +280,7 @@ const PatientNotesDialog: React.FC<PatientNotesDialogProps> = ({ trigger }) => {
                                 }}
                               >
                                 <div className="font-medium">{p.first_name} {p.last_name}</div>
-                                <div className="text-xs text-muted-foreground">{p.email || p.phone || 'No contact info'}</div>
+                                <div className="text-xs text-muted-foreground">DOB: {formatDob(p.date_of_birth)}</div>
                               </button>
                             ))
                           )}
