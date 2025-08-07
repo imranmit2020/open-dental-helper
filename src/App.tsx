@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import PatientSignIn from "./pages/PatientSignIn";
+import PatientSignUp from "./pages/PatientSignUp";
 import Dashboard from "./pages/Dashboard";
 import PatientDashboard from "./pages/PatientDashboard";
 import DentistDashboard from "./pages/DentistDashboard";
@@ -82,6 +84,8 @@ function App() {
             <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/patient-signin" element={<PatientSignIn />} />
+          <Route path="/patient-signup" element={<PatientSignUp />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
