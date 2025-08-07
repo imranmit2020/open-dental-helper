@@ -46,7 +46,7 @@ export function useStaffAvailability(staffId?: string) {
     try {
       setLoading(true);
       let query = supabase
-        .from('staff_availability')
+        .from('staff_availability' as any)
         .select(`
           *,
           staff:profiles!staff_availability_staff_id_fkey(first_name, last_name),
@@ -81,7 +81,7 @@ export function useStaffAvailability(staffId?: string) {
   const createAvailability = async (availabilityData: CreateStaffAvailabilityData) => {
     try {
       const { data, error } = await supabase
-        .from('staff_availability')
+        .from('staff_availability' as any)
         .insert([availabilityData])
         .select(`
           *,
@@ -114,7 +114,7 @@ export function useStaffAvailability(staffId?: string) {
   const updateAvailability = async (id: string, updates: Partial<CreateStaffAvailabilityData>) => {
     try {
       const { data, error } = await supabase
-        .from('staff_availability')
+        .from('staff_availability' as any)
         .update(updates)
         .eq('id', id)
         .select(`
@@ -150,7 +150,7 @@ export function useStaffAvailability(staffId?: string) {
   const deleteAvailability = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('staff_availability')
+        .from('staff_availability' as any)
         .delete()
         .eq('id', id);
 
@@ -177,7 +177,7 @@ export function useStaffAvailability(staffId?: string) {
     try {
       const dayOfWeek = date.getDay();
       const { data, error } = await supabase
-        .from('staff_availability')
+        .from('staff_availability' as any)
         .select('*')
         .eq('staff_id', staffId)
         .eq('tenant_id', tenantId)
