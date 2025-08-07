@@ -66,6 +66,7 @@ export type Database = {
           notes: string | null
           patient_id: string
           status: string | null
+          tenant_id: string | null
           title: string
           treatment_type: string | null
           updated_at: string
@@ -80,6 +81,7 @@ export type Database = {
           notes?: string | null
           patient_id: string
           status?: string | null
+          tenant_id?: string | null
           title: string
           treatment_type?: string | null
           updated_at?: string
@@ -94,6 +96,7 @@ export type Database = {
           notes?: string | null
           patient_id?: string
           status?: string | null
+          tenant_id?: string | null
           title?: string
           treatment_type?: string | null
           updated_at?: string
@@ -111,6 +114,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -328,6 +338,48 @@ export type Database = {
           settings?: Json | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      dentist_availability: {
+        Row: {
+          break_end_time: string | null
+          break_start_time: string | null
+          created_at: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id: string
+          is_available: boolean
+          start_time: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean
+          start_time: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week?: number
+          dentist_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          start_time?: string
+          tenant_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1155,6 +1207,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_tenants_corporation"
+            columns: ["corporation_id"]
+            isOneToOne: false
+            referencedRelation: "corporations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tenants_corporation_id_fkey"
             columns: ["corporation_id"]
             isOneToOne: false
@@ -1395,6 +1454,16 @@ export type Database = {
       get_current_tenant_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_dentist_availability_for_date: {
+        Args: { _dentist_id: string; _tenant_id: string; _date: string }
+        Returns: {
+          is_available: boolean
+          start_time: string
+          end_time: string
+          break_start_time: string
+          break_end_time: string
+        }[]
       }
       get_user_tenant_role: {
         Args: { _user_id: string; _tenant_id: string }

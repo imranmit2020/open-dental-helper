@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface Appointment {
   id: string;
@@ -13,6 +14,7 @@ export interface Appointment {
   description?: string;
   notes?: string;
   dentist_id?: string;
+  tenant_id?: string;
   created_at: string;
   updated_at: string;
   patient?: {
@@ -36,12 +38,14 @@ export interface CreateAppointmentData {
   description?: string;
   notes?: string;
   dentist_id?: string;
+  tenant_id?: string;
 }
 
 export function useAppointments(date?: Date) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
 
   const fetchAppointments = async () => {
     try {
@@ -54,6 +58,11 @@ export function useAppointments(date?: Date) {
           dentist:profiles!appointments_dentist_id_fkey(first_name, last_name)
         `)
         .order('appointment_date', { ascending: true });
+
+      // Filter by current tenant/clinic
+      if (currentTenant) {
+        query = query.eq('tenant_id', currentTenant.id);
+      }
 
       if (date) {
         // Get start and end of the selected day in local timezone
@@ -86,9 +95,14 @@ export function useAppointments(date?: Date) {
 
   const createAppointment = async (appointmentData: CreateAppointmentData) => {
     try {
+      // Auto-assign current tenant if not provided
+      const dataWithTenant = {
+        ...appointmentData,
+        tenant_id: appointmentData.tenant_id || currentTenant?.id,
+      };
       const { data, error } = await supabase
         .from('appointments')
-        .insert([appointmentData])
+        .insert([dataWithTenant])
         .select(`
           *,
           patient:patients(first_name, last_name, phone),
@@ -184,7 +198,7 @@ export function useAppointments(date?: Date) {
 
   useEffect(() => {
     fetchAppointments();
-  }, [date]);
+  }, [date, currentTenant]);
 
   return {
     appointments,
