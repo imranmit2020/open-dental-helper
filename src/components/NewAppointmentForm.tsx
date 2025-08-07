@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, User, MapPin, FileText, Phone, Mail } from "lucide-react";
+import { CalendarIcon, Clock, User, MapPin, FileText, Phone, Mail, Search } from "lucide-react";
+import { useAppointments } from "@/hooks/useAppointments";
+import { usePatients, type Patient } from "@/hooks/usePatients";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 const appointmentSchema = z.object({
   // Patient Information
   patientType: z.enum(["existing", "new"]),
-  patientId: z.string().optional(),
+  patientId: z.string().uuid("Please select a valid patient").optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required").optional().or(z.literal("")),
@@ -84,7 +86,12 @@ const rooms = ["Room 1", "Room 2", "Room 3", "Consultation Room"];
 
 export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewAppointmentFormProps) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
+  const { createAppointment } = useAppointments();
+  const { createPatient, searchPatients } = usePatients();
 
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
@@ -92,6 +99,10 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
       patientType: "existing",
       reminderPreference: "both",
       isUrgent: false,
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
     },
   });
 
@@ -106,29 +117,75 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
     }
   };
 
+  // Handle patient search
+  const handlePatientSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length > 2) {
+      const results = await searchPatients(query);
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  // Handle patient selection
+  const handlePatientSelect = (patient: Patient) => {
+    setSelectedPatient(patient);
+    form.setValue("patientId", patient.id);
+    form.setValue("firstName", patient.first_name);
+    form.setValue("lastName", patient.last_name);
+    form.setValue("phone", patient.phone || "");
+    form.setValue("email", patient.email || "");
+    setSearchQuery(`${patient.first_name} ${patient.last_name}`);
+    setSearchResults([]);
+  };
+
   const onSubmit = async (data: AppointmentFormData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let patientId = data.patientId;
 
-      const newAppointment = {
-        id: Date.now(),
-        date: format(data.appointmentDate, "yyyy-MM-dd"),
-        time: data.appointmentTime,
+      // If new patient, create patient first
+      if (data.patientType === "new") {
+        const newPatient = await createPatient({
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          emergency_contact: data.emergencyContact,
+        });
+        patientId = newPatient.id;
+      }
+
+      if (!patientId) {
+        throw new Error("Patient ID is required");
+      }
+
+      // Convert appointment time to proper datetime
+      const appointmentDateTime = new Date(data.appointmentDate);
+      const [time, period] = data.appointmentTime.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      
+      let adjustedHours = hours;
+      if (period === 'PM' && hours !== 12) {
+        adjustedHours += 12;
+      } else if (period === 'AM' && hours === 12) {
+        adjustedHours = 0;
+      }
+      
+      appointmentDateTime.setHours(adjustedHours, minutes, 0, 0);
+
+      const appointmentData = {
+        patient_id: patientId,
+        appointment_date: appointmentDateTime.toISOString(),
+        title: appointmentTypes.find(t => t.value === data.appointmentType)?.label || data.appointmentType,
+        treatment_type: data.appointmentType,
         duration: parseInt(data.duration),
-        patient: `${data.firstName} ${data.lastName}`,
-        type: appointmentTypes.find(t => t.value === data.appointmentType)?.label || data.appointmentType,
-        provider: data.provider,
-        room: data.room,
-        phone: data.phone,
-        email: data.email,
-        status: data.isUrgent ? "urgent" : "confirmed",
-        chiefComplaint: data.chiefComplaint,
+        status: data.isUrgent ? "urgent" : "scheduled",
+        description: data.chiefComplaint,
         notes: data.notes,
-        reminderPreference: data.reminderPreference,
-        createdAt: new Date().toISOString(),
       };
 
+      const newAppointment = await createAppointment(appointmentData);
       onAppointmentAdded?.(newAppointment);
 
       toast({
@@ -136,9 +193,21 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
         description: `Successfully scheduled ${data.firstName} ${data.lastName} for ${data.appointmentTime} on ${format(data.appointmentDate, "PPP")}`,
       });
 
-      form.reset();
+      form.reset({
+        patientType: "existing",
+        reminderPreference: "both",
+        isUrgent: false,
+        firstName: "",
+        lastName: "",
+        phone: "",
+        email: "",
+      });
+      setSelectedPatient(null);
+      setSearchQuery("");
+      setSearchResults([]);
       setOpen(false);
     } catch (error) {
+      console.error('Error in onSubmit:', error);
       toast({
         title: "Error",
         description: "Failed to schedule appointment. Please try again.",
@@ -214,9 +283,31 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
                       name="patientId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Patient ID</FormLabel>
+                          <FormLabel>Search Patient</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter patient ID or search name" {...field} />
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input 
+                                placeholder="Search by name or email" 
+                                value={searchQuery}
+                                onChange={(e) => handlePatientSearch(e.target.value)}
+                                className="pl-10"
+                              />
+                              {searchResults.length > 0 && (
+                                <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                                  {searchResults.map((patient) => (
+                                    <div
+                                      key={patient.id}
+                                      className="p-2 hover:bg-accent cursor-pointer"
+                                      onClick={() => handlePatientSelect(patient)}
+                                    >
+                                      <div className="font-medium">{patient.first_name} {patient.last_name}</div>
+                                      <div className="text-sm text-muted-foreground">{patient.email}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -232,7 +323,12 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="First name" {...field} />
+                            <Input 
+                              placeholder="First name" 
+                              {...field} 
+                              value={field.value || ""}
+                              disabled={patientType === "existing" && selectedPatient !== null}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -246,7 +342,12 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
                         <FormItem>
                           <FormLabel>Last Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Last name" {...field} />
+                            <Input 
+                              placeholder="Last name" 
+                              {...field} 
+                              value={field.value || ""}
+                              disabled={patientType === "existing" && selectedPatient !== null}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -257,29 +358,39 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
                   <FormField
                     control={form.control}
                     name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="(555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="(555) 123-4567" 
+                              {...field} 
+                              value={field.value || ""}
+                              disabled={patientType === "existing" && selectedPatient !== null}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                   />
 
                   <FormField
                     control={form.control}
                     name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="patient@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="patient@email.com" 
+                              {...field} 
+                              value={field.value || ""}
+                              disabled={patientType === "existing" && selectedPatient !== null}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                   />
                 </CardContent>
               </Card>

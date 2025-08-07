@@ -6,6 +6,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useToast } from "@/hooks/use-toast";
+import { useAppointments } from "@/hooks/useAppointments";
+import { format } from "date-fns";
 import { 
   Calendar,
   Clock,
@@ -25,6 +27,7 @@ export default function Schedule() {
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
+  const { appointments, loading, refetch } = useAppointments(view === "day" ? currentDate : undefined);
 
   // Audit logging on page access
   useEffect(() => {
@@ -86,58 +89,18 @@ export default function Schedule() {
     }
   };
 
-  const appointments = [
-    {
-      id: 1,
-      time: "9:00 AM",
-      duration: 60,
-      patient: "Sarah Johnson",
-      type: "Routine Cleaning",
-      status: "confirmed",
-      room: "Room 1",
-      phone: "(555) 123-4567"
-    },
-    {
-      id: 2,
-      time: "10:30 AM",
-      duration: 90,
-      patient: "Mike Davis",
-      type: "Root Canal",
-      status: "confirmed",
-      room: "Room 2",
-      phone: "(555) 234-5678"
-    },
-    {
-      id: 3,
-      time: "12:00 PM",
-      duration: 30,
-      patient: "Lunch Break",
-      type: "break",
-      status: "blocked",
-      room: "-",
-      phone: "-"
-    },
-    {
-      id: 4,
-      time: "2:00 PM",
-      duration: 75,
-      patient: "Emily Chen",
-      type: "Crown Preparation",
-      status: "pending",
-      room: "Room 1",
-      phone: "(555) 345-6789"
-    },
-    {
-      id: 5,
-      time: "3:30 PM",
-      duration: 45,
-      patient: "Robert Wilson",
-      type: "Consultation",
-      status: "confirmed",
-      room: "Room 3",
-      phone: "(555) 456-7890"
-    }
-  ];
+  // Transform appointments for display
+  const displayAppointments = appointments.map(apt => ({
+    id: apt.id,
+    time: format(new Date(apt.appointment_date), 'h:mm a'),
+    duration: apt.duration || 60,
+    patient: apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Unknown Patient',
+    type: apt.title,
+    status: apt.status || 'scheduled',
+    room: "Room 1", // Default room since not in database
+    phone: apt.patient?.phone || '',
+    treatment_type: apt.treatment_type
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -181,7 +144,7 @@ export default function Schedule() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Appointment Calendar</h1>
           <p className="text-muted-foreground">Manage your daily schedule and appointments</p>
         </div>
-        <NewAppointmentForm />
+        <NewAppointmentForm onAppointmentAdded={refetch} />
       </div>
 
       {/* Calendar Controls */}
@@ -234,19 +197,24 @@ export default function Schedule() {
                 Today's Schedule
               </CardTitle>
               <CardDescription>
-                {appointments.filter(apt => apt.type !== 'break').length} appointments scheduled
+                {displayAppointments.length} appointments scheduled
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {appointments.map((appointment) => (
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <div className="animate-pulse">Loading appointments...</div>
+                  </div>
+                ) : displayAppointments.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No appointments scheduled for this day</p>
+                  </div>
+                ) : displayAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className={`p-4 border rounded-lg transition-all hover:shadow-md ${
-                      appointment.type === 'break' 
-                        ? 'border-dashed border-muted bg-muted/20' 
-                        : 'border-border hover:border-primary/30'
-                    }`}
+                    className="p-4 border rounded-lg transition-all hover:shadow-md border-border hover:border-primary/30"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -258,9 +226,7 @@ export default function Schedule() {
                         
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h3 className={`font-semibold ${
-                              appointment.type === 'break' ? 'text-muted-foreground' : 'text-foreground'
-                            }`}>
+                            <h3 className="font-semibold text-foreground">
                               {appointment.patient}
                             </h3>
                             <Badge variant="outline" className={getStatusColor(appointment.status)}>
@@ -288,16 +254,14 @@ export default function Schedule() {
                         </div>
                       </div>
 
-                      {appointment.type !== 'break' && (
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">
-                            {t('schedule.reschedule', 'Reschedule')}
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            {t('schedule.startVisit', 'Start Visit')}
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm">
+                          {t('schedule.reschedule', 'Reschedule')}
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          {t('schedule.startVisit', 'Start Visit')}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -315,25 +279,31 @@ export default function Schedule() {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Appointments</span>
-                <span className="font-semibold">{appointments.filter(apt => apt.type !== 'break').length}</span>
+                <span className="font-semibold">{displayAppointments.length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Confirmed</span>
                 <span className="font-semibold text-success">
-                  {appointments.filter(apt => apt.status === 'confirmed').length}
+                  {displayAppointments.filter(apt => apt.status === 'confirmed').length}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Scheduled</span>
+                <span className="font-semibold text-primary">
+                  {displayAppointments.filter(apt => apt.status === 'scheduled').length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Pending</span>
                 <span className="font-semibold text-warning">
-                  {appointments.filter(apt => apt.status === 'pending').length}
+                  {displayAppointments.filter(apt => apt.status === 'pending').length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Hours</span>
                 <span className="font-semibold">
-                  {Math.round(appointments.reduce((total, apt) => 
-                    apt.type !== 'break' ? total + apt.duration : total, 0
+                  {Math.round(displayAppointments.reduce((total, apt) => 
+                    total + apt.duration, 0
                   ) / 60 * 10) / 10}h
                 </span>
               </div>
