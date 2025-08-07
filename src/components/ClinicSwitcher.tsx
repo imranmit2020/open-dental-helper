@@ -20,7 +20,9 @@ import { useTenant } from "@/contexts/TenantContext";
 
 export function ClinicSwitcher() {
   const [open, setOpen] = useState(false);
-  const { currentTenant, tenants, switchTenant, loading } = useTenant();
+  const { currentTenant, tenants, switchTenant, loading, canSwitchTenants, userRole } = useTenant();
+
+  // Don't show switcher if user can't switch tenants
 
   if (loading) {
     return (
@@ -35,7 +37,36 @@ export function ClinicSwitcher() {
     return (
       <div className="flex items-center space-x-2 text-muted-foreground">
         <Building2 className="h-4 w-4" />
-        <span className="text-sm">No clinic selected</span>
+        <span className="text-sm">No clinic assigned</span>
+      </div>
+    );
+  }
+
+  // Show current clinic info without switcher for regular users
+  if (!canSwitchTenants) {
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
+          <Building2 className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex flex-col items-start min-w-0">
+          <div className="flex items-center space-x-2">
+            <span className="font-medium text-sm truncate">
+              {currentTenant.name}
+            </span>
+            <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+              {currentTenant.clinic_code.toUpperCase()}
+            </Badge>
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+              {userRole}
+            </Badge>
+          </div>
+          {currentTenant.address && (
+            <span className="text-xs text-muted-foreground truncate max-w-48">
+              {currentTenant.address}
+            </span>
+          )}
+        </div>
       </div>
     );
   }
