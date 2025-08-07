@@ -82,9 +82,9 @@ export default function WalkInForm({ onWalkInAdded, trigger }: WalkInFormProps) 
         title: `Walk-in: ${data.chiefComplaint}`,
         treatment_type: "walk-in",
         duration: parseInt(data.estimatedDuration),
-        status: data.urgencyLevel === "emergency" ? "urgent" : "walk-in",
-        description: data.chiefComplaint,
-        notes: data.notes,
+        status: data.urgencyLevel === "emergency" ? "scheduled" : "scheduled", // Use valid status
+        description: `URGENT: ${data.chiefComplaint} (Walk-in patient)`,
+        notes: `Urgency Level: ${data.urgencyLevel.toUpperCase()}\n${data.notes || ''}`,
       };
 
       await createAppointment(appointmentData);
