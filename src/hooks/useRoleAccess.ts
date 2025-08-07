@@ -65,11 +65,11 @@ const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canViewAuditLogs: false,
     canManageUsers: false,
     canViewAnalytics: false,
-    canManageSettings: false,
-    canViewMedicalRecords: false,
+    canManageSettings: true, // Patients can manage their own settings
+    canViewMedicalRecords: true, // Patients can view their own medical records
     canEditMedicalRecords: false,
-    canManageAppointments: false,
-    canViewConsentForms: false,
+    canManageAppointments: true, // Patients can view/schedule their own appointments
+    canViewConsentForms: true, // Patients can view their own consent forms
     canManageConsentForms: false,
   },
 };
