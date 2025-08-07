@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import BranchMap from "@/components/BranchMap";
 
 export default function MarketingAutomation() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -364,6 +365,18 @@ export default function MarketingAutomation() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Branch Map (Live) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Branch Map (Live)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[480px]">
+                <BranchMap />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="campaigns" className="space-y-6">
