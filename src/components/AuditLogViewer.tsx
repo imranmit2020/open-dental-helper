@@ -60,10 +60,10 @@ export function AuditLogViewer() {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (filter.action) {
+      if (filter.action && filter.action !== 'all') {
         query = query.eq('action', filter.action);
       }
-      if (filter.resource_type) {
+      if (filter.resource_type && filter.resource_type !== 'all') {
         query = query.eq('resource_type', filter.resource_type);
       }
       if (filter.user_id) {
@@ -128,12 +128,12 @@ export function AuditLogViewer() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <Select value={filter.action} onValueChange={(value) => setFilter(prev => ({ ...prev, action: value }))}>
+            <Select value={filter.action || 'all'} onValueChange={(value) => setFilter(prev => ({ ...prev, action: value === 'all' ? '' : value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by action" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Actions</SelectItem>
+                <SelectItem value="all">All Actions</SelectItem>
                 <SelectItem value="VIEW_PATIENT">View Patient</SelectItem>
                 <SelectItem value="UPDATE_PATIENT">Update Patient</SelectItem>
                 <SelectItem value="VIEW_MEDICAL_RECORD">View Medical Record</SelectItem>
@@ -142,12 +142,12 @@ export function AuditLogViewer() {
               </SelectContent>
             </Select>
 
-            <Select value={filter.resource_type} onValueChange={(value) => setFilter(prev => ({ ...prev, resource_type: value }))}>
+            <Select value={filter.resource_type || 'all'} onValueChange={(value) => setFilter(prev => ({ ...prev, resource_type: value === 'all' ? '' : value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by resource" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Resources</SelectItem>
+                <SelectItem value="all">All Resources</SelectItem>
                 <SelectItem value="patients">Patients</SelectItem>
                 <SelectItem value="medical_records">Medical Records</SelectItem>
                 <SelectItem value="appointments">Appointments</SelectItem>
