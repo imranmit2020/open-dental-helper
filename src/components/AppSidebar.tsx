@@ -48,8 +48,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const patientDashboards: NavigationItem[] = [
-  { title: "Patient Portal", url: "/patient-dashboard", icon: User, requiredRoles: ['patient'] },
+const patientMenuItems: NavigationItem[] = [
+  { title: "My Dashboard", url: "/patient-dashboard", icon: User, requiredRoles: ['patient'] },
+  { title: "My Appointments", url: "/my-appointments", icon: Calendar, requiredRoles: ['patient'] },
+  { title: "My Medical Records", url: "/my-medical-records", icon: FileText, requiredRoles: ['patient'] },
+  { title: "My Treatment Plans", url: "/my-treatment-plans", icon: Stethoscope, requiredRoles: ['patient'] },
+  { title: "Consent Forms", url: "/my-consent-forms", icon: Shield, requiredRoles: ['patient'] },
 ];
 
 const practiceDashboards: NavigationItem[] = [
@@ -112,7 +116,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { t } = useLanguage();
   const location = useLocation();
-  const { filterNavigationItems, userRole, subscribed, isStaffMember } = useNavigationPermissions();
+  const { filterNavigationItems, userRole, subscribed, isStaffMember, isPatient } = useNavigationPermissions();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
 
@@ -123,7 +127,7 @@ export function AppSidebar() {
       : "";
 
   // Filter navigation items based on user permissions
-  const visiblePatientDashboards = filterNavigationItems(patientDashboards);
+  const visiblePatientMenuItems = filterNavigationItems(patientMenuItems);
   const visiblePracticeDashboards = filterNavigationItems(practiceDashboards);
   const visiblePatientItems = filterNavigationItems(patientItems);
   const visibleSchedulingItems = filterNavigationItems(schedulingItems);
@@ -158,15 +162,15 @@ export function AppSidebar() {
           </div>
         </div>
 
-        {/* Patient Portal */}
-        {visiblePatientDashboards.length > 0 && (
+        {/* Patient Portal - Only show for patients */}
+        {isPatient && visiblePatientMenuItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Patient Portal
+              My Dental Care
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {visiblePatientDashboards.map((item) => (
+                {visiblePatientMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
@@ -181,8 +185,8 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Practice Management */}
-        {visiblePracticeDashboards.length > 0 && (
+        {/* Practice Management - Only show for staff */}
+        {isStaffMember && visiblePracticeDashboards.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Practice Management
@@ -204,8 +208,8 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Patient Management */}
-        {visiblePatientItems.length > 0 && (
+        {/* Patient Management - Only show for staff */}
+        {isStaffMember && visiblePatientItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Patient Management
@@ -227,142 +231,147 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Scheduling */}
-        {visibleSchedulingItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Scheduling
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleSchedulingItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {/* All other sections - Only show for staff */}
+        {isStaffMember && (
+          <>
+            {/* Scheduling */}
+            {visibleSchedulingItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  Scheduling
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleSchedulingItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
-        {/* Clinical AI Tools */}
-        {visibleClinicalItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Clinical AI
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleClinicalItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+            {/* Clinical AI Tools */}
+            {visibleClinicalItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  Clinical AI
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleClinicalItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
-        {/* AI Features */}
-        {visibleAiItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              AI Features
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleAiItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+            {/* AI Features */}
+            {visibleAiItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  AI Features
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleAiItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
-        {/* Reports */}
-        {visibleReportsItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Analytics
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleReportsItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+            {/* Reports */}
+            {visibleReportsItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  Analytics
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleReportsItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
-        {/* Enterprise Features */}
-        {visibleEnterpriseItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Enterprise & Operations
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleEnterpriseItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+            {/* Enterprise Features */}
+            {visibleEnterpriseItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  Enterprise & Operations
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleEnterpriseItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
 
-        {/* Patient Experience & Compliance */}
-        {visibleComplianceItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
-              Patient & Compliance
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleComplianceItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+            {/* Patient Experience & Compliance */}
+            {visibleComplianceItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                  Patient & Compliance
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleComplianceItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </>
         )}
 
         {/* Settings */}
