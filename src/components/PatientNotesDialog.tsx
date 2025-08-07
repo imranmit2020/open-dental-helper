@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,9 @@ import {
   AlertCircle
 } from "lucide-react";
 import { VoiceTranscriptionService } from "@/services/VoiceTranscriptionService";
+import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
+import type { Patient } from "@/hooks/usePatients";
+import { debounce } from "@/utils/debounce";
 
 interface PatientNote {
   id: string;
@@ -77,6 +80,26 @@ const PatientNotesDialog: React.FC<PatientNotesDialogProps> = ({ trigger }) => {
     content: "",
     type: "manual" as 'manual' | 'voice'
   });
+
+  const { searchPatients } = useOptimizedPatients();
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const runSearch = useMemo(() => debounce(async (q: string) => {
+    const query = q.trim();
+    if (query.length < 3) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+    try {
+      const results = await searchPatients(query);
+      setSearchResults(results);
+    } catch (e) {
+      console.error('Error searching patients:', e);
+    } finally {
+      setIsSearching(false);
+    }
+  }, 300), [searchPatients]);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -217,12 +240,49 @@ const PatientNotesDialog: React.FC<PatientNotesDialogProps> = ({ trigger }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="patientName">Patient Name</Label>
-                    <Input
-                      id="patientName"
-                      value={newNote.patientName}
-                      onChange={(e) => setNewNote(prev => ({ ...prev, patientName: e.target.value }))}
-                      placeholder="Enter patient name"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="patientName"
+                        value={newNote.patientName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewNote(prev => ({ ...prev, patientName: val }));
+                          if (val.length > 2) {
+                            setIsSearching(true);
+                            runSearch(val);
+                          } else {
+                            setSearchResults([]);
+                          }
+                        }}
+                        placeholder="Search patient by name or email"
+                        autoComplete="off"
+                      />
+                      {(isSearching || (newNote.patientName.length > 2 && searchResults.length > 0)) && (
+                        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow max-h-60 overflow-auto">
+                          {isSearching ? (
+                            <div className="p-3 text-sm text-muted-foreground">Searching…</div>
+                          ) : (
+                            searchResults.map((p) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                                onClick={() => {
+                                  setNewNote(prev => ({ ...prev, patientName: `${p.first_name} ${p.last_name}` }));
+                                  setSearchResults([]);
+                                }}
+                              >
+                                <div className="font-medium">{p.first_name} {p.last_name}</div>
+                                <div className="text-xs text-muted-foreground">{p.email || p.phone || 'No contact info'}</div>
+                              </button>
+                            ))
+                          )}
+                          {!isSearching && searchResults.length === 0 && newNote.patientName.length > 2 && (
+                            <div className="p-3 text-sm text-muted-foreground">No patients found</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-end gap-2">
                     {!isRecording ? (
