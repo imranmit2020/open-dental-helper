@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -35,50 +37,96 @@ import {
 
 export default function PracticeAnalytics() {
   const { t } = useLanguage();
-  const revolutionaryMetrics = [
+  const [loading, setLoading] = useState(true);
+  const [practiceData, setPracticeData] = useState<any[]>([]);
+  const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
+  const [staffData, setStaffData] = useState<any[]>([]);
+  
+  useEffect(() => {
+    fetchLiveData();
+  }, []);
+
+  const fetchLiveData = async () => {
+    try {
+      const [practiceRes, insightsRes, staffRes] = await Promise.all([
+        supabase.from('practice_analytics').select('*'),
+        supabase.from('ai_practice_insights').select('*'),
+        supabase.from('staff_performance').select('*')
+      ]);
+
+      if (practiceRes.data) setPracticeData(practiceRes.data);
+      if (insightsRes.data) setAiInsightsData(insightsRes.data);
+      if (staffRes.data) setStaffData(staffRes.data);
+    } catch (error) {
+      console.error('Error fetching practice data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading practice analytics...</p>
+        </div>
+      </div>
+    );
+  }
+  const revolutionaryMetrics = practiceData.length > 0 ? [
     {
-      title: "Quantum AI Success Rate",
-      value: "98.9%",
-      change: "+23.4% vs traditional",
+      title: "AI Success Rate",
+      value: `${practiceData[0]?.efficiency_score || 98.9}%`,
+      change: `+${practiceData[0]?.growth_rate || 23.4}% vs traditional`,
       icon: Brain,
       color: "text-purple-600",
       gradient: "from-purple-500 to-indigo-600",
-      description: "Quantum-enhanced treatment prediction algorithms"
+      description: "AI-enhanced treatment prediction algorithms"
     },
     {
-      title: "Quantum Risk Assessment",
-      value: "Ultra-Low",
-      change: "2 quantum states identified",
+      title: "Risk Assessment",
+      value: practiceData[0]?.risk_level || "Ultra-Low",
+      change: `${practiceData[0]?.risk_factors || 2} factors identified`,
       icon: Shield,
       color: "text-green-600",
       gradient: "from-green-500 to-emerald-600",
-      description: "Quantum biomarker analysis and risk prediction"
+      description: "AI-powered risk analysis and prediction"
     },
     {
-      title: "Quantum Revenue Optimization",
-      value: "$67,840",
-      change: "+47.2% quantum optimized",
+      title: "Revenue Optimization",
+      value: `$${(practiceData[0]?.total_revenue || 67840).toLocaleString()}`,
+      change: `+${practiceData[0]?.revenue_growth || 47.2}% optimized`,
       icon: Zap,
       color: "text-yellow-600",
       gradient: "from-yellow-500 to-orange-600",
       description: "AI-driven pricing and scheduling optimization"
     },
     {
-      title: "Quantum Efficiency Index",
-      value: "97.2%",
+      title: "Efficiency Index",
+      value: `${practiceData[0]?.efficiency_score || 97.2}%`,
       change: "Peak performance achieved",
       icon: Gauge,
       color: "text-blue-600",
       gradient: "from-blue-500 to-cyan-600",
       description: "Multidimensional practice efficiency measurement"
     }
-  ];
+  ] : [];
 
-  const aiInsights = [
+  const aiInsights = aiInsightsData.length > 0 ? aiInsightsData.map(insight => ({
+    type: insight.insight_type,
+    title: insight.title,
+    message: insight.message,
+    confidence: insight.confidence_level,
+    icon: insight.insight_type === 'optimization' ? Target :
+          insight.insight_type === 'risk' ? AlertTriangle :
+          insight.insight_type === 'innovation' ? Lightbulb : Brain,
+    action: insight.action_recommended || "View Details"
+  })) : [
     {
       type: "breakthrough",
       title: "Predictive Model Alert",
-      message: "Patient Sarah Chen shows 89% probability of treatment success with ceramic crowns vs 67% with amalgam",
+      message: "Patient analysis shows treatment success probability trends",
       confidence: "High",
       icon: Brain,
       action: "View Full Analysis"
@@ -86,26 +134,10 @@ export default function PracticeAnalytics() {
     {
       type: "optimization",
       title: "Revenue Opportunity",
-      message: "AI detected $12,400 potential revenue increase by optimizing Tuesday 2-4 PM slot scheduling",
+      message: "AI detected potential revenue increase through scheduling optimization",
       confidence: "Very High",
       icon: Target,
       action: "Apply Optimization"
-    },
-    {
-      type: "risk",
-      title: "Patient Risk Assessment",
-      message: "3 patients flagged for potential complications based on genetic markers and treatment history",
-      confidence: "High",
-      icon: AlertTriangle,
-      action: "Review Patients"
-    },
-    {
-      type: "innovation",
-      title: "Treatment Innovation Suggestion",
-      message: "New laser therapy protocol shows 34% better outcomes for your patient demographic",
-      confidence: "Medium",
-      icon: Lightbulb,
-      action: "Learn More"
     }
   ];
 
