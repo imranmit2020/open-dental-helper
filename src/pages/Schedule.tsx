@@ -96,12 +96,15 @@ export default function Schedule() {
     id: apt.id,
     time: format(new Date(apt.appointment_date), 'h:mm a'),
     duration: apt.duration || 60,
-    patient: apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Unknown Patient',
-    type: apt.title,
+    patient: apt.treatment_type === 'block' 
+      ? apt.title // For blocked time, show the reason as the "patient"
+      : apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Unknown Patient',
+    type: apt.treatment_type === 'block' ? 'Blocked Time' : apt.title,
     status: apt.status || 'scheduled',
     room: "Room 1", // Default room since not in database
-    phone: apt.patient?.phone || '',
-    treatment_type: apt.treatment_type
+    phone: apt.treatment_type === 'block' ? '' : (apt.patient?.phone || ''),
+    treatment_type: apt.treatment_type,
+    isBlockedTime: apt.treatment_type === 'block'
   }));
 
   const getStatusColor = (status: string) => {
@@ -216,7 +219,11 @@ export default function Schedule() {
                 ) : displayAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="p-4 border rounded-lg transition-all hover:shadow-md border-border hover:border-primary/30"
+                    className={`p-4 border rounded-lg transition-all hover:shadow-md ${
+                      appointment.isBlockedTime 
+                        ? 'border-dashed border-muted bg-muted/20' 
+                        : 'border-border hover:border-primary/30'
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -228,7 +235,9 @@ export default function Schedule() {
                         
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-foreground">
+                            <h3 className={`font-semibold ${
+                              appointment.isBlockedTime ? 'text-muted-foreground' : 'text-foreground'
+                            }`}>
                               {appointment.patient}
                             </h3>
                             <Badge variant="outline" className={getStatusColor(appointment.status)}>
@@ -256,14 +265,16 @@ export default function Schedule() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          Reschedule
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Start Visit
-                        </Button>
-                      </div>
+                      {!appointment.isBlockedTime && (
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">
+                            Reschedule
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            Start Visit
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

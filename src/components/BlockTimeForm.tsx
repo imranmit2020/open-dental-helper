@@ -15,6 +15,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAppointments } from "@/hooks/useAppointments";
+import { usePatients } from "@/hooks/usePatients";
 
 const blockTimeSchema = z.object({
   date: z.date({
@@ -54,6 +56,8 @@ const blockReasons = [
 export default function BlockTimeForm({ onBlockTimeAdded, trigger }: BlockTimeFormProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { createAppointment } = useAppointments();
+  const { createPatient } = usePatients();
 
   const form = useForm<BlockTimeFormData>({
     resolver: zodResolver(blockTimeSchema),
@@ -65,9 +69,68 @@ export default function BlockTimeForm({ onBlockTimeAdded, trigger }: BlockTimeFo
 
   const onSubmit = async (data: BlockTimeFormData) => {
     try {
-      // Here you would typically save the blocked time to the database
-      // For now, we'll just show a success message
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Create a system patient for blocked time if it doesn't exist
+      let systemPatient;
+      try {
+        systemPatient = await createPatient({
+          first_name: "System",
+          last_name: "Block",
+          email: "system@block.internal",
+          phone: "000-000-0000",
+        });
+      } catch (error) {
+        // Patient might already exist, that's okay
+        console.log("System patient might already exist");
+      }
+
+      // Calculate duration from start and end times
+      const startTime = data.startTime;
+      const endTime = data.endTime;
+      
+      // Convert times to minutes for calculation
+      const parseTime = (timeStr: string) => {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour24 = hours;
+        if (period === 'PM' && hours !== 12) hour24 += 12;
+        if (period === 'AM' && hours === 12) hour24 = 0;
+        return hour24 * 60 + minutes;
+      };
+
+      const startMinutes = parseTime(startTime);
+      const endMinutes = parseTime(endTime);
+      const duration = endMinutes - startMinutes;
+
+      if (duration <= 0) {
+        throw new Error("End time must be after start time");
+      }
+
+      // Create blocked time appointment
+      const blockDateTime = new Date(data.date);
+      const [time, period] = startTime.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      
+      let adjustedHours = hours;
+      if (period === 'PM' && hours !== 12) {
+        adjustedHours += 12;
+      } else if (period === 'AM' && hours === 12) {
+        adjustedHours = 0;
+      }
+      
+      blockDateTime.setHours(adjustedHours, minutes, 0, 0);
+
+      const appointmentData = {
+        patient_id: systemPatient?.id || "00000000-0000-0000-0000-000000000000", // Use system patient or placeholder
+        appointment_date: blockDateTime.toISOString(),
+        title: data.reason,
+        treatment_type: "block",
+        duration: duration,
+        status: "scheduled" as const,
+        description: `Blocked Time: ${data.reason}`,
+        notes: data.notes,
+      };
+
+      await createAppointment(appointmentData);
 
       toast({
         title: "Time Blocked",
@@ -78,6 +141,7 @@ export default function BlockTimeForm({ onBlockTimeAdded, trigger }: BlockTimeFo
       form.reset();
       setOpen(false);
     } catch (error) {
+      console.error('Error blocking time:', error);
       toast({
         title: "Error",
         description: "Failed to block time. Please try again.",
