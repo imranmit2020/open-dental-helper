@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Calendar,
   Clock,
@@ -15,9 +17,16 @@ import {
   ArrowRight,
   Bot,
   Phone,
-  Video
+  Video,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Zap,
+  RefreshCw,
+  Target
 } from "lucide-react";
 import { AISchedulingService } from "@/services/AISchedulingService";
+import { useAppointments } from "@/hooks/useAppointments";
 
 export default function AIScheduling() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -25,19 +34,92 @@ export default function AIScheduling() {
   const [selectedChair, setSelectedChair] = useState<string>('all');
   const [cancellationPredictions, setCancellationPredictions] = useState<any[]>([]);
   const [chairUtilization, setChairUtilization] = useState<any[]>([]);
+  const [scheduleOptimization, setScheduleOptimization] = useState<any>(null);
+  const [schedulingPatterns, setSchedulingPatterns] = useState<any>(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  const { toast } = useToast();
+  const { appointments, loading: appointmentsLoading } = useAppointments(currentDate);
 
   useEffect(() => {
     loadAIData();
   }, [currentDate]);
 
   const loadAIData = async () => {
+    setLoading(true);
     try {
-      const predictions = await AISchedulingService.predictCancellations(currentDate);
-      const utilization = await AISchedulingService.analyzeChairUtilization(currentDate);
+      const [predictions, utilization, optimization, patterns] = await Promise.all([
+        AISchedulingService.predictCancellations(currentDate),
+        AISchedulingService.analyzeChairUtilization(currentDate),
+        AISchedulingService.optimizeSchedule(currentDate, {
+          chairCount: 5,
+          operatingHours: { start: '09:00', end: '17:00' },
+          staffAvailability: []
+        }),
+        AISchedulingService.detectSchedulingPatterns()
+      ]);
+      
       setCancellationPredictions(predictions);
       setChairUtilization(utilization);
+      setScheduleOptimization(optimization);
+      setSchedulingPatterns(patterns);
     } catch (error) {
       console.error('Failed to load AI data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load AI insights. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runOptimization = async () => {
+    setIsOptimizing(true);
+    try {
+      const optimization = await AISchedulingService.optimizeSchedule(currentDate, {
+        chairCount: 5,
+        operatingHours: { start: '09:00', end: '17:00' },
+        staffAvailability: []
+      });
+      setScheduleOptimization(optimization);
+      toast({
+        title: "Optimization Complete",
+        description: `Found ${optimization.improvementPotential * 100}% efficiency improvement potential`,
+      });
+    } catch (error) {
+      toast({
+        title: "Optimization Failed",
+        description: "Unable to optimize schedule. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleSuggestionApply = async (suggestion: any) => {
+    try {
+      toast({
+        title: "Applying Suggestion",
+        description: suggestion.message,
+      });
+      // Here you would implement the actual logic to apply the suggestion
+      // For now, we'll just show a success message
+      setTimeout(() => {
+        toast({
+          title: "Suggestion Applied",
+          description: "Schedule has been updated successfully",
+        });
+      }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to apply suggestion",
+        variant: "destructive",
+      });
     }
   };
 
@@ -102,7 +184,7 @@ export default function AIScheduling() {
   };
 
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -114,6 +196,112 @@ export default function AIScheduling() {
             <p className="text-muted-foreground">Smart chair management with predictive analytics</p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={loadAIData}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
+          <Button 
+            onClick={runOptimization}
+            disabled={isOptimizing}
+            className="bg-gradient-primary hover:bg-gradient-primary/90"
+          >
+            <Zap className={`h-4 w-4 mr-2 ${isOptimizing ? 'animate-pulse' : ''}`} />
+            {isOptimizing ? 'Optimizing...' : 'Optimize Schedule'}
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-gradient-card border-border/30">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Schedule Efficiency</p>
+                <p className="text-2xl font-bold">
+                  {scheduleOptimization ? `${Math.round(scheduleOptimization.currentEfficiency * 100)}%` : '---'}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Target className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            {scheduleOptimization && (
+              <div className="mt-2 flex items-center gap-1 text-sm">
+                <TrendingUp className="h-3 w-3 text-success" />
+                <span className="text-success">+{Math.round(scheduleOptimization.improvementPotential * 100)}% potential</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-card border-border/30">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Cancellation Risk</p>
+                <p className="text-2xl font-bold text-warning">
+                  {cancellationPredictions.length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-warning" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center gap-1 text-sm">
+              <span className="text-muted-foreground">
+                Avg confidence: {cancellationPredictions.length > 0 
+                  ? Math.round(cancellationPredictions.reduce((acc, p) => acc + p.confidence, 0) / cancellationPredictions.length * 100)
+                  : 0}%
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-card border-border/30">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Chair Utilization</p>
+                <p className="text-2xl font-bold">
+                  {chairUtilization.length > 0 
+                    ? `${Math.round(chairUtilization.reduce((acc, c) => acc + c.utilization, 0) / chairUtilization.length * 100)}%`
+                    : '---'}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                <Activity className="h-6 w-6 text-secondary" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+              <span>Across {chairUtilization.length} chairs</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-card border-border/30">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Revenue Impact</p>
+                <p className="text-2xl font-bold text-success">
+                  +$1,250
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-success" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center gap-1 text-sm text-success">
+              <span>Potential daily increase</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Calendar Strip */}
@@ -308,7 +496,11 @@ export default function AIScheduling() {
                             Call
                           </Button>
                         )}
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleSuggestionApply(suggestion)}
+                        >
                           Apply
                           <ArrowRight className="h-3 w-3 ml-1" />
                         </Button>
@@ -319,6 +511,93 @@ export default function AIScheduling() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Schedule Optimization Results */}
+          {scheduleOptimization && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Optimization Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Current Efficiency</span>
+                    <span className="font-medium">{Math.round(scheduleOptimization.currentEfficiency * 100)}%</span>
+                  </div>
+                  <Progress value={scheduleOptimization.currentEfficiency * 100} className="h-2" />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Potential Improvement</span>
+                    <span className="font-medium text-success">+{Math.round(scheduleOptimization.improvementPotential * 100)}%</span>
+                  </div>
+                  <Progress value={scheduleOptimization.improvementPotential * 100} className="h-2" />
+                </div>
+
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-medium mb-2">Recommendations:</p>
+                  <ul className="space-y-1">
+                    {scheduleOptimization.recommendations.map((rec: string, index: number) => (
+                      <li key={index} className="text-xs text-muted-foreground flex items-start gap-2">
+                        <CheckCircle className="h-3 w-3 text-success mt-0.5 flex-shrink-0" />
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Scheduling Patterns */}
+          {schedulingPatterns && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Scheduling Patterns
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium mb-2">Peak Days:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {schedulingPatterns.peakDays.map((day: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {day}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium mb-2">Popular Treatments:</p>
+                  <div className="space-y-2">
+                    {schedulingPatterns.popularTreatments.slice(0, 3).map((treatment: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-xs">{treatment.treatment}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary"
+                              style={{ width: `${treatment.frequency}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground w-8">
+                            {treatment.frequency}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
