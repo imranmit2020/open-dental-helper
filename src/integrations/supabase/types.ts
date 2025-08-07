@@ -257,6 +257,80 @@ export type Database = {
           },
         ]
       }
+      corporate_users: {
+        Row: {
+          corporation_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          corporation_id: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          corporation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corporate_users_corporation_id_fkey"
+            columns: ["corporation_id"]
+            isOneToOne: false
+            referencedRelation: "corporations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corporations: {
+        Row: {
+          address: string | null
+          corporate_code: string
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          settings: Json | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          corporate_code: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          settings?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          corporate_code?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          settings?: Json | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       failed_login_attempts: {
         Row: {
           attempted_at: string
@@ -1046,6 +1120,7 @@ export type Database = {
         Row: {
           address: string | null
           clinic_code: string
+          corporation_id: string | null
           created_at: string
           email: string | null
           id: string
@@ -1057,6 +1132,7 @@ export type Database = {
         Insert: {
           address?: string | null
           clinic_code: string
+          corporation_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -1068,6 +1144,7 @@ export type Database = {
         Update: {
           address?: string | null
           clinic_code?: string
+          corporation_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -1076,7 +1153,15 @@ export type Database = {
           settings?: Json | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_corporation_id_fkey"
+            columns: ["corporation_id"]
+            isOneToOne: false
+            referencedRelation: "corporations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       translations: {
         Row: {
