@@ -276,45 +276,51 @@ export default function Schedule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.todaySummary', "Today's Summary")}</CardTitle>
+              <CardTitle className="text-lg">Today's Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Appointments</span>
-                <span className="font-semibold">{displayAppointments.length}</span>
+                <span className="font-semibold text-xl">{displayAppointments.length}</span>
               </div>
+              
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Confirmed</span>
-                <span className="font-semibold text-success">
+                <span className="font-semibold text-xl text-green-600">
                   {displayAppointments.filter(apt => apt.status === 'confirmed').length}
                 </span>
               </div>
+              
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Scheduled</span>
-                <span className="font-semibold text-primary">
+                <span className="font-semibold text-xl text-blue-600">
                   {displayAppointments.filter(apt => apt.status === 'scheduled').length}
                 </span>
               </div>
+              
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Pending</span>
-                <span className="font-semibold text-warning">
+                <span className="font-semibold text-xl text-yellow-600">
                   {displayAppointments.filter(apt => apt.status === 'pending').length}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total Hours</span>
-                <span className="font-semibold">
-                  {Math.round(displayAppointments.reduce((total, apt) => 
-                    total + apt.duration, 0
-                  ) / 60 * 10) / 10}h
-                </span>
+              
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Hours</span>
+                  <span className="font-semibold text-xl">
+                    {(displayAppointments.reduce((total, apt) => 
+                      total + apt.duration, 0
+                    ) / 60).toFixed(1)}h
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.quickActions', 'Quick Actions')}</CardTitle>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <WalkInForm 
