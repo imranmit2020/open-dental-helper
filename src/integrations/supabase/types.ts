@@ -1548,6 +1548,66 @@ export type Database = {
           },
         ]
       }
+      user_approval_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          organization_id: string | null
+          organization_name: string
+          organization_type: string
+          phone: string | null
+          requested_at: string
+          requested_role: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          organization_id?: string | null
+          organization_name: string
+          organization_type: string
+          phone?: string | null
+          requested_at?: string
+          requested_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          organization_id?: string | null
+          organization_name?: string
+          organization_type?: string
+          phone?: string | null
+          requested_at?: string
+          requested_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           ai_analysis: Json | null
@@ -1631,6 +1691,10 @@ export type Database = {
           break_start_time: string
           break_end_time: string
         }[]
+      }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: string
       }
       get_user_tenant_role: {
         Args: { _user_id: string; _tenant_id: string }

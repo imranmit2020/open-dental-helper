@@ -54,6 +54,7 @@ import LeadConversion from "./pages/LeadConversion";
 import QuantumDentalAI from "./pages/QuantumDentalAI";
 import QuantumScheduling from "./pages/QuantumScheduling";
 import MarketIntelligence from "./pages/MarketIntelligence";
+import AdminApprovalDashboard from "./pages/AdminApprovalDashboard";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -143,6 +144,7 @@ function App() {
             <Route path="reputation-management" element={<ReputationManagement />} />
             <Route path="lead-conversion" element={<LeadConversion />} />
             <Route path="market-intelligence" element={<MarketIntelligence />} />
+            <Route path="admin/user-approvals" element={<AdminApprovalDashboard />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

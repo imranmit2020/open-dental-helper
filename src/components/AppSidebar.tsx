@@ -112,6 +112,10 @@ const complianceItems: NavigationItem[] = [
   { title: "Patient Concierge", url: "/patient-concierge", icon: MessageSquare, requiredRoles: ['admin', 'staff'], requiredFeature: 'ai_features' },
 ];
 
+const adminItems: NavigationItem[] = [
+  { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'] },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const { t } = useLanguage();
@@ -136,6 +140,7 @@ export function AppSidebar() {
   const visibleReportsItems = filterNavigationItems(reportsItems);
   const visibleEnterpriseItems = filterNavigationItems(enterpriseItems);
   const visibleComplianceItems = filterNavigationItems(complianceItems);
+  const visibleAdminItems = filterNavigationItems(adminItems);
 
   return (
     <Sidebar
@@ -372,6 +377,29 @@ export function AppSidebar() {
               </SidebarGroup>
             )}
           </>
+        )}
+
+        {/* Admin Tools - Only show for admins */}
+        {visibleAdminItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+              Administration
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleAdminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
 
         {/* Settings */}
