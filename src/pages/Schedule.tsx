@@ -276,7 +276,7 @@ export default function Schedule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.todaySummary', "schedule.todaySummary")}</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.todaySummary', "Today's Summary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
@@ -314,7 +314,7 @@ export default function Schedule() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.quickActions', 'schedule.quickActions')}</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.quickActions', 'Quick Actions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <WalkInForm 
