@@ -1,62 +1,89 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  Phone,
-  PhoneOff,
-  MessageSquare,
-  Share,
-  Upload,
-  Bot,
+  Calendar,
+  Clock,
   User,
+  Plus,
+  Activity,
   FileText,
-  Camera,
-  Monitor
-} from "lucide-react";
+  Brain,
+  Users,
+  Phone
+} from 'lucide-react';
+import { useTeledentistry } from '@/hooks/useTeledentistry';
+import { useSubscription } from '@/hooks/useSubscription';
+import TeledentistrySessionManager from '@/components/TeledentistrySessionManager';
+import NewTeledentistrySessionForm from '@/components/NewTeledentistrySessionForm';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Teledentistry() {
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isAudioOn, setIsAudioOn] = useState(true);
-  const [isInCall, setIsInCall] = useState(false);
-  const [aiNotes, setAiNotes] = useState("");
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: "patient", message: "Hi Dr. Smith, I'm experiencing some tooth pain", time: "2:34 PM" },
-    { id: 2, sender: "doctor", message: "I can see you now. Can you show me which tooth is bothering you?", time: "2:35 PM" },
-  ]);
+  const { toast } = useToast();
+  const { hasFeature } = useSubscription();
+  const { todaySessions, isLoading } = useTeledentistry();
+  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [showNewSessionForm, setShowNewSessionForm] = useState(false);
 
-  const currentPatient = {
-    name: "Sarah Johnson",
-    age: 34,
-    lastVisit: "2024-01-15",
-    conditions: ["Mild gingivitis", "Wisdom tooth extraction (2023)"],
-    medications: ["Ibuprofen 400mg"]
-  };
+  // Check subscription access
+  if (!hasFeature('teledentistry')) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
+            <Video className="h-10 w-10 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold gradient-text">Teledentistry</h1>
+            <p className="text-muted-foreground mt-2">
+              Upgrade to access virtual consultations with AI-powered documentation
+            </p>
+          </div>
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold">Premium Features Include:</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• HD Video Consultations</li>
+                  <li>• AI-Powered Transcription</li>
+                  <li>• Automatic SOAP Notes</li>
+                  <li>• Session Recording</li>
+                  <li>• Patient Screen Sharing</li>
+                </ul>
+              </div>
+              <Button className="w-full">Upgrade to Premium</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-  const aiLiveNotes = [
-    "Patient reports pain in upper right quadrant",
-    "Visible inflammation around tooth #3",
-    "Pain rated 7/10, started 3 days ago",
-    "No fever or swelling reported"
-  ];
-
-  const suggestedDiagnosis = [
-    { condition: "Acute pulpitis", confidence: 0.85, severity: "moderate" },
-    { condition: "Dental abscess", confidence: 0.23, severity: "high" },
-    { condition: "Tooth sensitivity", confidence: 0.12, severity: "low" }
-  ];
-
-  const toggleCall = () => {
-    setIsInCall(!isInCall);
-  };
+  // If a session is selected, show the session manager
+  if (selectedSession) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedSession(null)}
+            className="mb-4"
+          >
+            ← Back to Sessions
+          </Button>
+        </div>
+        <TeledentistrySessionManager 
+          session={selectedSession}
+          onSessionEnd={() => setSelectedSession(null)}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -64,273 +91,237 @@ export default function Teledentistry() {
             <Video className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight gradient-text">Teledentistry & AI Chat</h1>
-            <p className="text-muted-foreground">Virtual consultation with AI-powered assistance</p>
+            <h1 className="text-3xl font-bold tracking-tight gradient-text">Teledentistry</h1>
+            <p className="text-muted-foreground">AI-enhanced virtual dental consultations</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={isInCall ? "default" : "secondary"}>
-            {isInCall ? "In Call" : "Ready"}
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="hidden sm:flex">
+            <Activity className="w-3 h-3 mr-1" />
+            AI Enabled
           </Badge>
+          <Button onClick={() => setShowNewSessionForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Session
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Video Call Area */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Main Video Window */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg overflow-hidden">
-                {isInCall ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                    <div className="text-center text-white">
-                      <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium">{currentPatient.name}</p>
-                      <p className="text-sm opacity-75">Patient Video</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <Video className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-lg font-medium text-foreground">Video Call Ready</p>
-                      <p className="text-sm text-muted-foreground">Click start to begin consultation</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Doctor's Video (Picture-in-Picture) */}
-                {isInCall && (
-                  <div className="absolute top-4 right-4 w-32 h-24 bg-gray-800 rounded-lg border-2 border-white/20 overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      <User className="h-8 w-8 opacity-50" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Call Controls */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                  <div className="flex items-center gap-3 bg-black/50 backdrop-blur-sm rounded-full p-2">
-                    <Button
-                      variant={isAudioOn ? "secondary" : "destructive"}
-                      size="icon"
-                      className="rounded-full"
-                      onClick={() => setIsAudioOn(!isAudioOn)}
-                    >
-                      {isAudioOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-                    </Button>
-                    
-                    <Button
-                      variant={isVideoOn ? "secondary" : "destructive"}
-                      size="icon"
-                      className="rounded-full"
-                      onClick={() => setIsVideoOn(!isVideoOn)}
-                    >
-                      {isVideoOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-                    </Button>
-                    
-                    <Button
-                      variant={isInCall ? "destructive" : "default"}
-                      size="icon"
-                      className="rounded-full"
-                      onClick={toggleCall}
-                    >
-                      {isInCall ? <PhoneOff className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
-                    </Button>
-
-                    <Button variant="secondary" size="icon" className="rounded-full">
-                      <Share className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-blue-600" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="text-2xl font-bold">{todaySessions.length}</p>
+                <p className="text-sm text-muted-foreground">Today's Sessions</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Chat and Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Chat
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {chatMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === 'doctor' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-xs p-3 rounded-lg ${
-                          message.sender === 'doctor'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-foreground'
-                        }`}
-                      >
-                        <p className="text-sm">{message.message}</p>
-                        <p className="text-xs opacity-75 mt-1">{message.time}</p>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {todaySessions.filter(s => s.status === 'completed').length}
+                </p>
+                <p className="text-sm text-muted-foreground">Completed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {todaySessions.filter(s => s.status === 'scheduled').length}
+                </p>
+                <p className="text-sm text-muted-foreground">Upcoming</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {todaySessions.filter(s => s.ai_soap_notes).length}
+                </p>
+                <p className="text-sm text-muted-foreground">AI Documented</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Today's Sessions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Today's Teledentistry Sessions
+          </CardTitle>
+          <CardDescription>
+            Manage your virtual consultation appointments
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground mt-2">Loading sessions...</p>
+            </div>
+          ) : todaySessions.length === 0 ? (
+            <div className="text-center py-12">
+              <Video className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No sessions scheduled</h3>
+              <p className="text-muted-foreground mb-4">
+                Start by scheduling a teledentistry consultation
+              </p>
+              <Button onClick={() => setShowNewSessionForm(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Schedule Session
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {todaySessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{session.patient_name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {session.session_type} • {new Date(session.scheduled_at).toLocaleTimeString()}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge 
+                            variant={
+                              session.status === 'completed' ? 'default' :
+                              session.status === 'in_progress' ? 'secondary' :
+                              'outline'
+                            }
+                            className="text-xs"
+                          >
+                            {session.status.replace('_', ' ')}
+                          </Badge>
+                          {session.ai_soap_notes && (
+                            <Badge variant="outline" className="text-xs">
+                              <Brain className="w-3 h-3 mr-1" />
+                              AI Documented
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Textarea placeholder="Type a message..." className="resize-none" rows={2} />
-                  <Button size="icon">
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Take Screenshot
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Monitor className="h-4 w-4 mr-2" />
-                  Share X-ray
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Documents
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generate Prescription
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* AI Assistant Panel */}
-        <div className="space-y-6">
-          {/* Patient Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Patient Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="font-medium text-foreground">{currentPatient.name}</p>
-                <p className="text-sm text-muted-foreground">Age: {currentPatient.age}</p>
-                <p className="text-sm text-muted-foreground">Last Visit: {currentPatient.lastVisit}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground mb-1">Conditions:</p>
-                <div className="space-y-1">
-                  {currentPatient.conditions.map((condition, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {condition}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground mb-1">Medications:</p>
-                <div className="space-y-1">
-                  {currentPatient.medications.map((med, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {med}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* AI Live Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                AI Live Notes
-              </CardTitle>
-              <CardDescription>
-                Auto-generated consultation notes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {aiLiveNotes.map((note, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <p className="text-sm text-foreground">{note}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Suggested Diagnosis */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                AI Diagnosis Suggestions
-              </CardTitle>
-              <CardDescription>
-                Based on symptoms discussed
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {suggestedDiagnosis.map((diagnosis, index) => (
-                <div key={index} className="p-3 bg-gradient-card rounded-lg border border-border/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-foreground">{diagnosis.condition}</h4>
-                    <Badge variant={diagnosis.severity === "high" ? "destructive" : diagnosis.severity === "moderate" ? "secondary" : "outline"}>
-                      {diagnosis.severity}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary transition-all duration-300"
-                        style={{ width: `${diagnosis.confidence * 100}%` }}
-                      />
+                    <div className="flex items-center gap-2">
+                      {session.status === 'scheduled' && (
+                        <Button 
+                          onClick={() => setSelectedSession(session)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Phone className="w-4 h-4 mr-2" />
+                          Start Session
+                        </Button>
+                      )}
+                      {session.status === 'in_progress' && (
+                        <Button 
+                          onClick={() => setSelectedSession(session)}
+                          variant="outline"
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          Rejoin Session
+                        </Button>
+                      )}
+                      {session.status === 'completed' && session.ai_soap_notes && (
+                        <Button 
+                          onClick={() => setSelectedSession(session)}
+                          variant="outline"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          View Notes
+                        </Button>
+                      )}
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(diagnosis.confidence * 100)}%
-                    </span>
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Prescribe & Send</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button className="w-full">
-                <FileText className="h-4 w-4 mr-2" />
-                Generate Prescription
-              </Button>
-              <Button variant="outline" className="w-full">
-                Schedule Follow-up
-              </Button>
-              <Button variant="outline" className="w-full">
-                Send Care Instructions
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Quick Start Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Getting Started with Teledentistry</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold mb-2">1. Schedule Session</h3>
+              <p className="text-sm text-muted-foreground">
+                Create a new teledentistry appointment with your patient
+              </p>
+            </div>
+            
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Video className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold mb-2">2. Start Consultation</h3>
+              <p className="text-sm text-muted-foreground">
+                Begin secure video call with HD quality and screen sharing
+              </p>
+            </div>
+            
+            <div className="text-center p-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Brain className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold mb-2">3. AI Documentation</h3>
+              <p className="text-sm text-muted-foreground">
+                Let AI automatically generate SOAP notes and transcriptions
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* New Session Form Modal */}
+      {showNewSessionForm && (
+        <NewTeledentistrySessionForm
+          onClose={() => setShowNewSessionForm(false)}
+          onSuccess={() => setShowNewSessionForm(false)}
+        />
+      )}
     </div>
   );
 }
