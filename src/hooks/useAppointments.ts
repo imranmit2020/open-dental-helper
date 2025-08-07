@@ -56,16 +56,16 @@ export function useAppointments(date?: Date) {
         .order('appointment_date', { ascending: true });
 
       if (date) {
+        // Get start and end of the selected day in local timezone
         const startOfDay = new Date(date);
-        startOfDay.setHours(4, 0, 0, 0); // UTC+4 timezone adjustment
+        startOfDay.setHours(0, 0, 0, 0);
         
         const endOfDay = new Date(date);
-        endOfDay.setHours(3, 59, 59, 999);
-        endOfDay.setDate(endOfDay.getDate() + 1); // Next day at 3:59:59
+        endOfDay.setHours(23, 59, 59, 999);
 
         query = query
           .gte('appointment_date', startOfDay.toISOString())
-          .lt('appointment_date', endOfDay.toISOString());
+          .lte('appointment_date', endOfDay.toISOString());
       }
 
       const { data, error } = await query;
