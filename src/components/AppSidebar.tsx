@@ -49,6 +49,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 
 const patientMenuItems: NavigationItem[] = [
   { title: "My Dashboard", url: "/patient-dashboard", icon: User, requiredRoles: ['patient'] },
@@ -128,21 +129,45 @@ export function AppSidebar() {
   
   // Track pending approvals for notification badge
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+  const [upcomingAppointments, setUpcomingAppointments] = useState(0);
 
   useEffect(() => {
-    if (isAdmin) {
-      const fetchPendingCount = async () => {
+    const fetchPendingCount = async () => {
+      if (isAdmin) {
         const { data } = await supabase
           .from('user_approval_requests')
           .select('id')
           .eq('status', 'pending');
         setPendingApprovalsCount(data?.length || 0);
-      };
+      }
+    };
+
+    const fetchUpcomingAppointments = async () => {
+      if (isStaffMember) {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59, 999);
+
+        const { data } = await supabase
+          .from('appointments')
+          .select('id')
+          .gte('appointment_date', today.toISOString())
+          .lte('appointment_date', tomorrow.toISOString())
+          .in('status', ['scheduled', 'confirmed']);
+        
+        setUpcomingAppointments(data?.length || 0);
+      }
+    };
       
-      fetchPendingCount();
+    fetchPendingCount();
+    fetchUpcomingAppointments();
       
-      // Set up real-time subscription for pending count
-      const channel = supabase
+    // Set up real-time subscriptions
+    const channels = [];
+    
+    if (isAdmin) {
+      const approvalChannel = supabase
         .channel('pending-approvals-count')
         .on(
           'postgres_changes',
@@ -156,12 +181,33 @@ export function AppSidebar() {
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      channels.push(approvalChannel);
     }
-  }, [isAdmin]);
+
+    if (isStaffMember) {
+      const appointmentChannel = supabase
+        .channel('appointment-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'appointments'
+          },
+          () => {
+            fetchUpcomingAppointments();
+          }
+        )
+        .subscribe();
+      channels.push(appointmentChannel);
+    }
+
+    return () => {
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+    };
+  }, [isAdmin, isStaffMember]);
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -286,16 +332,30 @@ export function AppSidebar() {
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {visibleSchedulingItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
+                     {visibleSchedulingItems.map((item) => (
+                       <SidebarMenuItem key={item.title}>
+                         <SidebarMenuButton asChild>
+                           <NavLink to={item.url} className={getNavCls}>
+                             <item.icon className="h-4 w-4 text-current" />
+                             {!isCollapsed && (
+                               <div className="flex items-center justify-between w-full">
+                                 <span className="font-medium">{item.title}</span>
+                                 {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                                   <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-1 text-xs">
+                                     {upcomingAppointments}
+                                   </Badge>
+                                 )}
+                               </div>
+                             )}
+                             {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                               <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                                 {upcomingAppointments}
+                               </span>
+                             )}
+                           </NavLink>
+                         </SidebarMenuButton>
+                       </SidebarMenuItem>
+                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>

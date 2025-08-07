@@ -198,6 +198,46 @@ export function useAppointments(date?: Date) {
 
   useEffect(() => {
     fetchAppointments();
+    
+    // Set up real-time subscription for appointments
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        (payload) => {
+          console.log('Real-time appointment update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New Appointment",
+              description: "A new appointment has been scheduled",
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            toast({
+              title: "Appointment Updated",
+              description: "An appointment has been modified",
+            });
+          } else if (payload.eventType === 'DELETE') {
+            toast({
+              title: "Appointment Cancelled",
+              description: "An appointment has been cancelled",
+            });
+          }
+          
+          // Refresh appointments to get latest data
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [date, currentTenant]);
 
   return {
