@@ -8,13 +8,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, User, Phone, Mail, Calendar, Shield, Building } from "lucide-react";
+import { Plus, User, Phone, Mail, Calendar, Shield, Building, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTenant } from "@/contexts/TenantContext";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -40,8 +42,11 @@ interface NewPatientFormProps {
 
 export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) {
   const [open, setOpen] = useState(false);
+  const [duplicateAlertOpen, setDuplicateAlertOpen] = useState(false);
+  const [existingPatient, setExistingPatient] = useState<any>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { currentTenant } = useTenant();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -72,7 +77,6 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
       }
 
       // Insert patient into Supabase database
-      // Note: user_id should be null for staff-created patients, unless creating for the patient themselves
       const { data: patientData, error } = await supabase
         .from('patients')
         .insert({
@@ -86,12 +90,29 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
           address: data.address,
           emergency_contact: `${data.emergencyContact} - ${data.emergencyPhone}`,
           insurance_info: { provider: data.insurance },
-          risk_level: "low"
+          risk_level: "low",
+          tenant_id: currentTenant?.id || null
         })
         .select()
         .single();
 
       if (error) {
+        // Check for duplicate patient constraint violation
+        if (error.code === '23505' && error.message.includes('unique_patient_per_clinic')) {
+          // Try to find the existing patient for display
+          const { data: existing } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('first_name', data.firstName)
+            .eq('last_name', data.lastName)
+            .eq('date_of_birth', data.dateOfBirth)
+            .eq('tenant_id', currentTenant?.id || null)
+            .maybeSingle();
+          
+          setExistingPatient(existing);
+          setDuplicateAlertOpen(true);
+          return;
+        }
         throw error;
       }
 
@@ -412,6 +433,46 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
           </form>
         </Form>
       </DialogContent>
+
+      {/* Duplicate Patient Alert Dialog */}
+      <AlertDialog open={duplicateAlertOpen} onOpenChange={setDuplicateAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Duplicate Patient Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>A patient with the same name and date of birth already exists in this clinic:</p>
+              {existingPatient && (
+                <div className="bg-muted p-3 rounded-md space-y-1">
+                  <p><strong>Name:</strong> {existingPatient.first_name} {existingPatient.last_name}</p>
+                  <p><strong>Date of Birth:</strong> {existingPatient.date_of_birth}</p>
+                  <p><strong>Email:</strong> {existingPatient.email || 'Not provided'}</p>
+                  <p><strong>Phone:</strong> {existingPatient.phone || 'Not provided'}</p>
+                  <p><strong>Patient ID:</strong> {existingPatient.id}</p>
+                </div>
+              )}
+              <p>Would you like to view the existing patient record instead?</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                // You can implement navigation to patient profile here
+                toast({
+                  title: "Feature Coming Soon",
+                  description: "Patient profile navigation will be implemented soon.",
+                });
+                setDuplicateAlertOpen(false);
+              }}
+            >
+              View Existing Patient
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

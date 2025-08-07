@@ -911,6 +911,7 @@ export type Database = {
           last_visit: string | null
           phone: string | null
           risk_level: string | null
+          tenant_id: string | null
           updated_at: string
           user_id: string | null
         }
@@ -928,6 +929,7 @@ export type Database = {
           last_visit?: string | null
           phone?: string | null
           risk_level?: string | null
+          tenant_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -945,10 +947,19 @@ export type Database = {
           last_visit?: string | null
           phone?: string | null
           risk_level?: string | null
+          tenant_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "patients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       practice_analytics: {
         Row: {

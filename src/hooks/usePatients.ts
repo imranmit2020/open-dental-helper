@@ -64,16 +64,71 @@ export function usePatients() {
     }
   };
 
+  const checkForDuplicatePatient = async (
+    firstName: string,
+    lastName: string,
+    dateOfBirth: string,
+    tenantId?: string
+  ): Promise<Patient | null> => {
+    try {
+      let query = supabase
+        .from('patients')
+        .select('*')
+        .eq('first_name', firstName)
+        .eq('last_name', lastName)
+        .eq('date_of_birth', dateOfBirth);
+
+      // Add tenant filtering if tenantId is provided
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error checking for duplicate patient:', error);
+      return null;
+    }
+  };
+
   const createPatient = async (patientData: CreatePatientData) => {
     try {
-      // For now, use the public schema patients table
+      // First check for duplicates
+      const existingPatient = await checkForDuplicatePatient(
+        patientData.first_name,
+        patientData.last_name,
+        patientData.date_of_birth || '',
+        currentTenant?.id
+      );
+
+      if (existingPatient) {
+        const duplicateError = new Error('DUPLICATE_PATIENT');
+        (duplicateError as any).existingPatient = existingPatient;
+        throw duplicateError;
+      }
+
+      // Add tenant_id if available
+      const patientWithTenant = {
+        ...patientData,
+        tenant_id: currentTenant?.id || null
+      };
+
       const { data, error } = await supabase
         .from('patients')
-        .insert([patientData])
+        .insert([patientWithTenant])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a unique constraint violation
+        if (error.code === '23505' && error.message.includes('unique_patient_per_clinic')) {
+          const duplicateError = new Error('DUPLICATE_PATIENT_DB');
+          throw duplicateError;
+        }
+        throw error;
+      }
 
       setPatients(prev => [...prev, data]);
       
@@ -85,12 +140,25 @@ export function usePatients() {
       return data;
     } catch (error) {
       console.error('Error creating patient:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create patient",
-        variant: "destructive",
-      });
-      throw error;
+      
+      if ((error as any).message === 'DUPLICATE_PATIENT') {
+        // Re-throw with existing patient data for UI handling
+        throw error;
+      } else if ((error as any).message === 'DUPLICATE_PATIENT_DB') {
+        toast({
+          title: "Duplicate Patient",
+          description: "A patient with the same name and date of birth already exists in this clinic",
+          variant: "destructive",
+        });
+        throw new Error('DUPLICATE_PATIENT_DB');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create patient",
+          variant: "destructive",
+        });
+        throw error;
+      }
     }
   };
 
@@ -120,6 +188,7 @@ export function usePatients() {
     loading,
     createPatient,
     searchPatients,
+    checkForDuplicatePatient,
     refetch: fetchPatients,
   };
 }
