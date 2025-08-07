@@ -20,7 +20,7 @@ import { useTenant } from "@/contexts/TenantContext";
 
 export function ClinicSwitcher() {
   const [open, setOpen] = useState(false);
-  const { currentTenant, tenants, switchTenant, loading, canSwitchTenants, userRole } = useTenant();
+  const { currentTenant, tenants, corporation, switchTenant, loading, canSwitchTenants, userRole } = useTenant();
 
   // Don't show switcher if user can't switch tenants
 
@@ -108,7 +108,14 @@ export function ClinicSwitcher() {
           <CommandInput placeholder="Search clinics..." />
           <CommandList>
             <CommandEmpty>No clinics found.</CommandEmpty>
-            <CommandGroup heading="Available Clinics">
+            {corporation && (
+              <div className="px-3 py-2 border-b border-border/50">
+                <div className="text-xs font-medium text-muted-foreground mb-1">Corporation</div>
+                <div className="text-sm font-medium">{corporation.name}</div>
+                <div className="text-xs text-muted-foreground">{corporation.corporate_code.toUpperCase()}</div>
+              </div>
+            )}
+            <CommandGroup heading={corporation ? `Clinics (${tenants.length})` : "Available Clinics"}>
               {tenants.map((tenant) => (
                 <CommandItem
                   key={tenant.id}
