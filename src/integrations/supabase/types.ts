@@ -1044,26 +1044,35 @@ export type Database = {
       }
       tenants: {
         Row: {
+          address: string | null
           clinic_code: string
           created_at: string
+          email: string | null
           id: string
           name: string
+          phone: string | null
           settings: Json | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           clinic_code: string
           created_at?: string
+          email?: string | null
           id?: string
           name: string
+          phone?: string | null
           settings?: Json | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           clinic_code?: string
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
+          phone?: string | null
           settings?: Json | null
           updated_at?: string
         }
