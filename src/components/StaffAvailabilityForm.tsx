@@ -51,8 +51,8 @@ export function StaffAvailabilityForm({
   const form = useForm<StaffAvailabilityFormData>({
     resolver: zodResolver(availabilitySchema),
     defaultValues: {
-      staff_id: staffId || availability?.staff_id || "",
-      tenant_id: availability?.tenant_id || currentTenant?.id || "",
+      staff_id: staffId || availability?.staff_id || undefined,
+      tenant_id: availability?.tenant_id || currentTenant?.id || undefined,
       day_of_week: availability?.day_of_week ?? 1,
       start_time: availability?.start_time || "09:00",
       end_time: availability?.end_time || "17:00",
@@ -92,15 +92,17 @@ export function StaffAvailabilityForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Staff Member</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select staff member" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {/* You'll need to fetch staff list */}
-                    <SelectItem value="placeholder">Select a staff member</SelectItem>
+                    {/* Placeholder for staff list - will be populated when staff data is available */}
+                    <SelectItem value="staff-placeholder" disabled>
+                      No staff available
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -115,7 +117,7 @@ export function StaffAvailabilityForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Clinic</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || undefined}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select clinic" />
@@ -140,7 +142,7 @@ export function StaffAvailabilityForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Day of Week</FormLabel>
-              <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value.toString()}>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() || undefined}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select day" />
