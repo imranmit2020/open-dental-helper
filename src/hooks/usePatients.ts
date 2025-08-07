@@ -113,7 +113,7 @@ export function usePatients() {
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [currentTenant]); // React to tenant changes
 
   return {
     patients,

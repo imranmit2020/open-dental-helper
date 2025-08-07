@@ -1,6 +1,7 @@
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { ClinicSwitcher } from "@/components/ClinicSwitcher";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -66,6 +67,12 @@ const Layout = () => {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          
+          {/* Clinic Switcher in the center */}
+          <div className="flex items-center justify-center flex-1 max-w-md">
+            <ClinicSwitcher />
+          </div>
+          
           <div className="flex items-center gap-2 px-4">
             <LanguageSelector variant="minimal" />
             <CurrencySelector variant="minimal" showRefreshButton={false} />
