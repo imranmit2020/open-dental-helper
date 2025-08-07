@@ -32,6 +32,10 @@ import AIScheduling from "./pages/AIScheduling";
 import Teledentistry from "./pages/Teledentistry";
 import MultiPracticeAnalytics from "./pages/MultiPracticeAnalytics";
 import MarketingAutomation from "./pages/MarketingAutomation";
+import MyAppointments from "./pages/MyAppointments";
+import MyMedicalRecords from "./pages/MyMedicalRecords";
+import MyTreatmentPlans from "./pages/MyTreatmentPlans";
+import MyConsentForms from "./pages/MyConsentForms";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import XRayDiagnostics from "./pages/XRayDiagnostics";
@@ -89,6 +93,10 @@ function App() {
             <Route path="patients/:id" element={<PatientProfile />} />
             <Route path="medical-history" element={<MedicalHistory />} />
             <Route path="consent-forms" element={<ConsentForms />} />
+            <Route path="my-appointments" element={<MyAppointments />} />
+            <Route path="my-medical-records" element={<MyMedicalRecords />} />
+            <Route path="my-treatment-plans" element={<MyTreatmentPlans />} />
+            <Route path="my-consent-forms" element={<MyConsentForms />} />
             <Route path="voice-transcription" element={<VoiceTranscription />} />
             <Route path="ai/voice" element={<VoiceTranscription />} />
             <Route path="translation" element={<Translation />} />

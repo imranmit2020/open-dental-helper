@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useToast } from "@/hooks/use-toast";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
@@ -35,8 +36,17 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { isPatient } = useRoleAccess();
   const { logAction } = useAuditLog();
   const { toast } = useToast();
+
+  // Redirect patients to their own dashboard
+  useEffect(() => {
+    if (isPatient) {
+      navigate('/patient-dashboard', { replace: true });
+      return;
+    }
+  }, [isPatient, navigate]);
 
   // Audit logging on dashboard access
   useEffect(() => {
