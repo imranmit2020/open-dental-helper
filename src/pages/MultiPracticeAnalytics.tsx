@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Building, 
   TrendingUp, 
@@ -27,77 +28,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 
-// Enhanced Mock data for multipractice analytics
-const practices = [
-  { 
-    id: 1, 
-    name: "Downtown Dental", 
-    location: "Downtown", 
-    patients: 1250, 
-    revenue: 125000, 
-    appointments: 890,
-    target: 120000,
-    chairUtilization: 85,
-    treatmentAcceptance: 78,
-    missedAppointments: 12,
-    insuranceClaimSuccess: 94,
-    status: 'above_target',
-    coordinates: { lat: 40.7128, lng: -74.0060 },
-    staffCount: 12,
-    chairCount: 6
-  },
-  { 
-    id: 2, 
-    name: "Westside Dental", 
-    location: "Westside", 
-    patients: 980, 
-    revenue: 98000, 
-    appointments: 720,
-    target: 100000,
-    chairUtilization: 72,
-    treatmentAcceptance: 65,
-    missedAppointments: 18,
-    insuranceClaimSuccess: 89,
-    status: 'at_risk',
-    coordinates: { lat: 40.7589, lng: -73.9851 },
-    staffCount: 10,
-    chairCount: 5
-  },
-  { 
-    id: 3, 
-    name: "Northside Dental", 
-    location: "Northside", 
-    patients: 1100, 
-    revenue: 110000, 
-    appointments: 800,
-    target: 105000,
-    chairUtilization: 80,
-    treatmentAcceptance: 82,
-    missedAppointments: 8,
-    insuranceClaimSuccess: 96,
-    status: 'above_target',
-    coordinates: { lat: 40.7831, lng: -73.9712 },
-    staffCount: 11,
-    chairCount: 5
-  },
-  { 
-    id: 4, 
-    name: "Southside Dental", 
-    location: "Southside", 
-    patients: 850, 
-    revenue: 85000, 
-    appointments: 650,
-    target: 90000,
-    chairUtilization: 68,
-    treatmentAcceptance: 58,
-    missedAppointments: 22,
-    insuranceClaimSuccess: 87,
-    status: 'needs_attention',
-    coordinates: { lat: 40.6892, lng: -74.0445 },
-    staffCount: 8,
-    chairCount: 4
-  }
-];
+// Chart data arrays (can be enhanced with live data in the future)
 
 const performanceData = [
   { month: 'Jan', downtown: 45000, westside: 35000, northside: 40000, southside: 30000 },
@@ -184,8 +115,51 @@ export default function MultiPracticeAnalytics() {
   const [selectedPractice, setSelectedPractice] = useState("all");
   const [timeRange, setTimeRange] = useState("6months");
   const [activeTab, setActiveTab] = useState("overview");
+  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalMetrics = {
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [timeRange]);
+
+  const fetchAnalyticsData = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('practice_analytics')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setAnalyticsData(data || []);
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform analytics data into practices format
+  const practices = analyticsData.length > 0 ? analyticsData.map((practice, index) => ({
+    id: practice.id,
+    name: practice.practice_name,
+    location: practice.location,
+    patients: practice.patient_count,
+    revenue: practice.revenue,
+    appointments: practice.appointments_count,
+    target: practice.revenue * 0.9, // Set target as 90% of current revenue
+    chairUtilization: practice.chair_utilization,
+    treatmentAcceptance: practice.treatment_acceptance_rate,
+    missedAppointments: Math.floor(practice.appointments_count * (practice.no_show_rate / 100)),
+    insuranceClaimSuccess: practice.insurance_claim_success_rate,
+    status: practice.revenue >= (practice.revenue * 0.9) ? 'above_target' : 
+            practice.chair_utilization >= 75 ? 'at_risk' : 'needs_attention',
+    coordinates: { lat: 40.7128 + (index * 0.1), lng: -74.0060 + (index * 0.1) },
+    staffCount: practice.staff_count,
+    chairCount: Math.ceil(practice.chair_utilization / 15) // Estimate chairs based on utilization
+  })) : [];
+
+  const totalMetrics = practices.length > 0 ? {
     totalRevenue: practices.reduce((sum, p) => sum + p.revenue, 0),
     totalPatients: practices.reduce((sum, p) => sum + p.patients, 0),
     totalAppointments: practices.reduce((sum, p) => sum + p.appointments, 0),
@@ -194,7 +168,29 @@ export default function MultiPracticeAnalytics() {
     avgTreatmentAcceptance: practices.reduce((sum, p) => sum + p.treatmentAcceptance, 0) / practices.length,
     totalMissedAppointments: practices.reduce((sum, p) => sum + p.missedAppointments, 0),
     avgInsuranceSuccess: practices.reduce((sum, p) => sum + p.insuranceClaimSuccess, 0) / practices.length
+  } : {
+    totalRevenue: 0,
+    totalPatients: 0,
+    totalAppointments: 0,
+    avgRevenue: 0,
+    avgChairUtilization: 0,
+    avgTreatmentAcceptance: 0,
+    totalMissedAppointments: 0,
+    avgInsuranceSuccess: 0
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+            <p className="mt-4 text-muted-foreground">Loading analytics data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
