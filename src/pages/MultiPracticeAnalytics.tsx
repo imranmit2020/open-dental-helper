@@ -128,15 +128,74 @@ export default function MultiPracticeAnalytics() {
       const { data, error } = await supabase
         .from('practice_analytics')
         .select('*')
-        .order('date', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (error) throw error;
-      setAnalyticsData(data || []);
+      
+      // Group metrics by practice for easier processing
+      const practiceMetrics = groupMetricsByPractice(data || []);
+      setAnalyticsData(practiceMetrics);
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to group metrics by practice
+  const groupMetricsByPractice = (metrics: any[]) => {
+    const practiceMap = new Map();
+    
+    metrics.forEach(metric => {
+      const practiceKey = metric.metadata?.practice_name || `Practice ${Math.floor(Math.random() * 4) + 1}`;
+      
+      if (!practiceMap.has(practiceKey)) {
+        practiceMap.set(practiceKey, {
+          id: practiceMap.size + 1,
+          practice_name: practiceKey,
+          location: metric.metadata?.location || 'Downtown',
+          revenue: 0,
+          patient_count: 0,
+          appointments_count: 0,
+          chair_utilization: 75,
+          treatment_acceptance_rate: 80,
+          no_show_rate: 10,
+          insurance_claim_success_rate: 90,
+          staff_count: 8,
+          created_at: metric.created_at
+        });
+      }
+      
+      const practice = practiceMap.get(practiceKey);
+      
+      // Map metric types to practice properties
+      switch (metric.metric_type) {
+        case 'revenue':
+          practice.revenue = metric.metric_value;
+          break;
+        case 'patients':
+          practice.patient_count = metric.metric_value;
+          break;
+        case 'appointments':
+          practice.appointments_count = metric.metric_value;
+          break;
+        case 'utilization':
+          practice.chair_utilization = metric.metric_value;
+          break;
+        case 'acceptance_rate':
+          practice.treatment_acceptance_rate = metric.metric_value;
+          break;
+        case 'no_show_rate':
+          practice.no_show_rate = metric.metric_value;
+          break;
+        case 'insurance_success':
+          practice.insurance_claim_success_rate = metric.metric_value;
+          break;
+      }
+    });
+    
+    return Array.from(practiceMap.values());
   };
 
   // Transform analytics data into practices format
