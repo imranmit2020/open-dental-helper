@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_practice_insights: {
+        Row: {
+          actionable_items: Json | null
+          confidence_score: number | null
+          created_at: string
+          description: string
+          expires_at: string | null
+          id: string
+          insight_category: string
+          insight_type: string
+          practice_name: string
+          predicted_impact: number | null
+          priority_level: string | null
+          title: string
+        }
+        Insert: {
+          actionable_items?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          description: string
+          expires_at?: string | null
+          id?: string
+          insight_category: string
+          insight_type: string
+          practice_name: string
+          predicted_impact?: number | null
+          priority_level?: string | null
+          title: string
+        }
+        Update: {
+          actionable_items?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          description?: string
+          expires_at?: string | null
+          id?: string
+          insight_category?: string
+          insight_type?: string
+          practice_name?: string
+          predicted_impact?: number | null
+          priority_level?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       allergies: {
         Row: {
           allergen: string
@@ -994,6 +1039,42 @@ export type Database = {
         }
         Relationships: []
       }
+      practice_leaderboard: {
+        Row: {
+          created_at: string
+          id: string
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+          practice_name: string
+          ranking: number | null
+          staff_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+          practice_name: string
+          ranking?: number | null
+          staff_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_type?: string
+          metric_value?: number
+          period_end?: string
+          period_start?: string
+          practice_name?: string
+          ranking?: number | null
+          staff_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1086,6 +1167,81 @@ export type Database = {
           review_received_at?: string | null
           review_text?: string | null
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_revenue: {
+        Row: {
+          created_at: string
+          id: string
+          patient_count: number | null
+          practice_name: string
+          revenue_amount: number
+          service_date: string
+          service_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          patient_count?: number | null
+          practice_name: string
+          revenue_amount: number
+          service_date?: string
+          service_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          patient_count?: number | null
+          practice_name?: string
+          revenue_amount?: number
+          service_date?: string
+          service_type?: string
+        }
+        Relationships: []
+      }
+      staff_performance: {
+        Row: {
+          created_at: string
+          efficiency_rating: number | null
+          hours_worked: number | null
+          id: string
+          patient_satisfaction_score: number | null
+          patients_served: number | null
+          performance_date: string
+          practice_name: string
+          productivity_score: number | null
+          revenue_generated: number | null
+          staff_member_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          efficiency_rating?: number | null
+          hours_worked?: number | null
+          id?: string
+          patient_satisfaction_score?: number | null
+          patients_served?: number | null
+          performance_date?: string
+          practice_name: string
+          productivity_score?: number | null
+          revenue_generated?: number | null
+          staff_member_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          efficiency_rating?: number | null
+          hours_worked?: number | null
+          id?: string
+          patient_satisfaction_score?: number | null
+          patients_served?: number | null
+          performance_date?: string
+          practice_name?: string
+          productivity_score?: number | null
+          revenue_generated?: number | null
+          staff_member_id?: string
           updated_at?: string
         }
         Relationships: []

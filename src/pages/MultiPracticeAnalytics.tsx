@@ -116,26 +116,68 @@ export default function MultiPracticeAnalytics() {
   const [timeRange, setTimeRange] = useState("6months");
   const [activeTab, setActiveTab] = useState("overview");
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [serviceRevenueData, setServiceRevenueData] = useState<any[]>([]);
+  const [staffPerformanceData, setStaffPerformanceData] = useState<any[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAnalyticsData();
+    fetchAllData();
   }, [timeRange]);
 
-  const fetchAnalyticsData = async () => {
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch practice analytics
+      const { data: practiceData, error: practiceError } = await supabase
         .from('practice_analytics')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
-      
-      // Group metrics by practice for easier processing
-      const practiceMetrics = groupMetricsByPractice(data || []);
+      if (practiceError) throw practiceError;
+
+      // Fetch service revenue data
+      const { data: serviceData, error: serviceError } = await supabase
+        .from('service_revenue')
+        .select('*')
+        .order('service_date', { ascending: false });
+
+      if (serviceError) throw serviceError;
+
+      // Fetch staff performance data
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff_performance')
+        .select('*')
+        .order('performance_date', { ascending: false });
+
+      if (staffError) throw staffError;
+
+      // Fetch leaderboard data
+      const { data: leaderData, error: leaderError } = await supabase
+        .from('practice_leaderboard')
+        .select('*')
+        .order('ranking', { ascending: true });
+
+      if (leaderError) throw leaderError;
+
+      // Fetch AI insights
+      const { data: insightsData, error: insightsError } = await supabase
+        .from('ai_practice_insights')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (insightsError) throw insightsError;
+
+      // Group and set data
+      const practiceMetrics = groupMetricsByPractice(practiceData || []);
       setAnalyticsData(practiceMetrics);
+      setServiceRevenueData(serviceData || []);
+      setStaffPerformanceData(staffData || []);
+      setLeaderboardData(leaderData || []);
+      setAiInsightsData(insightsData || []);
     } catch (error) {
       console.error('Error fetching analytics data:', error);
     } finally {
@@ -375,7 +417,42 @@ export default function MultiPracticeAnalytics() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {aiInsights.map((insight, index) => (
+            {aiInsightsData.length > 0 ? aiInsightsData.slice(0, 4).map((insight, index) => (
+              <div key={insight.id} className="p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2 rounded-full ${
+                    insight.insight_type === 'alert' ? 'bg-yellow-100 text-yellow-600' :
+                    insight.insight_type === 'recommendation' ? 'bg-blue-100 text-blue-600' :
+                    insight.insight_type === 'prediction' && insight.insight_category === 'opportunity' ? 'bg-green-100 text-green-600' :
+                    'bg-purple-100 text-purple-600'
+                  }`}>
+                    {insight.insight_type === 'alert' && <AlertTriangle className="h-4 w-4" />}
+                    {insight.insight_type === 'recommendation' && <Target className="h-4 w-4" />}
+                    {insight.insight_type === 'prediction' && insight.insight_category === 'opportunity' && <TrendingUp className="h-4 w-4" />}
+                    {insight.insight_type === 'prediction' && insight.insight_category !== 'opportunity' && <Brain className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-foreground mb-1">{insight.title}</h4>
+                    <p className="text-sm text-foreground">{insight.description}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <Badge variant="outline" className="text-xs">{insight.practice_name}</Badge>
+                      <Badge variant={insight.priority_level === 'high' ? 'destructive' : insight.priority_level === 'medium' ? 'default' : 'secondary'} className="text-xs">
+                        {insight.priority_level}
+                      </Badge>
+                    </div>
+                    {insight.confidence_score && (
+                      <div className="mt-2">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Confidence</span>
+                          <span>{insight.confidence_score}%</span>
+                        </div>
+                        <Progress value={insight.confidence_score} className="h-1 mt-1" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )) : aiInsights.map((insight, index) => (
               <div key={index} className="p-4 rounded-lg border bg-muted/30">
                 <div className="flex items-start gap-3">
                   <div className={`p-2 rounded-full ${
@@ -513,7 +590,30 @@ export default function MultiPracticeAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {topPerformers.map((performer, index) => (
+                {leaderboardData.length > 0 ? leaderboardData.slice(0, 5).map((performer, index) => (
+                  <div key={performer.id} className="flex items-center gap-4 p-4 rounded-lg border bg-muted/30">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                      index === 0 ? 'bg-yellow-500' :
+                      index === 1 ? 'bg-gray-400' :
+                      index === 2 ? 'bg-orange-600' :
+                      'bg-blue-500'
+                    }`}>
+                      {performer.ranking}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{performer.staff_name}</h3>
+                      <p className="text-sm text-muted-foreground">{performer.practice_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        {performer.metric_type === 'revenue' ? `$${performer.metric_value.toLocaleString()}` : 
+                         `${performer.metric_value}${performer.metric_type.includes('efficiency') || performer.metric_type.includes('satisfaction') ? '%' : ''}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">{performer.metric_type.replace('_', ' ')}</p>
+                    </div>
+                    {index === 0 && <Star className="h-5 w-5 text-yellow-500" />}
+                  </div>
+                )) : topPerformers.map((performer, index) => (
                   <div key={index} className="flex items-center gap-4 p-4 rounded-lg border bg-muted/30">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
                       index === 0 ? 'bg-yellow-500' :
