@@ -15,8 +15,31 @@ import {
   CheckCircle,
   Building
 } from "lucide-react";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ClinicSwitcher } from "@/components/ClinicSwitcher";
 
 const PracticeDashboard = () => {
+  const [locationsOpen, setLocationsOpen] = useState(false);
+
+  const handleGenerateReport = () => {
+    const csvRows: string[] = [];
+    csvRows.push('Section,Key,Value');
+    stats.forEach((s) => csvRows.push(`Stat,${s.title},${typeof s.value === 'number' ? s.value : s.value}`));
+    practiceMetrics.forEach((m) => csvRows.push(`Metric,${m.label},${m.value}% (target ${m.target}%)`));
+    recentActivities.forEach((a) => csvRows.push(`Activity,${a.action} - ${a.patient},${a.time}`));
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `practice-overview-report-${date}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const stats = [
     {
       title: "Total Patients",
@@ -117,15 +140,25 @@ const PracticeDashboard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setLocationsOpen(true)}>
               <Building className="w-4 h-4 mr-2" />
               Manage Locations
             </Button>
-            <Button>
+            <Button onClick={handleGenerateReport}>
               Generate Report
             </Button>
           </div>
         </div>
+
+        <Dialog open={locationsOpen} onOpenChange={setLocationsOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Manage Locations</DialogTitle>
+              <DialogDescription>Switch between your clinics and view details.</DialogDescription>
+            </DialogHeader>
+            <ClinicSwitcher />
+          </DialogContent>
+        </Dialog>
 
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
