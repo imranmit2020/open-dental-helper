@@ -32,8 +32,10 @@ import {
   TrendingUp as TrendIcon
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigationPermissions, NavigationItem } from "@/hooks/useNavigationPermissions";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Sidebar,
@@ -120,9 +122,46 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { t } = useLanguage();
   const location = useLocation();
-  const { filterNavigationItems, userRole, subscribed, isStaffMember, isPatient } = useNavigationPermissions();
+  const { filterNavigationItems, userRole, subscribed, isStaffMember, isPatient, isAdmin } = useNavigationPermissions();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+  
+  // Track pending approvals for notification badge
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+
+  useEffect(() => {
+    if (isAdmin) {
+      const fetchPendingCount = async () => {
+        const { data } = await supabase
+          .from('user_approval_requests')
+          .select('id')
+          .eq('status', 'pending');
+        setPendingApprovalsCount(data?.length || 0);
+      };
+      
+      fetchPendingCount();
+      
+      // Set up real-time subscription for pending count
+      const channel = supabase
+        .channel('pending-approvals-count')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_approval_requests'
+          },
+          () => {
+            fetchPendingCount();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isAdmin]);
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -392,7 +431,21 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                        {!isCollapsed && (
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-medium">{item.title}</span>
+                            {item.url === "/admin/user-approvals" && pendingApprovalsCount > 0 && (
+                              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                {pendingApprovalsCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isCollapsed && item.url === "/admin/user-approvals" && pendingApprovalsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                            {pendingApprovalsCount}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

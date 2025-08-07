@@ -37,6 +37,36 @@ export default function AdminApprovalDashboard() {
 
   useEffect(() => {
     fetchApprovalRequests();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('user-approval-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_approval_requests'
+        },
+        (payload) => {
+          console.log('Real-time update:', payload);
+          // Refresh the data when changes occur
+          fetchApprovalRequests();
+          
+          // Show toast notification for new requests
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New User Request",
+              description: `${payload.new.first_name} ${payload.new.last_name} has requested access`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchApprovalRequests = async () => {
@@ -164,13 +194,68 @@ export default function AdminApprovalDashboard() {
     );
   }
 
+  const simulateNewRequest = async () => {
+    const names = [
+      { first: 'Alex', last: 'Johnson', email: 'alex.johnson@newclinic.com' },
+      { first: 'Emma', last: 'Davis', email: 'emma.davis@moderndentalcare.com' },
+      { first: 'James', last: 'Wilson', email: 'james.wilson@healthsmile.com' },
+      { first: 'Sophia', last: 'Miller', email: 'sophia.miller@dentalexcellence.com' }
+    ];
+    
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    const roles = ['dentist', 'staff', 'admin'];
+    const randomRole = roles[Math.floor(Math.random() * roles.length)];
+    
+    try {
+      const { error } = await supabase
+        .from('user_approval_requests')
+        .insert({
+          user_id: crypto.randomUUID(),
+          email: randomName.email,
+          first_name: randomName.first,
+          last_name: randomName.last,
+          requested_role: randomRole,
+          organization_type: 'clinic',
+          organization_name: 'New Dental Practice',
+          phone: '+1-555-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
+          status: 'pending',
+          requested_at: new Date().toISOString()
+        });
+        
+      if (error) {
+        console.error('Error creating test request:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create test request",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Test Request Created",
+          description: "A new approval request has been simulated",
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">User Approval Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Review and approve new user registrations
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">User Approval Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Review and approve new user registrations ({pendingCount} pending)
+            </p>
+          </div>
+          <Button onClick={simulateNewRequest} variant="outline">
+            Simulate New Request
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6">
