@@ -8,7 +8,20 @@ import "./index.css";
 // TODO: i18n import will be enabled when implemented
 // import "./i18n";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (updated from cacheTime)
+      retry: 2,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always',
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
