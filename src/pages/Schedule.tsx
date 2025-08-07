@@ -19,6 +19,8 @@ import {
   Phone
 } from "lucide-react";
 import NewAppointmentForm from "@/components/NewAppointmentForm";
+import BlockTimeForm from "@/components/BlockTimeForm";
+import WalkInForm from "@/components/WalkInForm";
 
 export default function Schedule() {
   const { t } = useLanguage();
@@ -244,7 +246,7 @@ export default function Schedule() {
                                 {appointment.room}
                               </span>
                             )}
-                            {appointment.phone !== '-' && (
+                            {appointment.phone !== '-' && appointment.phone && (
                               <span className="flex items-center gap-1">
                                 <Phone className="h-3 w-3" />
                                 {appointment.phone}
@@ -274,7 +276,7 @@ export default function Schedule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.todaySummary', "Today's Summary")}</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.todaySummary', "schedule.todaySummary")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
@@ -312,18 +314,32 @@ export default function Schedule() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('schedule.quickActions', 'Quick Actions')}</CardTitle>
+              <CardTitle className="text-lg">{t('schedule.quickActions', 'schedule.quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <User className="h-4 w-4 mr-2" />
-                Add Walk-in
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Clock className="h-4 w-4 mr-2" />
-                Block Time
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <WalkInForm 
+                onWalkInAdded={refetch}
+                trigger={
+                  <Button variant="outline" className="w-full justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    Add Walk-in
+                  </Button>
+                }
+              />
+              <BlockTimeForm 
+                onBlockTimeAdded={refetch}
+                trigger={
+                  <Button variant="outline" className="w-full justify-start">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Block Time
+                  </Button>
+                }
+              />
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => handleViewChange('week')}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 View Week
               </Button>
