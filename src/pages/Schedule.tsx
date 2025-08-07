@@ -21,6 +21,8 @@ import {
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 import BlockTimeForm from "@/components/BlockTimeForm";
 import WalkInForm from "@/components/WalkInForm";
+import RescheduleDialog from "@/components/RescheduleDialog";
+import StartVisitDialog from "@/components/StartVisitDialog";
 
 export default function Schedule() {
   const { t } = useLanguage();
@@ -267,12 +269,24 @@ export default function Schedule() {
 
                       {!appointment.isBlockedTime && (
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm">
-                            Reschedule
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Start Visit
-                          </Button>
+                          <RescheduleDialog 
+                            appointment={appointment}
+                            onRescheduleComplete={refetch}
+                            trigger={
+                              <Button variant="outline" size="sm">
+                                Reschedule
+                              </Button>
+                            }
+                          />
+                          <StartVisitDialog 
+                            appointment={appointment}
+                            onVisitStarted={refetch}
+                            trigger={
+                              <Button variant="outline" size="sm">
+                                Start Visit
+                              </Button>
+                            }
+                          />
                         </div>
                       )}
                     </div>
