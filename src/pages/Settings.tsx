@@ -15,6 +15,8 @@ import { useErrorLogger } from '@/hooks/useErrorLogger';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { StaffAvailabilityManager } from '@/components/StaffAvailabilityManager';
+import { Clock } from 'lucide-react';
 
 export default function Settings() {
   const { selectedLanguage, isRTL, formatDate, t } = useLanguage();
@@ -75,9 +77,10 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="preferences" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="behavior">Application</TabsTrigger>
+          <TabsTrigger value="availability">Staff Schedule</TabsTrigger>
           {isAdmin && <TabsTrigger value="audit">HIPAA Audit Logs</TabsTrigger>}
         </TabsList>
 
@@ -207,6 +210,23 @@ export default function Settings() {
                   </ul>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="availability" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Staff Availability Management
+              </CardTitle>
+              <CardDescription>
+                Manage staff schedules and availability across different clinics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StaffAvailabilityManager />
             </CardContent>
           </Card>
         </TabsContent>
