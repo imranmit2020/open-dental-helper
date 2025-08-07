@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import PatientNotesDialog from "@/components/PatientNotesDialog";
+import BlockTimeForm from "@/components/BlockTimeForm";
 import { format, isToday, startOfDay, endOfDay } from "date-fns";
 import { 
   Calendar, 
@@ -556,15 +557,19 @@ const DentistDashboard = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="w-4 h-4 mr-2" />
-                  Add Emergency Slot
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
+<BlockTimeForm
+                  trigger={
+                    <Button variant="outline" className="w-full justify-start">
+                      <Users className="w-4 h-4 mr-2" />
+                      Add Emergency Slot
+                    </Button>
+                  }
+                />
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/treatment-plans')}>
                   <FileText className="w-4 h-4 mr-2" />
                   Create Treatment Plan
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/reputation-management')}>
                   <Star className="w-4 h-4 mr-2" />
                   Request Feedback
                 </Button>
