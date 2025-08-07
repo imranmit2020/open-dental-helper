@@ -47,8 +47,7 @@ export default function MedicalHistory() {
   const [loading, setLoading] = useState(true);
   const [isNewRecordOpen, setIsNewRecordOpen] = useState(false);
   const [isNewMedicationOpen, setIsNewMedicationOpen] = useState(false);
-  const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
-  const [generatedPrescription, setGeneratedPrescription] = useState('');
+  
   const [newRecordForm, setNewRecordForm] = useState({
     title: '',
     record_type: '',
@@ -58,6 +57,7 @@ export default function MedicalHistory() {
     visit_date: new Date().toISOString().split('T')[0],
     status: 'completed'
   });
+
   const [newMedicationForm, setNewMedicationForm] = useState({
     medication_name: '',
     dosage: '',
@@ -105,36 +105,17 @@ export default function MedicalHistory() {
 
   const fetchPatientData = async (patientId: string) => {
     try {
-      // Fetch medical records
-      const { data: recordsData } = await supabase
-        .from('medical_records')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('visit_date', { ascending: false });
+      const [recordsData, medicationsData, allergiesData, conditionsData] = await Promise.all([
+        supabase.from('medical_records').select('*').eq('patient_id', patientId).order('visit_date', { ascending: false }),
+        supabase.from('medications').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }),
+        supabase.from('allergies').select('*').eq('patient_id', patientId),
+        supabase.from('medical_conditions').select('*').eq('patient_id', patientId)
+      ]);
 
-      // Fetch medications
-      const { data: medicationsData } = await supabase
-        .from('medications')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: false });
-
-      // Fetch allergies
-      const { data: allergiesData } = await supabase
-        .from('allergies')
-        .select('*')
-        .eq('patient_id', patientId);
-
-      // Fetch medical conditions
-      const { data: conditionsData } = await supabase
-        .from('medical_conditions')
-        .select('*')
-        .eq('patient_id', patientId);
-
-      setMedicalRecords(recordsData || []);
-      setMedications(medicationsData || []);
-      setAllergies(allergiesData || []);
-      setMedicalConditions(conditionsData || []);
+      setMedicalRecords(recordsData.data || []);
+      setMedications(medicationsData.data || []);
+      setAllergies(allergiesData.data || []);
+      setMedicalConditions(conditionsData.data || []);
     } catch (error) {
       console.error('Error fetching patient data:', error);
       toast({
@@ -143,18 +124,6 @@ export default function MedicalHistory() {
         variant: "destructive",
       });
     }
-  };
-
-  const handleNewRecord = () => {
-    if (!selectedPatient) {
-      toast({
-        title: "No Patient Selected",
-        description: "Please select a patient first",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsNewRecordOpen(true);
   };
 
   const handleCreateRecord = async () => {
@@ -168,18 +137,6 @@ export default function MedicalHistory() {
     }
 
     try {
-      // Get the current user's profile ID
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw new Error('Could not find user profile');
-      }
-
       const { error } = await supabase
         .from('medical_records')
         .insert({
@@ -191,7 +148,7 @@ export default function MedicalHistory() {
           description: newRecordForm.description,
           visit_date: newRecordForm.visit_date,
           status: newRecordForm.status,
-          dentist_id: profileData.id
+          dentist_id: user?.id
         });
 
       if (error) throw error;
@@ -201,7 +158,6 @@ export default function MedicalHistory() {
         description: "Medical record created successfully",
       });
 
-      // Reset form and close dialog
       setNewRecordForm({
         title: '',
         record_type: '',
@@ -212,11 +168,7 @@ export default function MedicalHistory() {
         status: 'completed'
       });
       setIsNewRecordOpen(false);
-
-      // Refresh patient data
-      if (selectedPatient) {
-        fetchPatientData(selectedPatient);
-      }
+      fetchPatientData(selectedPatient);
     } catch (error) {
       console.error('Error creating medical record:', error);
       toast({
@@ -225,18 +177,6 @@ export default function MedicalHistory() {
         variant: "destructive",
       });
     }
-  };
-
-  const handleNewMedication = () => {
-    if (!selectedPatient) {
-      toast({
-        title: "No Patient Selected",
-        description: "Please select a patient first",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsNewMedicationOpen(true);
   };
 
   const handleCreateMedication = async () => {
@@ -250,18 +190,6 @@ export default function MedicalHistory() {
     }
 
     try {
-      // Get the current user's profile ID
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw new Error('Could not find user profile');
-      }
-
       const { error } = await supabase
         .from('medications')
         .insert({
@@ -273,7 +201,7 @@ export default function MedicalHistory() {
           start_date: newMedicationForm.start_date,
           end_date: newMedicationForm.end_date || null,
           notes: newMedicationForm.notes,
-          prescribed_by: profileData.id
+          prescribed_by: user?.id
         });
 
       if (error) throw error;
@@ -283,7 +211,6 @@ export default function MedicalHistory() {
         description: "Medication added successfully",
       });
 
-      // Reset form and close dialog
       setNewMedicationForm({
         medication_name: '',
         dosage: '',
@@ -294,175 +221,12 @@ export default function MedicalHistory() {
         notes: ''
       });
       setIsNewMedicationOpen(false);
-
-      // Refresh patient data
-      if (selectedPatient) {
-        fetchPatientData(selectedPatient);
-      }
+      fetchPatientData(selectedPatient);
     } catch (error) {
       console.error('Error creating medication:', error);
       toast({
         title: "Error",
         description: "Failed to add medication",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleVoiceTranscription = (text: string) => {
-    // Parse the voice input and fill form fields intelligently
-    const lowerText = text.toLowerCase();
-    
-    // Extract medication name (usually the first drug name mentioned)
-    const medicationMatch = lowerText.match(/(?:take|prescribe|give|medication|drug)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)?)/);
-    if (medicationMatch && !newMedicationForm.medication_name) {
-      setNewMedicationForm(prev => ({
-        ...prev,
-        medication_name: medicationMatch[1].split(' ').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ')
-      }));
-    }
-
-    // Extract dosage
-    const dosageMatch = lowerText.match(/(\d+(?:\.\d+)?\s*(?:mg|milligrams?|g|grams?|ml|milliliters?|units?|tablets?|capsules?|pills?))/i);
-    if (dosageMatch && !newMedicationForm.dosage) {
-      setNewMedicationForm(prev => ({
-        ...prev,
-        dosage: dosageMatch[1]
-      }));
-    }
-
-    // Extract frequency
-    if (lowerText.includes('once a day') || lowerText.includes('once daily') || lowerText.includes('one time a day')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'Once daily' }));
-    } else if (lowerText.includes('twice a day') || lowerText.includes('twice daily') || lowerText.includes('two times a day')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'Twice daily' }));
-    } else if (lowerText.includes('three times a day') || lowerText.includes('three times daily')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'Three times daily' }));
-    } else if (lowerText.includes('four times a day') || lowerText.includes('four times daily')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'Four times daily' }));
-    } else if (lowerText.includes('as needed') || lowerText.includes('when needed') || lowerText.includes('prn')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'As needed' }));
-    } else if (lowerText.includes('before meals') || lowerText.includes('before eating')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'Before meals' }));
-    } else if (lowerText.includes('after meals') || lowerText.includes('after eating')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'After meals' }));
-    } else if (lowerText.includes('at bedtime') || lowerText.includes('before bed')) {
-      setNewMedicationForm(prev => ({ ...prev, frequency: 'At bedtime' }));
-    }
-
-    // Extract duration or notes
-    const durationMatch = lowerText.match(/for\s+(\d+)\s+(days?|weeks?|months?)/);
-    if (durationMatch && !newMedicationForm.notes) {
-      setNewMedicationForm(prev => ({
-        ...prev,
-        notes: `Take for ${durationMatch[1]} ${durationMatch[2]}`
-      }));
-    }
-
-    // If no specific fields were filled, put the full text in notes
-    if (!medicationMatch && !dosageMatch && !newMedicationForm.notes) {
-      setNewMedicationForm(prev => ({
-        ...prev,
-        notes: text
-      }));
-    }
-
-    toast({
-      title: "Voice Input Processed",
-      description: "Medication details have been extracted from your voice input",
-    });
-  };
-
-  const generatePrescription = async () => {
-    if (!selectedPatientData || !newMedicationForm.medication_name) {
-      toast({
-        title: "Missing Information",
-        description: "Please ensure patient is selected and medication name is provided",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-prescription', {
-        body: {
-          medicationName: newMedicationForm.medication_name,
-          patientInfo: {
-            name: `${selectedPatientData.first_name} ${selectedPatientData.last_name}`,
-            age: getAge(selectedPatientData.date_of_birth)
-          },
-          diagnosis: 'General dental treatment',
-          dosage: newMedicationForm.dosage,
-          frequency: newMedicationForm.frequency
-        }
-      });
-
-      if (error) throw error;
-
-      setGeneratedPrescription(data.prescription);
-      setIsPrescriptionOpen(true);
-
-      toast({
-        title: "Prescription Generated",
-        description: "AI-powered prescription has been created",
-      });
-    } catch (error) {
-      console.error('Error generating prescription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate prescription",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const speakPrescription = async () => {
-    if (!generatedPrescription) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { 
-          text: generatedPrescription,
-          voice: 'alloy'
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.audioContent) {
-        // Convert base64 to audio and play
-        const binaryString = atob(data.audioContent);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        audio.onended = () => URL.revokeObjectURL(audioUrl);
-        await audio.play();
-      }
-    } catch (error) {
-      console.error('Text-to-speech error:', error);
-      toast({
-        title: "Speech Error",
-        description: "Failed to convert text to speech",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleViewProfile = () => {
-    if (selectedPatient) {
-      navigate(`/patients/${selectedPatient}`);
-    } else {
-      toast({
-        title: "No Patient Selected", 
-        description: "Please select a patient first",
         variant: "destructive",
       });
     }
@@ -482,223 +246,310 @@ export default function MedicalHistory() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-success/10 text-success border-success/20";
-      case "active": return "bg-success/10 text-success border-success/20";
-      case "in-progress": return "bg-warning/10 text-warning border-warning/20";
-      case "pending": return "bg-muted/10 text-muted-foreground border-muted/20";
-      default: return "bg-muted/10 text-muted-foreground border-muted/20";
+      case "completed": 
+      case "active": 
+        return "bg-green-100 text-green-800 border-green-200";
+      case "in-progress": 
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "pending": 
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      default: 
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case "low": return "text-success";
-      case "medium": return "text-warning";
-      case "high": return "text-destructive";
-      default: return "text-muted-foreground";
+      case "low": return "text-green-600";
+      case "medium": return "text-yellow-600";
+      case "high": return "text-red-600";
+      default: return "text-gray-600";
     }
   };
 
-  const filteredPatients = patients.filter(patient =>
-    `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case "mild": return "bg-yellow-100 text-yellow-800";
+      case "moderate": return "bg-orange-100 text-orange-800";
+      case "severe": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
+  const filteredPatients = patients.filter(patient => 
+    patient.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Live analytics from medical data
+  const medicalAnalytics = {
+    totalRecords: medicalRecords.length,
+    activeMedications: medications.filter(m => m.status === 'active').length,
+    totalAllergies: allergies.length,
+    severeAllergies: allergies.filter(a => a.severity === 'severe').length,
+    activeConditions: medicalConditions.filter(c => c.status === 'active').length,
+    recentRecords: medicalRecords.filter(r => {
+      const recordDate = new Date(r.visit_date || r.created_at);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return recordDate >= thirtyDaysAgo;
+    }).length
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+            <p className="mt-4 text-muted-foreground">Loading medical records...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 space-y-8">
-      {/* Animated Header */}
-      <div className="flex items-center justify-between animate-fade-in">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Medical History
-          </h1>
-          <p className="text-muted-foreground text-lg">Comprehensive patient medical records and history</p>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header with Live Data Summary */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Medical History Management</h1>
+          <p className="text-muted-foreground">
+            Comprehensive patient medical records with live data • {patients.length} patients • {medicalAnalytics.totalRecords} records
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 rounded-xl">
-            <Download className="h-4 w-4 mr-2" />
-            Export Records
-          </Button>
-          <Button 
-            onClick={handleNewRecord}
-            className="bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 rounded-xl px-6"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            New Record
-          </Button>
+        <div className="flex gap-2">
+          <Dialog open={isNewRecordOpen} onOpenChange={setIsNewRecordOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                New Record
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+          <Dialog open={isNewMedicationOpen} onOpenChange={setIsNewMedicationOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Pill className="w-4 h-4" />
+                Add Medication
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </div>
       </div>
 
+      {/* Live Medical Analytics Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Records</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{medicalAnalytics.totalRecords}</div>
+            <p className="text-xs text-muted-foreground">All patients</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Medications</CardTitle>
+            <Pill className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{medicalAnalytics.activeMedications}</div>
+            <p className="text-xs text-muted-foreground">Currently prescribed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Allergies</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{medicalAnalytics.totalAllergies}</div>
+            <p className="text-xs text-muted-foreground">{medicalAnalytics.severeAllergies} severe</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Conditions</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{medicalAnalytics.activeConditions}</div>
+            <p className="text-xs text-muted-foreground">Being monitored</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Recent Records</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{medicalAnalytics.recentRecords}</div>
+            <p className="text-xs text-muted-foreground">Last 30 days</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{patients.length}</div>
+            <p className="text-xs text-muted-foreground">In database</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Patient Selector Sidebar */}
-        <Card className="lg:col-span-1 bg-card/60 backdrop-blur-sm border-border/50 shadow-2xl animate-scale-in">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-              Select Patient
+        {/* Enhanced Patient List */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Patients ({filteredPatients.length})
             </CardTitle>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search patients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-background/50 border-border/50 rounded-xl"
+                className="pl-8"
               />
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {filteredPatients.map((patient) => (
+          <CardContent className="space-y-2 max-h-96 overflow-y-auto">
+            {filteredPatients.length > 0 ? filteredPatients.map((patient) => (
               <div
                 key={patient.id}
-                onClick={() => setSelectedPatient(patient.id)}
-                className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                   selectedPatient === patient.id 
-                    ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-lg' 
-                    : 'hover:bg-muted/30 border border-border/50'
+                    ? 'bg-primary/10 border-primary' 
+                    : 'hover:bg-muted/50'
                 }`}
+                onClick={() => setSelectedPatient(patient.id)}
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 ring-2 ring-background shadow-md">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-semibold">
-                      {`${patient.first_name?.[0] || ''}${patient.last_name?.[0] || ''}`}
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {patient.first_name?.[0]}{patient.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{`${patient.first_name || ''} ${patient.last_name || ''}`}</p>
-                    <p className="text-xs text-muted-foreground">Age {getAge(patient.date_of_birth)}</p>
-                    <p className={`text-xs font-medium ${getRiskColor(patient.risk_level || 'low')}`}>
-                      {patient.risk_level || 'low'} risk
+                    <p className="font-medium truncate">
+                      {patient.first_name} {patient.last_name}
                     </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {patient.email || 'No email'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        Age: {getAge(patient.date_of_birth)}
+                      </Badge>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${getRiskColor(patient.risk_level)}`}
+                      >
+                        {patient.risk_level} risk
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No patients found</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
-          {selectedPatientData && (
+        {/* Patient Medical Details */}
+        <div className="lg:col-span-3">
+          {selectedPatientData ? (
             <>
-              {/* Patient Overview */}
-              <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-2xl animate-fade-in">
+              {/* Patient Header */}
+              <Card className="mb-6">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-4">
-                       <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg">
-                         <AvatarImage src="" />
-                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
-                           {selectedPatientData ? `${selectedPatientData.first_name?.[0] || ''}${selectedPatientData.last_name?.[0] || ''}` : 'P'}
-                         </AvatarFallback>
-                       </Avatar>
-                       <div>
-                         <h2 className="text-2xl font-bold">
-                           {selectedPatientData ? `${selectedPatientData.first_name || ''} ${selectedPatientData.last_name || ''}` : 'Loading...'}
-                         </h2>
-                         <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                           <span>Age: {selectedPatientData ? getAge(selectedPatientData.date_of_birth) : 'N/A'}</span>
-                           <span>Last Visit: {selectedPatientData?.last_visit ? new Date(selectedPatientData.last_visit).toLocaleDateString() : 'N/A'}</span>
-                           <span className={`font-medium ${getRiskColor(selectedPatientData?.risk_level || 'low')}`}>
-                             Risk: {selectedPatientData?.risk_level || 'low'}
-                           </span>
-                         </div>
-                       </div>
-                     </div>
-                    <Button 
-                      onClick={handleViewProfile}
-                      variant="outline" 
-                      className="hover:bg-primary/5 rounded-xl"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Full Profile
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarFallback className="text-lg">
+                        {selectedPatientData.first_name?.[0]}{selectedPatientData.last_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold">
+                        {selectedPatientData.first_name} {selectedPatientData.last_name}
+                      </h2>
+                      <p className="text-muted-foreground">{selectedPatientData.email}</p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <Badge variant="outline">Age: {getAge(selectedPatientData.date_of_birth)}</Badge>
+                        <Badge variant="outline">Gender: {selectedPatientData.gender || 'Not specified'}</Badge>
+                        <Badge variant="outline" className={getRiskColor(selectedPatientData.risk_level)}>
+                          Risk: {selectedPatientData.risk_level}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button variant="outline" onClick={() => navigate(`/patients/${selectedPatient}`)}>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Profile
                     </Button>
                   </div>
                 </CardHeader>
               </Card>
 
-              {/* Medical Information Tabs */}
-              <Tabs defaultValue="records" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 bg-muted/30 backdrop-blur-sm p-1 rounded-xl">
-                  <TabsTrigger value="records" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Records
-                  </TabsTrigger>
-                  <TabsTrigger value="medications" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md">
-                    <Pill className="h-4 w-4 mr-2" />
-                    Medications
-                  </TabsTrigger>
-                  <TabsTrigger value="conditions" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Conditions
-                  </TabsTrigger>
-                  <TabsTrigger value="images" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Images
-                  </TabsTrigger>
+              {/* Medical Data Tabs */}
+              <Tabs defaultValue="records" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="records">Medical Records</TabsTrigger>
+                  <TabsTrigger value="medications">Medications</TabsTrigger>
+                  <TabsTrigger value="conditions">Conditions & Allergies</TabsTrigger>
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="records" className="space-y-4">
-                  {medicalRecords.length > 0 ? medicalRecords.map((record, index) => (
-                    <Card key={record.id} className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold">{record.record_type || record.title}</h3>
-                              <Badge variant="outline" className={getStatusColor(record.status)}>
-                                {record.status}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {record.visit_date ? new Date(record.visit_date).toLocaleDateString() : 'N/A'}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                {record.dentist_id || 'Dr. Smith'}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Camera className="h-3 w-3" />
-                                {record.attachments?.length || 0} images
-                              </span>
-                            </div>
+                  {medicalRecords.length > 0 ? medicalRecords.map((record) => (
+                    <Card key={record.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{record.title}</CardTitle>
+                            <CardDescription>
+                              {record.record_type} • {record.visit_date ? new Date(record.visit_date).toLocaleDateString() : 'No date'}
+                            </CardDescription>
                           </div>
-                          <Button variant="ghost" size="sm" className="hover:bg-primary/10 rounded-lg">
-                            View Details
-                          </Button>
+                          <Badge className={getStatusColor(record.status)}>
+                            {record.status}
+                          </Badge>
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground mb-1">Diagnosis</p>
-                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.diagnosis || 'No diagnosis recorded'}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground mb-1">Treatment</p>
-                              <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.treatment || 'No treatment recorded'}</p>
-                            </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">Diagnosis</p>
+                            <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.diagnosis || 'No diagnosis recorded'}</p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-                            <p className="text-sm bg-muted/30 p-3 rounded-lg h-full">{record.description || 'No notes available'}</p>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">Treatment</p>
+                            <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.treatment || 'No treatment recorded'}</p>
                           </div>
                         </div>
+                        {record.description && (
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                            <p className="text-sm bg-muted/30 p-3 rounded-lg">{record.description}</p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )) : (
-                    <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                    <Card>
                       <CardContent className="p-6 text-center">
                         <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <p className="text-muted-foreground">No medical records found</p>
@@ -708,38 +559,36 @@ export default function MedicalHistory() {
                 </TabsContent>
 
                 <TabsContent value="medications" className="space-y-4">
-                  <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                  <Card>
                     <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <Pill className="h-5 w-5" />
-                          Current Medications
-                        </CardTitle>
-                        <Button 
-                          onClick={handleNewMedication}
-                          size="sm"
-                          className="bg-gradient-to-r from-primary to-secondary text-white hover:scale-105 transition-all duration-300"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Medication
-                        </Button>
-                      </div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Pill className="h-5 w-5" />
+                        Current Medications ({medications.filter(m => m.status === 'active').length} active)
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {medications.length > 0 ? medications.map((med, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                      {medications.length > 0 ? medications.map((med) => (
+                        <div key={med.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                           <div className="space-y-1">
                             <p className="font-semibold">{med.medication_name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {med.dosage} • {med.frequency} • {med.status}
+                              {med.dosage} • {med.frequency}
                             </p>
+                            {med.notes && (
+                              <p className="text-xs text-muted-foreground">{med.notes}</p>
+                            )}
                           </div>
-                          <div className="text-right text-sm text-muted-foreground">
-                            <p>Start: {med.start_date ? new Date(med.start_date).toLocaleDateString() : 'N/A'}</p>
+                          <div className="text-right">
+                            <Badge className={getStatusColor(med.status)}>
+                              {med.status}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Start: {med.start_date ? new Date(med.start_date).toLocaleDateString() : 'N/A'}
+                            </p>
                           </div>
                         </div>
                       )) : (
-                        <div className="text-center text-muted-foreground py-4">
+                        <div className="text-center text-muted-foreground py-8">
                           <Pill className="h-12 w-12 mx-auto mb-2" />
                           <p>No medications recorded</p>
                         </div>
@@ -750,83 +599,131 @@ export default function MedicalHistory() {
 
                 <TabsContent value="conditions" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                    <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-destructive">
+                        <CardTitle className="flex items-center gap-2 text-red-600">
                           <AlertTriangle className="h-5 w-5" />
-                          Allergies
+                          Allergies ({allergies.length})
                         </CardTitle>
                       </CardHeader>
-                       <CardContent>
-                         <div className="space-y-2">
-                           {allergies.length > 0 ? allergies.map((allergy, index) => (
-                             <Badge key={index} variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
-                               {allergy.allergen}
-                             </Badge>
-                           )) : (
-                             <div className="text-center text-muted-foreground py-4">
-                               <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
-                               <p className="text-sm">No allergies recorded</p>
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
-                     </Card>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {allergies.length > 0 ? allergies.map((allergy) => (
+                            <div key={allergy.id} className="p-3 border rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">{allergy.allergen}</span>
+                                <Badge className={getSeverityColor(allergy.severity)}>
+                                  {allergy.severity}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Reaction: {allergy.reaction}
+                              </p>
+                              {allergy.notes && (
+                                <p className="text-xs text-muted-foreground mt-1">{allergy.notes}</p>
+                              )}
+                            </div>
+                          )) : (
+                            <div className="text-center text-muted-foreground py-8">
+                              <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-sm">No allergies recorded</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                     <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
-                       <CardHeader>
-                         <CardTitle className="flex items-center gap-2 text-warning">
-                           <Heart className="h-5 w-5" />
-                           Medical Conditions
-                         </CardTitle>
-                       </CardHeader>
-                       <CardContent>
-                         <div className="space-y-2">
-                           {medicalConditions.length > 0 ? medicalConditions.map((condition, index) => (
-                             <Badge key={index} variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                               {condition.condition_name}
-                             </Badge>
-                           )) : (
-                             <div className="text-center text-muted-foreground py-4">
-                               <Heart className="h-8 w-8 mx-auto mb-2" />
-                               <p className="text-sm">No conditions recorded</p>
-                             </div>
-                           )}
-                         </div>
-                       </CardContent>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-orange-600">
+                          <Heart className="h-5 w-5" />
+                          Medical Conditions ({medicalConditions.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {medicalConditions.length > 0 ? medicalConditions.map((condition) => (
+                            <div key={condition.id} className="p-3 border rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">{condition.condition_name}</span>
+                                <Badge className={getStatusColor(condition.status)}>
+                                  {condition.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Diagnosed: {condition.diagnosed_date ? new Date(condition.diagnosed_date).toLocaleDateString() : 'Unknown'}
+                              </p>
+                              {condition.notes && (
+                                <p className="text-xs text-muted-foreground mt-1">{condition.notes}</p>
+                              )}
+                            </div>
+                          )) : (
+                            <div className="text-center text-muted-foreground py-8">
+                              <Heart className="h-8 w-8 mx-auto mb-2" />
+                              <p className="text-sm">No conditions recorded</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
                     </Card>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="images" className="space-y-4">
-                  <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+                <TabsContent value="timeline" className="space-y-4">
+                  <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Camera className="h-5 w-5" />
-                        Medical Images & X-Rays
+                        <Calendar className="h-5 w-5" />
+                        Medical Timeline
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                          <div key={i} className="aspect-square bg-muted/30 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors cursor-pointer group">
-                            <div className="text-center">
-                              <Camera className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors mx-auto mb-2" />
-                              <p className="text-xs text-muted-foreground">X-Ray {i}</p>
+                      <div className="space-y-4">
+                        {[...medicalRecords]
+                          .sort((a, b) => new Date(b.visit_date || b.created_at).getTime() - new Date(a.visit_date || a.created_at).getTime())
+                          .slice(0, 10)
+                          .map((record) => (
+                          <div key={record.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">{record.title}</h4>
+                                <span className="text-sm text-muted-foreground">
+                                  {record.visit_date ? new Date(record.visit_date).toLocaleDateString() : 'No date'}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{record.record_type}</p>
+                              {record.diagnosis && (
+                                <p className="text-sm mt-1">Diagnosis: {record.diagnosis}</p>
+                              )}
                             </div>
                           </div>
                         ))}
+                        {medicalRecords.length === 0 && (
+                          <div className="text-center text-muted-foreground py-8">
+                            <Calendar className="h-12 w-12 mx-auto mb-2" />
+                            <p>No medical history available</p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
               </Tabs>
             </>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Patient Selected</h3>
+                <p className="text-muted-foreground">Select a patient from the list to view their medical history</p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
 
-      {/* New Record Dialog */}
+      {/* Dialog Components */}
       <Dialog open={isNewRecordOpen} onOpenChange={setIsNewRecordOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -837,9 +734,7 @@ export default function MedicalHistory() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Title *
-              </Label>
+              <Label htmlFor="title" className="text-right">Title *</Label>
               <Input
                 id="title"
                 value={newRecordForm.title}
@@ -849,9 +744,7 @@ export default function MedicalHistory() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="record_type" className="text-right">
-                Type *
-              </Label>
+              <Label htmlFor="record_type" className="text-right">Type *</Label>
               <Select onValueChange={(value) => setNewRecordForm({...newRecordForm, record_type: value})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select record type" />
@@ -865,14 +758,11 @@ export default function MedicalHistory() {
                   <SelectItem value="crown">Crown</SelectItem>
                   <SelectItem value="emergency">Emergency Visit</SelectItem>
                   <SelectItem value="consultation">Consultation</SelectItem>
-                  <SelectItem value="follow_up">Follow-up</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="visit_date" className="text-right">
-                Visit Date
-              </Label>
+              <Label htmlFor="visit_date" className="text-right">Visit Date</Label>
               <Input
                 id="visit_date"
                 type="date"
@@ -882,89 +772,55 @@ export default function MedicalHistory() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="diagnosis" className="text-right">
-                Diagnosis
-              </Label>
+              <Label htmlFor="diagnosis" className="text-right">Diagnosis</Label>
               <Input
                 id="diagnosis"
                 value={newRecordForm.diagnosis}
                 onChange={(e) => setNewRecordForm({...newRecordForm, diagnosis: e.target.value})}
                 className="col-span-3"
-                placeholder="e.g., Mild gingivitis, cavity in tooth #14"
+                placeholder="e.g., Mild gingivitis"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="treatment" className="text-right">
-                Treatment
-              </Label>
+              <Label htmlFor="treatment" className="text-right">Treatment</Label>
               <Input
                 id="treatment"
                 value={newRecordForm.treatment}
                 onChange={(e) => setNewRecordForm({...newRecordForm, treatment: e.target.value})}
                 className="col-span-3"
-                placeholder="e.g., Scaling, filling placement"
+                placeholder="e.g., Scaling and polishing"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Notes
-              </Label>
+              <Label htmlFor="description" className="text-right">Notes</Label>
               <Textarea
                 id="description"
                 value={newRecordForm.description}
                 onChange={(e) => setNewRecordForm({...newRecordForm, description: e.target.value})}
                 className="col-span-3"
-                placeholder="Additional notes and observations..."
+                placeholder="Additional notes..."
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              <Select value={newRecordForm.status} onValueChange={(value) => setNewRecordForm({...newRecordForm, status: value})}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewRecordOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateRecord}>
-              Create Record
-            </Button>
+            <Button variant="outline" onClick={() => setIsNewRecordOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateRecord}>Create Record</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* New Medication Dialog */}
       <Dialog open={isNewMedicationOpen} onOpenChange={setIsNewMedicationOpen}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Add New Medication
-              <VoiceRecorder 
-                onTranscription={handleVoiceTranscription}
-                className="ml-auto"
-              />
-            </DialogTitle>
+            <DialogTitle>Add New Medication</DialogTitle>
             <DialogDescription>
-              Add a new medication for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}. Use voice input or fill the form manually.
+              Add a new medication for {selectedPatientData ? `${selectedPatientData.first_name} ${selectedPatientData.last_name}` : 'the selected patient'}.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="medication_name" className="text-right">
-                Medication *
-              </Label>
+              <Label htmlFor="medication_name" className="text-right">Medication *</Label>
               <Input
                 id="medication_name"
                 value={newMedicationForm.medication_name}
@@ -974,9 +830,7 @@ export default function MedicalHistory() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="dosage" className="text-right">
-                Dosage
-              </Label>
+              <Label htmlFor="dosage" className="text-right">Dosage</Label>
               <Input
                 id="dosage"
                 value={newMedicationForm.dosage}
@@ -986,9 +840,7 @@ export default function MedicalHistory() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="frequency" className="text-right">
-                Frequency
-              </Label>
+              <Label htmlFor="frequency" className="text-right">Frequency</Label>
               <Select value={newMedicationForm.frequency} onValueChange={(value) => setNewMedicationForm({...newMedicationForm, frequency: value})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select frequency" />
@@ -997,22 +849,14 @@ export default function MedicalHistory() {
                   <SelectItem value="Once daily">Once daily</SelectItem>
                   <SelectItem value="Twice daily">Twice daily</SelectItem>
                   <SelectItem value="Three times daily">Three times daily</SelectItem>
-                  <SelectItem value="Four times daily">Four times daily</SelectItem>
-                  <SelectItem value="Every 4 hours">Every 4 hours</SelectItem>
-                  <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
-                  <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
-                  <SelectItem value="Every 12 hours">Every 12 hours</SelectItem>
-                  <SelectItem value="As needed">As needed (PRN)</SelectItem>
+                  <SelectItem value="As needed">As needed</SelectItem>
                   <SelectItem value="Before meals">Before meals</SelectItem>
                   <SelectItem value="After meals">After meals</SelectItem>
-                  <SelectItem value="At bedtime">At bedtime</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="start_date" className="text-right">
-                Start Date
-              </Label>
+              <Label htmlFor="start_date" className="text-right">Start Date</Label>
               <Input
                 id="start_date"
                 type="date"
@@ -1022,109 +866,20 @@ export default function MedicalHistory() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="end_date" className="text-right">
-                End Date
-              </Label>
-              <Input
-                id="end_date"
-                type="date"
-                value={newMedicationForm.end_date}
-                onChange={(e) => setNewMedicationForm({...newMedicationForm, end_date: e.target.value})}
-                className="col-span-3"
-                placeholder="Leave empty for ongoing"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="med_status" className="text-right">
-                Status
-              </Label>
-              <Select value={newMedicationForm.status} onValueChange={(value) => setNewMedicationForm({...newMedicationForm, status: value})}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="discontinued">Discontinued</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="med_notes" className="text-right">
-                Notes
-              </Label>
+              <Label htmlFor="notes" className="text-right">Notes</Label>
               <Textarea
-                id="med_notes"
+                id="notes"
                 value={newMedicationForm.notes}
                 onChange={(e) => setNewMedicationForm({...newMedicationForm, notes: e.target.value})}
                 className="col-span-3"
-                placeholder="Special instructions, side effects, etc..."
-                rows={3}
+                placeholder="Special instructions..."
+                rows={2}
               />
             </div>
           </div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsNewMedicationOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="secondary"
-              onClick={generatePrescription}
-              disabled={!newMedicationForm.medication_name}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Generate Prescription
-            </Button>
-            <Button onClick={handleCreateMedication}>
-              Add Medication
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Prescription Dialog */}
-      <Dialog open={isPrescriptionOpen} onOpenChange={setIsPrescriptionOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Generated Prescription
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={speakPrescription}
-                className="ml-auto"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Listen
-              </Button>
-            </DialogTitle>
-            <DialogDescription>
-              AI-generated prescription based on medication details
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="bg-muted/30 p-6 rounded-lg border">
-              <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
-                {generatedPrescription}
-              </pre>
-            </div>
-          </div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsPrescriptionOpen(false)}>
-              Close
-            </Button>
-            <Button 
-              onClick={() => {
-                navigator.clipboard.writeText(generatedPrescription);
-                toast({
-                  title: "Copied",
-                  description: "Prescription copied to clipboard",
-                });
-              }}
-            >
-              Copy to Clipboard
-            </Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewMedicationOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateMedication}>Add Medication</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
