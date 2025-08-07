@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { TenantProvider } from "@/contexts/TenantContext";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
@@ -73,7 +74,8 @@ function App() {
       <Sonner />
       <LanguageProvider>
         <CurrencyProvider>
-          <SidebarProvider>
+          <TenantProvider>
+            <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -132,7 +134,8 @@ function App() {
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </SidebarProvider>
+            </SidebarProvider>
+          </TenantProvider>
         </CurrencyProvider>
       </LanguageProvider>
     </TooltipProvider>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface Patient {
   id: string;
@@ -32,14 +33,22 @@ export function usePatients() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { getTableName, getSchemaName, currentTenant } = useTenant();
 
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // For now, use the public schema patients table
+      // Filter by tenant if currentTenant is available
+      let query = supabase
         .from('patients')
         .select('*')
         .order('last_name', { ascending: true });
+
+      // If we have a tenant, we could add tenant filtering here later
+      
+      const { data, error } = await query;
 
       if (error) throw error;
       setPatients(data || []);
@@ -57,6 +66,7 @@ export function usePatients() {
 
   const createPatient = async (patientData: CreatePatientData) => {
     try {
+      // For now, use the public schema patients table
       const { data, error } = await supabase
         .from('patients')
         .insert([patientData])
