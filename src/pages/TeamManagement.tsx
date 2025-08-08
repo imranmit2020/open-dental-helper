@@ -55,7 +55,7 @@ export default function TeamManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, first_name, last_name, email, phone, role")
+        .select("id, user_id, first_name, last_name, email, phone, role")
         .in("role", ["admin", "super_admin", "dentist", "hygienist", "staff"])
         .order("role", { ascending: true });
       if (error) throw error;
@@ -236,19 +236,25 @@ export default function TeamManagement() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Employee ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Role</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {grouped[r].length === 0 ? (
-                        <TableRow><TableCell colSpan={3} className="text-muted-foreground">No {r}s yet.</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-muted-foreground">No {r}s yet.</TableCell></TableRow>
                       ) : (
                         grouped[r].map((u) => (
                           <TableRow key={u.user_id}>
+                            <TableCell>{u.user_id}</TableCell>
                             <TableCell>{u.first_name} {u.last_name}</TableCell>
                             <TableCell>{u.email}</TableCell>
+                            <TableCell>{u.id}</TableCell>
+                            <TableCell className="capitalize">{u.role}</TableCell>
                             <TableCell><Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button></TableCell>
                           </TableRow>
                         ))
