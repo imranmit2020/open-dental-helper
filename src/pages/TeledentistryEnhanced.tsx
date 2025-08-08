@@ -21,21 +21,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RealtimeChat } from "@/utils/RealtimeAudio";
+import { useTeledentistry, TeledentistrySession as DbSession } from "@/hooks/useTeledentistry";
 
-interface TeledentistrySession {
-  id: string;
-  patientName: string;
-  scheduledTime: string;
-  status: 'scheduled' | 'in_progress' | 'completed';
-  sessionType: 'consultation' | 'follow_up' | 'emergency';
-  aiTranscript?: string;
-  aiSoapNotes?: {
-    subjective: string;
-    objective: string;
-    assessment: string;
-    plan: string;
-  };
-}
+// Use DB session type
+
 
 export default function TeledentistryEnhanced() {
   const [isCallActive, setIsCallActive] = useState(false);
@@ -44,7 +33,7 @@ export default function TeledentistryEnhanced() {
   const [isAiListening, setIsAiListening] = useState(false);
   const [realtimeChat, setRealtimeChat] = useState<RealtimeChat | null>(null);
   const [aiTranscript, setAiTranscript] = useState("");
-  const [currentSession, setCurrentSession] = useState<TeledentistrySession | null>(null);
+  const [currentSession, setCurrentSession] = useState<DbSession | null>(null);
   const [soapNotes, setSoapNotes] = useState({
     subjective: "",
     objective: "",
@@ -55,23 +44,8 @@ export default function TeledentistryEnhanced() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Mock upcoming sessions
-  const upcomingSessions: TeledentistrySession[] = [
-    {
-      id: "1",
-      patientName: "John Smith",
-      scheduledTime: "2:00 PM",
-      status: "scheduled",
-      sessionType: "consultation"
-    },
-    {
-      id: "2", 
-      patientName: "Sarah Johnson",
-      scheduledTime: "3:30 PM",
-      status: "scheduled",
-      sessionType: "follow_up"
-    }
-  ];
+  // Load today's sessions from DB
+  const { todaySessions, isLoading, startSession: startSessionMutation, endSession: endSessionMutation, updateNotes: updateNotesMutation } = useTeledentistry();
 
   const handleAiMessage = (event: any) => {
     console.log('AI Event:', event);
@@ -103,6 +77,11 @@ export default function TeledentistryEnhanced() {
 
   const startCall = async () => {
     try {
+      if (!currentSession) {
+        toast.error("Select a session from Today's Sessions first");
+        return;
+      }
+
       let stream: MediaStream | null = null;
 
       // Try full audio+video first
@@ -133,10 +112,10 @@ export default function TeledentistryEnhanced() {
       setRealtimeChat(chat);
       setIsCallActive(true);
       setIsAiListening(true);
-      
-      // Set current session
-      setCurrentSession(upcomingSessions[0]);
-      
+
+      // Mark session as in progress in DB
+      startSessionMutation(currentSession.id);
+
       toast.success("Call started with AI transcription enabled");
     } catch (error: any) {
       console.error("Error starting call:", error);
@@ -209,7 +188,7 @@ export default function TeledentistryEnhanced() {
                   )}
                 </span>
                 {currentSession && (
-                  <Badge>{currentSession.sessionType}</Badge>
+                  <Badge>{currentSession.session_type}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -238,8 +217,8 @@ export default function TeledentistryEnhanced() {
                     {/* Patient info overlay */}
                     {currentSession && (
                       <div className="absolute top-4 left-4 bg-black/70 text-white p-2 rounded">
-                        <p className="font-semibold">{currentSession.patientName}</p>
-                        <p className="text-sm">{currentSession.scheduledTime}</p>
+                        <p className="font-semibold">{currentSession.patient_name}</p>
+                        <p className="text-sm">{new Date(currentSession.scheduled_at).toLocaleString()}</p>
                       </div>
                     )}
                   </>
@@ -302,12 +281,12 @@ export default function TeledentistryEnhanced() {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="font-semibold">{currentSession.patientName}</p>
-                    <p className="text-sm text-muted-foreground">{currentSession.sessionType}</p>
+                    <p className="font-semibold">{currentSession.patient_name}</p>
+                    <p className="text-sm text-muted-foreground">{currentSession.session_type}</p>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4" />
-                    <span>{currentSession.scheduledTime}</span>
+                    <span>{new Date(currentSession.scheduled_at).toLocaleString()}</span>
                   </div>
                   <Badge className={
                     currentSession.status === 'in_progress' ? 'bg-green-100 text-green-800' :
@@ -331,23 +310,29 @@ export default function TeledentistryEnhanced() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingSessions.map((session) => (
-                  <div key={session.id} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">{session.patientName}</p>
-                      <Badge variant="outline">{session.sessionType}</Badge>
+                {isLoading ? (
+                  <p className="text-muted-foreground">Loading sessions…</p>
+                ) : todaySessions.length === 0 ? (
+                  <p className="text-muted-foreground">No sessions scheduled for today.</p>
+                ) : (
+                  todaySessions.map((session) => (
+                    <div key={session.id} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium">{session.patient_name}</p>
+                        <Badge variant="outline">{session.session_type}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{new Date(session.scheduled_at).toLocaleString()}</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full mt-2"
+                        onClick={() => setCurrentSession(session)}
+                      >
+                        Join Session
+                      </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">{session.scheduledTime}</p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full mt-2"
-                      onClick={() => setCurrentSession(session)}
-                    >
-                      Join Session
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
