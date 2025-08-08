@@ -5,3 +5,8 @@ verify_jwt = false
 
 [functions.kpi-email-digest]
 verify_jwt = false
+
+[functions.admin-auth]
+# Requires caller to be authenticated; role checked inside function
+verify_jwt = true
+
