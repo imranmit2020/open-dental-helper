@@ -312,6 +312,24 @@ export type Database = {
           },
         ]
       }
+      corporate_counters: {
+        Row: {
+          corporation_id: string
+          last_number: number
+          updated_at: string
+        }
+        Insert: {
+          corporation_id: string
+          last_number?: number
+          updated_at?: string
+        }
+        Update: {
+          corporation_id?: string
+          last_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       corporate_users: {
         Row: {
           corporation_id: string
@@ -1381,6 +1399,7 @@ export type Database = {
           created_at: string
           created_by: string
           email: string
+          employee_id: string | null
           expires_at: string | null
           first_name: string | null
           id: string
@@ -1397,6 +1416,7 @@ export type Database = {
           created_at?: string
           created_by: string
           email: string
+          employee_id?: string | null
           expires_at?: string | null
           first_name?: string | null
           id?: string
@@ -1413,6 +1433,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           email?: string
+          employee_id?: string | null
           expires_at?: string | null
           first_name?: string | null
           id?: string
@@ -1486,6 +1507,7 @@ export type Database = {
       tenant_users: {
         Row: {
           created_at: string
+          employee_id: string | null
           id: string
           role: string
           tenant_id: string
@@ -1493,6 +1515,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          employee_id?: string | null
           id?: string
           role?: string
           tenant_id: string
@@ -1500,6 +1523,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          employee_id?: string | null
           id?: string
           role?: string
           tenant_id?: string
@@ -1857,6 +1881,10 @@ export type Database = {
           clinic_code_param: string
         }
         Returns: undefined
+      }
+      generate_employee_id: {
+        Args: { _tenant_id: string }
+        Returns: string
       }
       get_current_tenant_id: {
         Args: Record<PropertyKey, never>
