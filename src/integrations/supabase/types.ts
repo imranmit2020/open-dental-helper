@@ -1874,6 +1874,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_audit_log: {
+        Args: { _viewer: string; _patient_id: string; _log_user_id: string }
+        Returns: boolean
+      }
       create_tenant_schema: {
         Args: {
           tenant_id_param: string
@@ -1910,6 +1914,10 @@ export type Database = {
       }
       is_super_admin: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      profile_role_unchanged: {
+        Args: { _user_id: string; _new_role: string }
         Returns: boolean
       }
       user_belongs_to_tenant: {

@@ -111,17 +111,39 @@ const BranchMap: React.FC = () => {
         if (!feature) return;
         const { title, address, phone, email, clinic_code } = feature.properties;
         const coordinates = feature.geometry.coordinates.slice();
+        const content = document.createElement('div');
+        const h3 = document.createElement('h3');
+        h3.style.fontWeight = '600';
+        h3.style.marginBottom = '4px';
+        h3.textContent = String(title || '');
+        content.appendChild(h3);
+        if (address) {
+          const addr = document.createElement('div');
+          addr.style.fontSize = '12px';
+          addr.style.opacity = '0.8';
+          addr.textContent = String(address);
+          content.appendChild(addr);
+        }
+        const code = document.createElement('div');
+        code.style.fontSize = '12px';
+        code.style.marginTop = '6px';
+        code.textContent = `Clinic code: ${String(clinic_code || '')}`;
+        content.appendChild(code);
+        if (phone) {
+          const ph = document.createElement('div');
+          ph.style.fontSize = '12px';
+          ph.textContent = `Phone: ${String(phone)}`;
+          content.appendChild(ph);
+        }
+        if (email) {
+          const em = document.createElement('div');
+          em.style.fontSize = '12px';
+          em.textContent = `Email: ${String(email)}`;
+          content.appendChild(em);
+        }
         new mapboxgl.Popup({ closeOnClick: true })
           .setLngLat(coordinates)
-          .setHTML(`
-            <div>
-              <h3 style="font-weight:600;margin-bottom:4px">${title}</h3>
-              ${address ? `<div style="font-size:12px;opacity:.8">${address}</div>` : ''}
-              <div style="font-size:12px;margin-top:6px">Clinic code: ${clinic_code}</div>
-              ${phone ? `<div style="font-size:12px">Phone: ${phone}</div>` : ''}
-              ${email ? `<div style="font-size:12px">Email: ${email}</div>` : ''}
-            </div>
-          `)
+          .setDOMContent(content)
           .addTo(map);
       });
 
