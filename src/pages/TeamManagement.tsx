@@ -18,7 +18,7 @@ const schema = z.object({
   last_name: z.string().min(1, "Required"),
   email: z.string().email(),
   phone: z.string().optional(),
-  role: z.enum(["dentist", "hygienist", "staff", "admin"]),
+  role: z.enum(["dentist", "hygienist", "staff", "admin", "super_admin"]),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -46,7 +46,7 @@ export default function TeamManagement() {
       const { data, error } = await supabase
         .from("profiles")
         .select("user_id, first_name, last_name, email, role")
-        .in("role", ["admin", "dentist", "hygienist", "staff"])
+        .in("role", ["admin", "super_admin", "dentist", "hygienist", "staff"])
         .order("role", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -54,7 +54,7 @@ export default function TeamManagement() {
   });
 
   const grouped = useMemo(() => {
-    const g: Record<string, any[]> = { admin: [], dentist: [], hygienist: [], staff: [] };
+    const g: Record<string, any[]> = { super_admin: [], admin: [], dentist: [], hygienist: [], staff: [] };
     (team || []).forEach((u) => g[u.role]?.push(u));
     return g;
   }, [team]);
@@ -139,6 +139,7 @@ export default function TeamManagement() {
                       <SelectItem value="hygienist">Hygienist</SelectItem>
                       <SelectItem value="staff">Staff</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="super_admin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -161,7 +162,7 @@ export default function TeamManagement() {
             <p className="text-muted-foreground">Loading team...</p>
           ) : (
             <div className="space-y-6">
-              {(["admin","dentist","hygienist","staff"] as const).map((r) => (
+              {(["super_admin","admin","dentist","hygienist","staff"] as const).map((r) => (
                 <div key={r} className="space-y-2">
                   <h3 className="font-medium capitalize">{r}</h3>
                   <Table>
