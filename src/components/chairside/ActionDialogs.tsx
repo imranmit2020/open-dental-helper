@@ -240,8 +240,16 @@ export function UpdateAllergiesDialog({ open, onOpenChange, patientId, onSuccess
   const [loading, setLoading] = useState(false);
   const [allergies, setAllergies] = useState<Array<{ id: string; allergen: string; severity: string | null; notes: string | null }>>([]);
   const [newAllergen, setNewAllergen] = useState("");
-  const [newSeverity, setNewSeverity] = useState<string | null>("medium");
+  const [newSeverity, setNewSeverity] = useState<string | null>("moderate");
   const [newNotes, setNewNotes] = useState("");
+
+  const normalizeSeverity = (s: string | null): 'mild' | 'moderate' | 'severe' => {
+    if (s === 'low') return 'mild';
+    if (s === 'medium') return 'moderate';
+    if (s === 'high') return 'severe';
+    if (s === 'mild' || s === 'moderate' || s === 'severe') return s as 'mild' | 'moderate' | 'severe';
+    return 'moderate';
+  };
 
   const load = async () => {
     if (!patientId) return;
@@ -277,7 +285,7 @@ export function UpdateAllergiesDialog({ open, onOpenChange, patientId, onSuccess
       if (error) throw error;
       setAllergies((prev) => [data as any, ...prev]);
       setNewAllergen('');
-      setNewSeverity('medium');
+      setNewSeverity('moderate');
       setNewNotes('');
       toast.success('Allergy added');
       onSuccess?.();
@@ -329,9 +337,9 @@ export function UpdateAllergiesDialog({ open, onOpenChange, patientId, onSuccess
             <div className="grid gap-2 md:col-span-1">
               <Label htmlFor="severity">Severity</Label>
               <select id="severity" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newSeverity ?? ''} onChange={(e) => setNewSeverity(e.target.value)}>
-                <option value="low">low</option>
-                <option value="medium">medium</option>
-                <option value="high">high</option>
+                <option value="mild">mild</option>
+                <option value="moderate">moderate</option>
+                <option value="severe">severe</option>
               </select>
             </div>
             <div className="grid gap-2 md:col-span-1">
@@ -353,10 +361,10 @@ export function UpdateAllergiesDialog({ open, onOpenChange, patientId, onSuccess
                     <div className="font-medium">{a.allergen}</div>
                     {a.notes ? <div className="text-xs text-muted-foreground">{a.notes}</div> : null}
                   </div>
-                  <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={a.severity ?? ''} onChange={(e) => updateSeverity(a.id, e.target.value)}>
-                    <option value="low">low</option>
-                    <option value="medium">medium</option>
-                    <option value="high">high</option>
+                  <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={normalizeSeverity(a.severity)} onChange={(e) => updateSeverity(a.id, e.target.value)}>
+                    <option value="mild">mild</option>
+                    <option value="moderate">moderate</option>
+                    <option value="severe">severe</option>
                   </select>
                   <Button variant="destructive" size="sm" onClick={() => deleteAllergy(a.id)}>Delete</Button>
                 </div>
