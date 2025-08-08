@@ -176,6 +176,26 @@ export default function Schedule() {
     return base;
   }, [appointments, filter, view, currentDate, providerId]);
 
+  // Debug logging to trace why lists might be empty
+  useEffect(() => {
+    try {
+      const start = view === 'day' ? startOfDay(currentDate) : (view === 'week' ? startOfWeek(currentDate, { weekStartsOn: 1 }) : startOfMonth(currentDate));
+      const end = view === 'day' ? endOfDay(currentDate) : (view === 'week' ? endOfWeek(currentDate, { weekStartsOn: 1 }) : endOfMonth(currentDate));
+      console.log('[Schedule] Debug', {
+        totalFetched: appointments.length,
+        shown: displayAppointments.length,
+        view,
+        filter,
+        providerId,
+        isAdmin,
+        range: { start: start.toISOString(), end: end.toISOString() },
+        sampleIds: appointments.slice(0, 5).map(a => a.id)
+      });
+    } catch (e) {
+      console.log('[Schedule] Debug failed', e);
+    }
+  }, [appointments, displayAppointments, view, filter, providerId, isAdmin, currentDate]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed": return "bg-success/10 text-success border-success/20";
