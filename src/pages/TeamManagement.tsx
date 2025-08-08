@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useTenant } from "@/contexts/TenantContext";
 
 const schema = z.object({
   first_name: z.string().min(1, "Required"),
@@ -42,6 +43,7 @@ function setSEO() {
 export default function TeamManagement() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { currentTenant } = useTenant();
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { role: "staff" } });
 
   useEffect(() => { setSEO(); }, []);
@@ -95,12 +97,14 @@ export default function TeamManagement() {
   const onSubmit = async (values: FormValues) => {
     try {
       if (!user) throw new Error("You must be logged in.");
+      if (!currentTenant?.id) throw new Error("No clinic selected. Please assign a clinic first.");
       const redirectUrl = `${window.location.origin}/`;
 
       // 1) Record invitation in DB
       const { data: invite, error: insertError } = await supabase
         .from("team_invitations")
         .insert({
+          tenant_id: currentTenant.id,
           email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,
