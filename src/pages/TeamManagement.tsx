@@ -125,7 +125,14 @@ export default function TeamManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Invite Team Member</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>Invite Team Member</CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="secondary" size="sm" onClick={() => { form.setValue("role","dentist"); form.setFocus("first_name"); }}>Add Dentist</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { form.setValue("role","hygienist"); form.setFocus("first_name"); }}>Add Hygienist</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { form.setValue("role","staff"); form.setFocus("first_name"); }}>Add Staff</Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-2 mb-4">
