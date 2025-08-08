@@ -66,6 +66,7 @@ const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
 const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
+const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">

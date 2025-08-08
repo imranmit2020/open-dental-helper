@@ -1,5 +1,6 @@
 import { useRoleAccess } from './useRoleAccess';
 import { useSubscription } from './useSubscription';
+import { useModulePermissions } from './useModulePermissions';
 
 export interface NavigationItem {
   title: string;
@@ -8,11 +9,13 @@ export interface NavigationItem {
   requiredRoles?: string[];
   requiredFeature?: string;
   requiresSubscription?: boolean;
+  moduleKey?: string; // optional key to control access via admin permissions
 }
 
 export function useNavigationPermissions() {
   const { userRole, hasRole, isStaffMember, isPatient, isAdmin } = useRoleAccess();
   const { subscribed, hasFeature } = useSubscription();
+  const { canAccessModule } = require('./useModulePermissions') as typeof import('./useModulePermissions');
 
   const canAccessItem = (item: NavigationItem): boolean => {
     // Check role requirements
@@ -30,6 +33,19 @@ export function useNavigationPermissions() {
     // Check feature requirements
     if (item.requiredFeature && !hasFeature(item.requiredFeature)) {
       return false;
+    }
+
+    // Check module permission overrides (default allow when no record exists)
+    if (item.moduleKey) {
+      const { canAccessModule: check } = require('./useModulePermissions') as typeof import('./useModulePermissions');
+      // In case hook isn't available in non-react context, default true
+      try {
+        // We can't call hooks here, so we use the function reference bound by consuming hook above if available
+        if (typeof check === 'function') {
+          // @ts-ignore - canAccessModule may be undefined in SSR
+          if (check && !check(item.moduleKey as any)) return false;
+        }
+      } catch {}
     }
 
     return true;

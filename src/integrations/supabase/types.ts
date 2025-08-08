@@ -1158,6 +1158,39 @@ export type Database = {
           },
         ]
       }
+      module_permissions: {
+        Row: {
+          allowed: boolean
+          corporation_id: string | null
+          created_at: string
+          id: string
+          module_key: string
+          role: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          allowed?: boolean
+          corporation_id?: string | null
+          created_at?: string
+          id?: string
+          module_key: string
+          role: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          allowed?: boolean
+          corporation_id?: string | null
+          created_at?: string
+          id?: string
+          module_key?: string
+          role?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patient_journey_events: {
         Row: {
           ai_insights: Json | null
