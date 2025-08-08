@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent as AlertDlgContent, AlertDialogDescription, AlertDialogFooter as AlertDlgFooter, AlertDialogHeader as AlertDlgHeader, AlertDialogTitle as AlertDlgTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTenant } from "@/contexts/TenantContext";
 
 const schema = z.object({
@@ -82,6 +83,7 @@ export default function TeamManagement() {
     const invites = (invitations || []).map((i: any) => ({
       ...i,
       _type: "invite" as const,
+      invite_id: i.id,
       user_id: null,
       phone: null,
       id: null,
@@ -111,6 +113,35 @@ export default function TeamManagement() {
       refetch();
     } catch (e: any) {
       toast({ title: "Update failed", description: e.message || "Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteInvite = async (inviteId: string) => {
+    try {
+      if (!inviteId) throw new Error("Missing invitation id");
+      const { error } = await supabase.from("team_invitations").delete().eq("id", inviteId);
+      if (error) throw error;
+      toast({ title: "Invitation deleted", description: "The pending invite was removed." });
+      await refetchInvites?.();
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message || "Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleRemoveMember = async (memberUserId: string) => {
+    try {
+      if (!currentTenant?.id) throw new Error("No clinic selected.");
+      if (!memberUserId) throw new Error("Missing user id");
+      const { error } = await supabase
+        .from("tenant_users")
+        .delete()
+        .eq("tenant_id", currentTenant.id)
+        .eq("user_id", memberUserId);
+      if (error) throw error;
+      toast({ title: "Member removed", description: "Access to this clinic has been revoked." });
+      await refetch();
+    } catch (e: any) {
+      toast({ title: "Remove failed", description: e.message || "Please try again.", variant: "destructive" });
     }
   };
 
@@ -309,7 +340,7 @@ export default function TeamManagement() {
                   <TableRow><TableCell colSpan={6} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
                 ) : (
                   paginatedTeam.map((u: any) => (
-                    <TableRow key={u._type === 'invite' ? `invite-${u.id ?? u.email}` : `user-${u.user_id}`}>
+                    <TableRow key={u._type === 'invite' ? `invite-${u.invite_id ?? u.email}` : `user-${u.user_id}`}>
                       <TableCell>{u.user_id || '—'}</TableCell>
                       <TableCell>
                         {u.first_name} {u.last_name}{u._type === 'invite' ? ' (Invited)' : ''}
@@ -319,9 +350,44 @@ export default function TeamManagement() {
                       <TableCell className="capitalize">{u.role}</TableCell>
                       <TableCell>
                         {u._type === 'member' ? (
-                          <Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button>
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="sm" disabled={u.user_id === user?.id}>Remove</Button>
+                              </AlertDialogTrigger>
+                              <AlertDlgContent>
+                                <AlertDlgHeader>
+                                  <AlertDlgTitle>Remove team member</AlertDlgTitle>
+                                  <AlertDialogDescription>
+                                    This will remove {u.first_name} {u.last_name} from this clinic. They will lose access. Continue?
+                                  </AlertDialogDescription>
+                                </AlertDlgHeader>
+                                <AlertDlgFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleRemoveMember(u.user_id)}>Remove</AlertDialogAction>
+                                </AlertDlgFooter>
+                              </AlertDlgContent>
+                            </AlertDialog>
+                          </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">Pending</span>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">Delete invite</Button>
+                            </AlertDialogTrigger>
+                            <AlertDlgContent>
+                              <AlertDlgHeader>
+                                <AlertDlgTitle>Delete invitation</AlertDlgTitle>
+                                <AlertDialogDescription>
+                                  Delete the pending invitation for {u.email}?
+                                </AlertDialogDescription>
+                              </AlertDlgHeader>
+                              <AlertDlgFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteInvite(u.invite_id)}>Delete</AlertDialogAction>
+                              </AlertDlgFooter>
+                            </AlertDlgContent>
+                          </AlertDialog>
                         )}
                       </TableCell>
                     </TableRow>
