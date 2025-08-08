@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Canvas as FabricCanvas, Circle, Rect, Text as FabricText, Line as FabricLine, Image as FabricImage, PencilBrush } from 'fabric';
+import { Canvas as FabricCanvas, Circle, Rect, Text as FabricText, Line as FabricLine, Image as FabricImage } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
@@ -34,11 +34,12 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
       selection: true,
     });
 
-    // Initialize drawing brush for v6
-    const brush = new PencilBrush(c);
-    brush.color = color;
-    brush.width = 2;
-    c.freeDrawingBrush = brush;
+    // Ensure free drawing brush exists (Fabric v6)
+    c.isDrawingMode = true;
+    if (c.freeDrawingBrush) {
+      c.freeDrawingBrush.color = color as any;
+      c.freeDrawingBrush.width = 2 as any;
+    }
     c.isDrawingMode = false;
 
     (el as any).dataset.fabricInit = '1';
@@ -97,16 +98,15 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
   // Update drawing mode and brush color
   useEffect(() => {
     if (!fabricCanvas) return;
-    // Ensure brush exists (Fabric v6)
-    if (!(fabricCanvas as any).freeDrawingBrush) {
-      const brush = new PencilBrush(fabricCanvas);
-      brush.color = color;
-      brush.width = 2;
-      (fabricCanvas as any).freeDrawingBrush = brush;
+    // Ensure brush exists by temporarily enabling drawing
+    if (!fabricCanvas.freeDrawingBrush) {
+      fabricCanvas.isDrawingMode = true;
+    }
+    if (fabricCanvas.freeDrawingBrush) {
+      fabricCanvas.freeDrawingBrush.color = color as any;
+      fabricCanvas.freeDrawingBrush.width = 2 as any;
     }
     fabricCanvas.isDrawingMode = activeTool === 'draw';
-    (fabricCanvas as any).freeDrawingBrush.color = color;
-    (fabricCanvas as any).freeDrawingBrush.width = 2;
   }, [activeTool, color, fabricCanvas]);
 
   // Pointer handling for shape tools
