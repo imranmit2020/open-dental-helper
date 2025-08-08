@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import PatientNotesDialog from "@/components/PatientNotesDialog";
 import BlockTimeForm from "@/components/BlockTimeForm";
 import { format, isToday, startOfDay, endOfDay } from "date-fns";
@@ -34,7 +35,7 @@ interface Appointment {
   description?: string;
   treatment_type?: string;
   notes?: string;
-  patient: {
+  patient?: {
     id: string;
     first_name: string;
     last_name: string;
@@ -58,7 +59,7 @@ interface MedicalRecord {
   treatment?: string;
   visit_date?: string;
   created_at: string;
-  patient: {
+  patient?: {
     id: string;
     first_name: string;
     last_name: string;
@@ -70,7 +71,7 @@ interface Allergy {
   allergen: string;
   severity?: string;
   reaction?: string;
-  patient: {
+  patient?: {
     id: string;
     first_name: string;
     last_name: string;
@@ -81,7 +82,7 @@ interface MedicalCondition {
   id: string;
   condition_name: string;
   status: string;
-  patient: {
+  patient?: {
     id: string;
     first_name: string;
     last_name: string;
@@ -93,6 +94,7 @@ const DentistDashboard = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { currentTenant } = useTenant();
   
   const [loading, setLoading] = useState(true);
   const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
@@ -128,6 +130,18 @@ const DentistDashboard = () => {
       const providerId = profileRow?.id;
       const isAdmin = (profileRow?.role || '').toLowerCase() === 'admin';
 
+      // Determine tenant scope and fetch patient IDs in current tenant
+      const tenantId = currentTenant?.id as string | undefined;
+      let tenantPatientIds: string[] = [];
+      if (tenantId) {
+        const { data: tenantPatients, error: tpError } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('tenant_id', tenantId);
+        if (tpError) throw tpError;
+        tenantPatientIds = (tenantPatients || []).map(p => p.id);
+      }
+
       // Fetch today's appointments (admin sees all; others see own)
       let apptQuery = supabase
         .from('appointments')
@@ -141,12 +155,15 @@ const DentistDashboard = () => {
       if (!isAdmin && providerId) {
         apptQuery = apptQuery.eq('dentist_id', providerId);
       }
+      if (tenantId) {
+        apptQuery = apptQuery.eq('tenant_id', tenantId);
+      }
       const { data: appointments, error: appointmentsError } = await apptQuery;
 
       if (appointmentsError) throw appointmentsError;
 
       // Fetch recent medical records (last 10)
-      const { data: medicalRecords, error: recordsError } = await supabase
+      let mrQuery = supabase
         .from('medical_records')
         .select(`
           *,
@@ -154,28 +171,41 @@ const DentistDashboard = () => {
         `)
         .order('created_at', { ascending: false })
         .limit(10);
+      if (tenantPatientIds.length > 0) {
+        mrQuery = mrQuery.in('patient_id', tenantPatientIds);
+      }
+      const { data: medicalRecords, error: recordsError } = await mrQuery;
 
       if (recordsError) throw recordsError;
 
       // Fetch patient alerts (allergies and conditions)
+      let allergiesQuery = supabase
+        .from('allergies')
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name)
+        `)
+        .in('severity', ['severe', 'moderate'])
+        .limit(5);
+      if (tenantPatientIds.length > 0) {
+        allergiesQuery = allergiesQuery.in('patient_id', tenantPatientIds);
+      }
+
+      let conditionsQuery = supabase
+        .from('medical_conditions')
+        .select(`
+          *,
+          patient:patients(id, first_name, last_name)
+        `)
+        .eq('status', 'active')
+        .limit(5);
+      if (tenantPatientIds.length > 0) {
+        conditionsQuery = conditionsQuery.in('patient_id', tenantPatientIds);
+      }
+
       const [allergiesResult, conditionsResult] = await Promise.all([
-        supabase
-          .from('allergies')
-          .select(`
-            *,
-            patient:patients(id, first_name, last_name)
-          `)
-          .in('severity', ['severe', 'moderate'])
-          .limit(5),
-        
-        supabase
-          .from('medical_conditions')
-          .select(`
-            *,
-            patient:patients(id, first_name, last_name)
-          `)
-          .eq('status', 'active')
-          .limit(5)
+        allergiesQuery,
+        conditionsQuery
       ]);
 
       if (allergiesResult.error) throw allergiesResult.error;
@@ -187,6 +217,9 @@ const DentistDashboard = () => {
         .select('id, status, appointment_date');
       if (!isAdmin && providerId) {
         statsQuery = statsQuery.eq('dentist_id', providerId);
+      }
+      if (tenantId) {
+        statsQuery = statsQuery.eq('tenant_id', tenantId);
       }
       const { data: allAppointments, error: allAppointmentsError } = await statsQuery;
       if (allAppointmentsError) throw allAppointmentsError;
@@ -424,7 +457,7 @@ const DentistDashboard = () => {
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-medium">
-                            {appointment.patient.first_name} {appointment.patient.last_name}
+                            {(appointment.patient?.first_name ?? 'Unknown')} {(appointment.patient?.last_name ?? '')}
                           </h4>
                           <p className="text-sm text-muted-foreground">
                             {appointment.treatment_type || appointment.title}
@@ -510,7 +543,7 @@ const DentistDashboard = () => {
                     >
                       <div className="flex justify-between items-start mb-1">
                         <h5 className="font-medium text-sm">
-                          {alert.patient.first_name} {alert.patient.last_name}
+                          {(alert.patient?.first_name ?? 'Unknown')} {(alert.patient?.last_name ?? '')}
                         </h5>
                         <Badge
                           variant={getAlertPriority(alert) === "high" ? "destructive" : "secondary"}
@@ -553,7 +586,7 @@ const DentistDashboard = () => {
                     >
                       <div className="space-y-1">
                         <h5 className="font-medium text-sm">
-                          {treatment.patient.first_name} {treatment.patient.last_name}
+                          {(treatment.patient?.first_name ?? 'Unknown')} {(treatment.patient?.last_name ?? '')}
                         </h5>
                         <p className="text-sm text-muted-foreground">
                           {treatment.title}
