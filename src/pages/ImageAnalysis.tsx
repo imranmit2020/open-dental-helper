@@ -1,17 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Scissors, Sparkles, Download, Eye } from 'lucide-react';
+import { Camera, Upload, Scissors, Sparkles, Download, Eye, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { removeBackground, loadImage } from '@/services/BackgroundRemovalService';
+import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export const ImageAnalysis: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [patients, setPatients] = useState<Array<{ id: string; first_name: string; last_name: string }>>([]);
+  const [patientId, setPatientId] = useState<string>("");
+  const [analysisType, setAnalysisType] = useState<string>("background_removal");
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -34,6 +41,25 @@ export const ImageAnalysis: React.FC = () => {
       });
     }
   }, [user, logAction]);
+
+  // Load patients for selection
+  useEffect(() => {
+    const loadPatients = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('id, first_name, last_name')
+          .order('last_name', { ascending: true })
+          .limit(200);
+        if (error) throw error;
+        setPatients(data || []);
+      } catch (e: any) {
+        console.error('Failed to load patients', e);
+        toast({ title: 'Failed to load patients', description: e.message, variant: 'destructive' });
+      }
+    };
+    loadPatients();
+  }, []);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -278,6 +304,68 @@ export const ImageAnalysis: React.FC = () => {
     }
   };
 
+  const saveAnalysis = async () => {
+    try {
+      if (!patientId) {
+        toast({ title: 'Select a patient', description: 'Choose the patient to attach this image to', variant: 'destructive' });
+        return;
+      }
+      if (!processedImage && !selectedImage) {
+        toast({ title: 'No image', description: 'Process or select an image first', variant: 'destructive' });
+        return;
+      }
+      setSaving(true);
+
+      // Get a Blob of the image to upload
+      let blob: Blob;
+      if (processedImage) {
+        const res = await fetch(processedImage);
+        blob = await res.blob();
+      } else if (selectedImage) {
+        blob = selectedImage;
+      } else {
+        throw new Error('No image to save');
+      }
+
+      const ext = (blob.type && blob.type.includes('jpeg')) ? 'jpg' : (blob.type && blob.type.includes('png') ? 'png' : 'png');
+      const path = `${patientId}/${Date.now()}.${ext}`;
+
+      const { error: uploadErr } = await supabase.storage.from('analyses').upload(path, blob, {
+        cacheControl: '3600',
+        contentType: blob.type || 'image/png',
+        upsert: false,
+      });
+      if (uploadErr) throw uploadErr;
+
+      const { data: pub } = supabase.storage.from('analyses').getPublicUrl(path);
+      const image_url = pub.publicUrl;
+
+      const { error: insertErr } = await supabase.from('image_analyses').insert({
+        patient_id: patientId,
+        image_url,
+        analysis_type: analysisType || (processedImage ? 'background_removal' : 'original'),
+        ai_results: { source: 'ImageAnalysis', file_name: selectedImage?.name || null, processed: !!processedImage },
+      });
+      if (insertErr) throw insertErr;
+
+      // Audit log
+      if (user) {
+        logAction({
+          action: 'SAVE_IMAGE_ANALYSIS',
+          resource_type: 'image_analysis',
+          details: { patient_id: patientId, analysis_type: analysisType, image_url }
+        }).catch(() => {});
+      }
+
+      toast({ title: 'Saved', description: 'Image analysis saved to patient record' });
+    } catch (e: any) {
+      console.error('Save analysis failed', e);
+      toast({ title: 'Save failed', description: e?.message || 'Could not save analysis', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -388,10 +476,48 @@ export const ImageAnalysis: React.FC = () => {
                   <Button
                     onClick={downloadProcessedImage}
                     className="w-full"
+                    variant="outline"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download Processed Image
                   </Button>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Patient</Label>
+                      <Select value={patientId} onValueChange={setPatientId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select patient" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {patients.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.last_name}, {p.first_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Analysis Type</Label>
+                      <Select value={analysisType} onValueChange={setAnalysisType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="background_removal">Background removal</SelectItem>
+                          <SelectItem value="enhancement">Enhancement</SelectItem>
+                          <SelectItem value="original">Original</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <Button onClick={saveAnalysis} disabled={saving || !patientId} className="w-full">
+                        <Save className="w-4 h-4 mr-2" />
+                        {saving ? 'Saving...' : 'Save to Patient'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="h-64 flex items-center justify-center bg-muted/50 rounded border">
