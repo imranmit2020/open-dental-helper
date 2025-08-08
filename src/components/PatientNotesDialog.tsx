@@ -27,6 +27,7 @@ import type { Patient } from "@/hooks/usePatients";
 import { debounce } from "@/utils/debounce";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PatientNote {
   id: string;
@@ -110,6 +111,8 @@ const formatDob = (dob?: string | null) => {
 };
 
 const [isOpen, setIsOpen] = useState(false);
+const { user } = useAuth();
+const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const startRecording = async () => {
     if (!voiceService.isSupported()) {
@@ -172,7 +175,7 @@ const [isOpen, setIsOpen] = useState(false);
     return importantSentences.slice(0, 2).join('. ') + '.';
   };
 
-  const saveNote = () => {
+  const saveNote = async () => {
     if (!newNote.patientName || !newNote.content) {
       toast({
         title: "Missing Information",
@@ -181,29 +184,57 @@ const [isOpen, setIsOpen] = useState(false);
       });
       return;
     }
+    if (!selectedPatientId) {
+      toast({ title: "Select patient", description: "Choose a patient from the suggestions", variant: "destructive" });
+      return;
+    }
 
-    const note: PatientNote = {
-      id: Date.now().toString(),
-      patientName: newNote.patientName,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      content: newNote.content,
-      type: newNote.type,
-      ...(newNote.type === 'voice' && {
-        transcript: currentTranscript,
-        aiSummary: newNote.content,
-        confidence: 0.9
-      })
-    };
+    try {
+      // Try to resolve dentist profile id (optional)
+      let dentistProfileId: string | null = null;
+      if (user?.id) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        dentistProfileId = prof?.id || null;
+      }
 
-    setNotes(prev => [note, ...prev]);
-    setNewNote({ patientName: "", content: "", type: "manual" });
-    setCurrentTranscript("");
-    
-    toast({
-      title: "Note Saved",
-      description: "Patient note has been saved successfully.",
-    });
+      // Persist to voice_notes table
+      const { error } = await supabase.from('voice_notes').insert({
+        patient_id: selectedPatientId,
+        dentist_id: dentistProfileId,
+        summary: newNote.content,
+        transcription: newNote.type === 'voice' ? currentTranscript : null,
+        status: 'completed',
+      });
+      if (error) throw error;
+
+      const note: PatientNote = {
+        id: Date.now().toString(),
+        patientName: newNote.patientName,
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        content: newNote.content,
+        type: newNote.type,
+        ...(newNote.type === 'voice' && {
+          transcript: currentTranscript,
+          aiSummary: newNote.content,
+          confidence: 0.9
+        })
+      };
+
+      setNotes(prev => [note, ...prev]);
+      setNewNote({ patientName: "", content: "", type: "manual" });
+      setCurrentTranscript("");
+      setSelectedPatientId(null);
+
+      toast({ title: "Note Saved", description: "Patient note saved to the database." });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Save failed", description: e?.message || 'Could not save note.', variant: 'destructive' });
+    }
   };
 
   return (
@@ -275,8 +306,9 @@ const [isOpen, setIsOpen] = useState(false);
                                 key={p.id}
                                 type="button"
                                 className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => {
+onClick={() => {
                                   setNewNote(prev => ({ ...prev, patientName: `${p.first_name} ${p.last_name}` }));
+                                  setSelectedPatientId(p.id);
                                   setSearchResults([]);
                                 }}
                               >
