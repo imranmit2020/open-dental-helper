@@ -533,6 +533,14 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
+                    <NavLink to="/admin/employee-flow" className={getNavCls}>
+                      <ClipboardList className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Employee Access Flow</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
                     <NavLink to="/admin/passwords" className={getNavCls}>
                       <Lock className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Password Management</span>}

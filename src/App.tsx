@@ -65,6 +65,7 @@ const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard
 const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
 const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -185,6 +186,11 @@ function App() {
             <Route path="admin/passwords" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminPasswordManagement /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/employee-flow" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><EmployeeAccessFlow /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="admin/employees/new" element={
