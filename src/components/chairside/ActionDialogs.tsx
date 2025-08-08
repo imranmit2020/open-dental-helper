@@ -116,7 +116,6 @@ export function ScheduleFollowUpDialog({ open, onOpenChange, patientId, onSucces
       const { error } = await supabase.from("appointments").insert({
         tenant_id: currentTenant.id,
         patient_id: patientId,
-        dentist_id: user?.id || null,
         title: title || "Follow-up Visit",
         description: notes || null,
         appointment_date: new Date(dateTime).toISOString(),
