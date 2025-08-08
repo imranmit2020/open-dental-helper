@@ -78,6 +78,31 @@ export const ImageAnalysis: React.FC = () => {
     if (processedImage) setCompareAfterUrl(processedImage);
   }, [processedImage]);
 
+  // Load existing analyses as versions for selected patient
+  useEffect(() => {
+    const loadVersions = async () => {
+      if (!patientId) { setVersions([]); return; }
+      try {
+        const { data, error } = await supabase
+          .from('image_analyses')
+          .select('id, image_url, analysis_type, ai_results, created_at')
+          .eq('patient_id', patientId)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        const mapped = (data || []).map((row: any) => ({
+          id: row.id,
+          name: row.ai_results?.name || row.ai_results?.file_name || `${row.analysis_type} • ${new Date(row.created_at).toLocaleString()}`,
+          url: row.image_url,
+        }));
+        setVersions(mapped);
+      } catch (e: any) {
+        console.error('Failed to load versions', e);
+      }
+    };
+    loadVersions();
+  }, [patientId]);
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -384,6 +409,43 @@ export const ImageAnalysis: React.FC = () => {
     }
   };
 
+  const saveDataUrlAsVersion = async (dataUrl: string, type: string, name: string) => {
+    try {
+      if (!patientId) {
+        toast({ title: 'Select a patient', description: 'Choose the patient first', variant: 'destructive' });
+        return;
+      }
+      setSaving(true);
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const ext = (blob.type && blob.type.includes('jpeg')) ? 'jpg' : (blob.type && blob.type.includes('png') ? 'png' : 'png');
+      const safe = name.replace(/[^a-z0-9-_ ]/gi, '').replace(/\s+/g, '-').toLowerCase();
+      const path = `${patientId}/${Date.now()}_${safe || 'version'}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('analyses').upload(path, blob, {
+        cacheControl: '3600',
+        contentType: blob.type || 'image/png',
+        upsert: false,
+      });
+      if (uploadErr) throw uploadErr;
+      const { data: pub } = supabase.storage.from('analyses').getPublicUrl(path);
+      const image_url = pub.publicUrl;
+      const { error: insertErr } = await supabase.from('image_analyses').insert({
+        patient_id: patientId,
+        image_url,
+        analysis_type: type,
+        ai_results: { source: 'ImageAnalysis', name, processed: true },
+      });
+      if (insertErr) throw insertErr;
+      setVersions((prev) => [{ id: `${Date.now()}`, name, url: image_url }, ...prev]);
+      setCompareAfterUrl(image_url);
+      toast({ title: 'Version saved', description: name });
+    } catch (e: any) {
+      console.error('Save version failed', e);
+      toast({ title: 'Save failed', description: e?.message || 'Could not save version', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -579,7 +641,7 @@ export const ImageAnalysis: React.FC = () => {
                   {/* Annotation Canvas */}
                   <div className="space-y-2 mt-4">
                     <h3 className="text-md font-medium">Annotate</h3>
-                    <AnnotationCanvas imageUrl={processedImage || previewUrl!} />
+                    <AnnotationCanvas imageUrl={processedImage || previewUrl!} onExport={(dataUrl) => saveDataUrlAsVersion(dataUrl, 'annotation', versionName || 'Annotated')} />
                   </div>
                 </div>
               ) : (

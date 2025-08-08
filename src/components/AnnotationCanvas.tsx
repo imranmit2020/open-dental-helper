@@ -9,9 +9,10 @@ export type AnnotationTool = 'select' | 'draw' | 'rectangle' | 'circle' | 'measu
 interface AnnotationCanvasProps {
   imageUrl: string;
   height?: number;
+  onExport?: (dataUrl: string) => void;
 }
 
-export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, height = 400 }) => {
+export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, height = 400, onExport }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
@@ -214,6 +215,14 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
         <Separator orientation="vertical" className="h-6" />
         <Button variant="secondary" size="sm" onClick={handleClear}>Clear</Button>
         <Button variant="outline" size="sm" onClick={downloadPNG}>Download PNG</Button>
+        {onExport && (
+          <Button variant="default" size="sm" onClick={() => {
+            if (!fabricCanvas) return;
+            const dataUrl = fabricCanvas.toDataURL({ format: 'png', multiplier: 1 });
+            onExport?.(dataUrl);
+            toast.success('Annotated image exported');
+          }}>Save Annotated</Button>
+        )}
       </div>
       <div className="rounded border bg-muted/30">
         <canvas ref={canvasRef} />
