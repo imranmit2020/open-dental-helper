@@ -229,41 +229,34 @@ export default function TeamManagement() {
           {isLoading ? (
             <p className="text-muted-foreground">Loading team...</p>
           ) : (
-            <div className="space-y-6">
-              {(["super_admin","admin","dentist","hygienist","staff"] as const).map((r) => (
-                <div key={r} className="space-y-2">
-                  <h3 className="font-medium capitalize">{r}</h3>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Employee ID</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {grouped[r].length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-muted-foreground">No {r}s yet.</TableCell></TableRow>
-                      ) : (
-                        grouped[r].map((u) => (
-                          <TableRow key={u.user_id}>
-                            <TableCell>{u.user_id}</TableCell>
-                            <TableCell>{u.first_name} {u.last_name}</TableCell>
-                            <TableCell>{u.email}</TableCell>
-                            <TableCell>{u.id}</TableCell>
-                            <TableCell className="capitalize">{u.role}</TableCell>
-                            <TableCell><Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button></TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(!team || team.length === 0) ? (
+                  <TableRow><TableCell colSpan={6} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
+                ) : (
+                  team.map((u: any) => (
+                    <TableRow key={u.user_id}>
+                      <TableCell>{u.user_id}</TableCell>
+                      <TableCell>{u.first_name} {u.last_name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{u.id}</TableCell>
+                      <TableCell className="capitalize">{u.role}</TableCell>
+                      <TableCell><Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button></TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
