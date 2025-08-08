@@ -88,11 +88,42 @@ export default function TeamManagement() {
     }
   };
 
-  const grouped = useMemo(() => {
-    const g: Record<string, any[]> = { super_admin: [], admin: [], dentist: [], hygienist: [], staff: [] };
-    (team || []).forEach((u) => g[u.role]?.push(u));
-    return g;
-  }, [team]);
+  const [sortKey, setSortKey] = useState<'user_id' | 'name' | 'email' | 'id' | 'role'>('role');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const sortedTeam = useMemo(() => {
+    const arr = [...(team || [])];
+    arr.sort((a: any, b: any) => {
+      const getVal = (u: any) => {
+        switch (sortKey) {
+          case 'name':
+            return `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+          default:
+            return (u[sortKey] || '').toString().toLowerCase();
+        }
+      };
+      const va = getVal(a);
+      const vb = getVal(b);
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [team, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(((sortedTeam?.length) || 0) / pageSize));
+  useEffect(() => { setPage(1); }, [team]);
+  const paginatedTeam = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return (sortedTeam || []).slice(start, start + pageSize);
+  }, [sortedTeam, page]);
+
+  const handleSort = (key: 'user_id' | 'name' | 'email' | 'id' | 'role') => {
+    if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -223,20 +254,27 @@ export default function TeamManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Existing Team</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>Existing Team</CardTitle>
+            <div className="flex gap-2">
+              <Button type="button" variant="secondary" size="sm" onClick={() => { form.setValue('role','dentist'); form.setFocus('first_name'); }}>Add Dentist</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { form.setValue('role','hygienist'); form.setFocus('first_name'); }}>Add Hygienist</Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Loading team...</p>
           ) : (
+            <> 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('user_id')}>Employee ID</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('name')}>Name</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('email')}>Email</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('id')}>ID</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('role')}>Role</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -244,7 +282,7 @@ export default function TeamManagement() {
                 {(!team || team.length === 0) ? (
                   <TableRow><TableCell colSpan={6} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
                 ) : (
-                  team.map((u: any) => (
+                  paginatedTeam.map((u: any) => (
                     <TableRow key={u.user_id}>
                       <TableCell>{u.user_id}</TableCell>
                       <TableCell>{u.first_name} {u.last_name}</TableCell>
@@ -257,6 +295,14 @@ export default function TeamManagement() {
                 )}
               </TableBody>
             </Table>
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">Page {page} of {totalPages} • {(sortedTeam?.length || 0)} total</div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1}>Previous</Button>
+                <Button variant="outline" size="sm" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>Next</Button>
+              </div>
+            </div>
+            </>
           )}
         </CardContent>
       </Card>
