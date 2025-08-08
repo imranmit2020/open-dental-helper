@@ -37,7 +37,7 @@ export default function Schedule() {
   const [searchParams] = useSearchParams();
   const filter = (searchParams.get('filter') || 'today') as 'today' | 'today-open' | 'today-completed' | 'tomorrow-open';
   const [providerId, setProviderId] = useState<string | null>(null);
-
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   // Audit logging on page access
   useEffect(() => {
     if (user) {
@@ -73,10 +73,14 @@ export default function Schedule() {
       if (!user?.id) return;
       const { data, error } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, role')
         .eq('user_id', user.id)
-        .single();
-      if (!error && data) setProviderId(data.id);
+        .maybeSingle();
+      if (!error && data) {
+        setProviderId(data.id);
+        setIsAdmin((data.role || '').toLowerCase() === 'admin');
+      }
+
     }
     loadProfile();
   }, [user?.id]);
@@ -142,8 +146,8 @@ export default function Schedule() {
       return view === 'day' ? true : isWithinInterval(d, { start, end });
     });
 
-    // Filter by provider
-    if (providerId) {
+    // Filter by provider (admins see all)
+    if (providerId && !isAdmin) {
       filtered = filtered.filter(apt => apt.dentist_id === providerId);
     }
 

@@ -123,21 +123,25 @@ const DentistDashboard = () => {
         .from('profiles')
         .select('id, role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       if (profileError) throw profileError;
-      const providerId = profileRow?.id; 
+      const providerId = profileRow?.id;
+      const isAdmin = (profileRow?.role || '').toLowerCase() === 'admin';
 
-      // Fetch today's appointments FOR THIS PROVIDER
-      const { data: appointments, error: appointmentsError } = await supabase
+      // Fetch today's appointments (admin sees all; others see own)
+      let apptQuery = supabase
         .from('appointments')
         .select(`
           *,
           patient:patients(id, first_name, last_name)
         `)
-        .eq('dentist_id', providerId)
         .gte('appointment_date', startOfToday.toISOString())
         .lte('appointment_date', endOfToday.toISOString())
         .order('appointment_date', { ascending: true });
+      if (!isAdmin && providerId) {
+        apptQuery = apptQuery.eq('dentist_id', providerId);
+      }
+      const { data: appointments, error: appointmentsError } = await apptQuery;
 
       if (appointmentsError) throw appointmentsError;
 
@@ -177,12 +181,14 @@ const DentistDashboard = () => {
       if (allergiesResult.error) throw allergiesResult.error;
       if (conditionsResult.error) throw conditionsResult.error;
 
-      // Fetch dashboard stats for this provider
-      const { data: allAppointments, error: allAppointmentsError } = await supabase
+      // Fetch dashboard stats (admin sees all; others see own)
+      let statsQuery = supabase
         .from('appointments')
-        .select('id, status, appointment_date')
-        .eq('dentist_id', providerId);
-
+        .select('id, status, appointment_date');
+      if (!isAdmin && providerId) {
+        statsQuery = statsQuery.eq('dentist_id', providerId);
+      }
+      const { data: allAppointments, error: allAppointmentsError } = await statsQuery;
       if (allAppointmentsError) throw allAppointmentsError;
 
       const { data: patients, error: patientsError } = await supabase
