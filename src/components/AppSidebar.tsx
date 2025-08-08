@@ -119,6 +119,7 @@ const complianceItems: NavigationItem[] = [
 
 const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'] },
+  { title: "Team Management", url: "/admin/team", icon: Users, requiredRoles: ['admin'] },
 ];
 
 export function AppSidebar() {
