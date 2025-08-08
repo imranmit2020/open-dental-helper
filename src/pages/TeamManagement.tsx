@@ -196,7 +196,7 @@ export default function TeamManagement() {
               <FormField name="role" control={form.control} render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="dentist">Dentist</SelectItem>
