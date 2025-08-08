@@ -199,6 +199,11 @@ function App() {
                 <Suspense fallback={<PageLoader />}><AdminAddEmployee /></Suspense>
               </ProtectedRoute>
             } />
+            <Route path="admin/navigation-permissions" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminNavigationPermissions /></Suspense>
+              </ProtectedRoute>
+            } />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
