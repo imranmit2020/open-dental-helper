@@ -1829,8 +1829,16 @@ export type Database = {
         Args: { _user_id: string; _tenant_id: string }
         Returns: string
       }
+      is_super_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       user_belongs_to_tenant: {
         Args: { _user_id: string; _tenant_id: string }
+        Returns: boolean
+      }
+      user_is_corporate_admin: {
+        Args: { _corp_id: string; _user_id: string }
         Returns: boolean
       }
     }
