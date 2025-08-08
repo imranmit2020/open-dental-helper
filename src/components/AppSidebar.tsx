@@ -535,7 +535,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to="/admin/employee-flow" className={getNavCls}>
                       <ClipboardList className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Employee Access Flow</span>}
+                      {!isCollapsed && <span className="font-medium">Employee & Staff Access</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
