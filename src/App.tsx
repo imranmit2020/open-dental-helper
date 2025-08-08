@@ -22,6 +22,7 @@ const PatientDashboard = lazy(() => import("./pages/PatientDashboard"));
 const DentistDashboard = lazy(() => import("./pages/DentistDashboard"));
 const PracticeDashboard = lazy(() => import("./pages/PracticeDashboard"));
 const Schedule = lazy(() => import("./pages/Schedule"));
+const ScheduleManagement = lazy(() => import("./pages/ScheduleManagement"));
 const Patients = lazy(() => import("./pages/Patients"));
 const PatientProfile = lazy(() => import("./pages/PatientProfile"));
 const MedicalHistory = lazy(() => import("./pages/MedicalHistory"));
@@ -104,6 +105,7 @@ function App() {
             <Route path="dentist-dashboard" element={<Suspense fallback={<PageLoader />}><DentistDashboard /></Suspense>} />
             <Route path="practice-dashboard" element={<Suspense fallback={<PageLoader />}><PracticeDashboard /></Suspense>} />
             <Route path="schedule" element={<Suspense fallback={<PageLoader />}><Schedule /></Suspense>} />
+            <Route path="schedule-management" element={<Suspense fallback={<PageLoader />}><ScheduleManagement /></Suspense>} />
             <Route path="patients" element={<Suspense fallback={<PageLoader />}><Patients /></Suspense>} />
             <Route path="patients/:id" element={<Suspense fallback={<PageLoader />}><PatientProfile /></Suspense>} />
             <Route path="medical-history" element={<Suspense fallback={<PageLoader />}><MedicalHistory /></Suspense>} />
