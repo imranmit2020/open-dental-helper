@@ -78,6 +78,27 @@ export default function TeamManagement() {
     },
   });
 
+  const { data: employees } = useQuery({
+    queryKey: ["employees", currentTenant?.id],
+    enabled: !!currentTenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("user_id, employee_id")
+        .eq("tenant_id", currentTenant!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const employeeByUserId = useMemo(() => {
+    const map: Record<string, string> = {};
+    (employees || []).forEach((e: any) => {
+      if (e.user_id && e.employee_id) map[e.user_id] = e.employee_id;
+    });
+    return map;
+  }, [employees]);
+
   const combinedRows = useMemo(() => {
     const members = (team || []).map((u: any) => ({ ...u, _type: "member" as const }));
     const invites = (invitations || []).map((i: any) => ({
@@ -145,7 +166,7 @@ export default function TeamManagement() {
     }
   };
 
-  const [sortKey, setSortKey] = useState<'user_id' | 'name' | 'email' | 'id' | 'role'>('role');
+  const [sortKey, setSortKey] = useState<'employee_id' | 'name' | 'email' | 'role'>('role');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -157,6 +178,8 @@ export default function TeamManagement() {
         switch (sortKey) {
           case 'name':
             return `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+          case 'employee_id':
+            return (employeeByUserId[(u as any).user_id] || '').toLowerCase();
           default:
             return ((u as any)[sortKey] || '').toString().toLowerCase();
         }
@@ -177,7 +200,7 @@ export default function TeamManagement() {
     return (sortedTeam || []).slice(start, start + pageSize);
   }, [sortedTeam, page]);
 
-  const handleSort = (key: 'user_id' | 'name' | 'email' | 'id' | 'role') => {
+  const handleSort = (key: 'employee_id' | 'name' | 'email' | 'role') => {
     if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('asc'); }
   };
@@ -327,26 +350,24 @@ export default function TeamManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('user_id')}>Employee ID</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('employee_id')}>Employee ID</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('name')}>Name</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('email')}>Email</TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort('id')}>ID</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort('role')}>Role</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {(!combinedRows || combinedRows.length === 0) ? (
-                  <TableRow><TableCell colSpan={6} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
                 ) : (
                   paginatedTeam.map((u: any) => (
                     <TableRow key={u._type === 'invite' ? `invite-${u.invite_id ?? u.email}` : `user-${u.user_id}`}>
-                      <TableCell>{u.user_id || '—'}</TableCell>
+                      <TableCell>{u._type === 'member' ? (employeeByUserId[u.user_id] || '—') : '—'}</TableCell>
                       <TableCell>
                         {u.first_name} {u.last_name}{u._type === 'invite' ? ' (Invited)' : ''}
                       </TableCell>
                       <TableCell>{u.email}</TableCell>
-                      <TableCell>{u._type === 'invite' ? '—' : (u.id || '—')}</TableCell>
                       <TableCell className="capitalize">{u.role}</TableCell>
                       <TableCell>
                         {u._type === 'member' ? (
