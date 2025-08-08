@@ -121,6 +121,7 @@ const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'] },
   { title: "Employees", url: "/admin/employees", icon: Users, requiredRoles: ['admin'] },
   { title: "Role Assignment", url: "/admin/roles", icon: User, requiredRoles: ['admin'] },
+  { title: "Password Management", url: "/admin/passwords", icon: Lock, requiredRoles: ['admin'] },
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'] },
 ];
 
@@ -527,6 +528,14 @@ export function AppSidebar() {
                     <NavLink to="/admin/roles" className={getNavCls}>
                       <User className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Role Assignment</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/passwords" className={getNavCls}>
+                      <Lock className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Password Management</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

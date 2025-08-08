@@ -63,6 +63,7 @@ const QuantumScheduling = lazy(() => import("./pages/QuantumScheduling"));
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard"));
 const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
+const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -177,6 +178,11 @@ function App() {
             <Route path="admin/roles" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminRoleAssignment /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/passwords" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminPasswordManagement /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="admin/employees/new" element={
