@@ -38,6 +38,7 @@ export default function Schedule() {
   const filter = (searchParams.get('filter') || 'today') as 'today' | 'today-open' | 'today-completed' | 'tomorrow-open';
   const [providerId, setProviderId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
   // Audit logging on page access
   useEffect(() => {
     if (user) {
@@ -47,11 +48,6 @@ export default function Schedule() {
         details: { date: currentDate.toISOString(), view }
       }).catch(error => {
         console.error('Failed to log schedule access:', error);
-        toast({
-          title: "Logging Error",
-          description: "Failed to record audit log",
-          variant: "destructive"
-        });
       });
     }
   }, [user, logAction]);
@@ -71,16 +67,28 @@ export default function Schedule() {
   useEffect(() => {
     async function loadProfile() {
       if (!user?.id) return;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (!error && data) {
-        setProviderId(data.id);
-        setIsAdmin((data.role || '').toLowerCase() === 'admin');
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        if (!error && data) {
+          setProviderId(data.id);
+          setIsAdmin((data.role || '').toLowerCase() === 'admin');
+          console.log('[Schedule] User profile loaded:', { 
+            providerId: data.id, 
+            role: data.role, 
+            isAdmin: (data.role || '').toLowerCase() === 'admin' 
+          });
+        } else {
+          console.warn('[Schedule] Failed to load user profile:', error);
+        }
+      } catch (error) {
+        console.error('[Schedule] Error loading user profile:', error);
       }
-
     }
     loadProfile();
   }, [user?.id]);
@@ -129,6 +137,20 @@ export default function Schedule() {
 
   // Transform and optionally filter appointments for display
   const displayAppointments = useMemo(() => {
+    console.log('[Schedule] Processing appointments:', { 
+      totalAppointments: appointments.length, 
+      isAdmin, 
+      providerId, 
+      view, 
+      filter,
+      currentDate: currentDate.toISOString()
+    });
+
+    if (appointments.length === 0) {
+      console.log('[Schedule] No appointments to process');
+      return [];
+    }
+
     // Date window depending on view
     let start = startOfDay(currentDate);
     let end = endOfDay(currentDate);
@@ -140,22 +162,58 @@ export default function Schedule() {
       end = endOfMonth(currentDate);
     }
 
-    // Filter by date window when not day view (day view already filtered at query layer)
-    let filtered = appointments.filter(apt => {
-      const d = new Date(apt.appointment_date);
-      return view === 'day' ? true : isWithinInterval(d, { start, end });
+    console.log('[Schedule] Date range:', { 
+      start: start.toISOString(), 
+      end: end.toISOString(),
+      view 
     });
 
-    // Filter by provider (admins see all)
+    // Filter by date window when not day view (day view already filtered at query layer)
+    let filtered = appointments.filter(apt => {
+      const appointmentDate = new Date(apt.appointment_date);
+      const inRange = view === 'day' ? true : isWithinInterval(appointmentDate, { start, end });
+      
+      if (!inRange) {
+        console.log('[Schedule] Appointment outside date range:', { 
+          appointmentId: apt.id,
+          appointmentDate: apt.appointment_date,
+          dateRange: { start: start.toISOString(), end: end.toISOString() }
+        });
+      }
+      
+      return inRange;
+    });
+
+    console.log('[Schedule] After date filtering:', filtered.length);
+
+    // Filter by provider (admins see all, non-admins see only their appointments)
     if (providerId && !isAdmin) {
+      const beforeProviderFilter = filtered.length;
       filtered = filtered.filter(apt => apt.dentist_id === providerId);
+      console.log('[Schedule] After provider filtering (non-admin):', { 
+        before: beforeProviderFilter, 
+        after: filtered.length,
+        providerId 
+      });
+    } else {
+      console.log('[Schedule] Skipping provider filter (admin or no providerId):', { isAdmin, providerId });
     }
 
     // Apply status filters
     if (filter === 'today-open' || filter === 'tomorrow-open') {
+      const beforeStatusFilter = filtered.length;
       filtered = filtered.filter(apt => ['scheduled','confirmed','pending'].includes(apt.status || 'scheduled'));
+      console.log('[Schedule] After status filtering (open):', { 
+        before: beforeStatusFilter, 
+        after: filtered.length 
+      });
     } else if (filter === 'today-completed') {
+      const beforeStatusFilter = filtered.length;
       filtered = filtered.filter(apt => (apt.status || '').toLowerCase() === 'completed');
+      console.log('[Schedule] After status filtering (completed):', { 
+        before: beforeStatusFilter, 
+        after: filtered.length 
+      });
     }
 
     const base = filtered.map(apt => ({
@@ -173,28 +231,13 @@ export default function Schedule() {
       isBlockedTime: apt.treatment_type === 'block'
     }));
 
-    return base;
-  }, [appointments, filter, view, currentDate, providerId]);
+    console.log('[Schedule] Final processed appointments:', { 
+      count: base.length, 
+      sampleIds: base.slice(0, 3).map(a => a.id) 
+    });
 
-  // Debug logging to trace why lists might be empty
-  useEffect(() => {
-    try {
-      const start = view === 'day' ? startOfDay(currentDate) : (view === 'week' ? startOfWeek(currentDate, { weekStartsOn: 1 }) : startOfMonth(currentDate));
-      const end = view === 'day' ? endOfDay(currentDate) : (view === 'week' ? endOfWeek(currentDate, { weekStartsOn: 1 }) : endOfMonth(currentDate));
-      console.log('[Schedule] Debug', {
-        totalFetched: appointments.length,
-        shown: displayAppointments.length,
-        view,
-        filter,
-        providerId,
-        isAdmin,
-        range: { start: start.toISOString(), end: end.toISOString() },
-        sampleIds: appointments.slice(0, 5).map(a => a.id)
-      });
-    } catch (e) {
-      console.log('[Schedule] Debug failed', e);
-    }
-  }, [appointments, displayAppointments, view, filter, providerId, isAdmin, currentDate]);
+    return base;
+  }, [appointments, filter, view, currentDate, providerId, isAdmin]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -229,6 +272,21 @@ export default function Schedule() {
   const navigateDate = (direction: 'prev' | 'next') => {
     handleDateNavigation(direction);
   };
+
+  // Debug information for troubleshooting
+  useEffect(() => {
+    console.log('[Schedule] Component state:', {
+      user: user?.id,
+      isAdmin,
+      providerId,
+      appointmentsCount: appointments.length,
+      displayAppointmentsCount: displayAppointments.length,
+      loading,
+      view,
+      filter,
+      currentDate: currentDate.toISOString()
+    });
+  }, [user, isAdmin, providerId, appointments.length, displayAppointments.length, loading, view, filter, currentDate]);
 
   return (
     <div className="space-y-6">
@@ -304,6 +362,11 @@ export default function Schedule() {
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No {filter.includes('open') ? 'open ' : filter.includes('completed') ? 'completed ' : ''}appointments {view === 'day' ? 'for this day' : `in this ${view}`}</p>
+                    {appointments.length > 0 && (
+                      <p className="text-sm mt-2 text-yellow-600">
+                        Found {appointments.length} total appointments but none match current filters
+                      </p>
+                    )}
                   </div>
                 ) : displayAppointments.map((appointment) => (
                   <div
