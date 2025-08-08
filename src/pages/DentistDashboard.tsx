@@ -101,7 +101,7 @@ const DentistDashboard = () => {
   const [dashboardStats, setDashboardStats] = useState({
     totalAppointments: 0,
     completedToday: 0,
-    upcomingToday: 0,
+    upcomingTomorrow: 0,
     totalPatients: 0
   });
 
@@ -118,13 +118,23 @@ const DentistDashboard = () => {
       const startOfToday = startOfDay(today);
       const endOfToday = endOfDay(today);
 
-      // Fetch today's appointments
+      // Fetch current user's provider profile id
+      const { data: profileRow, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .single();
+      if (profileError) throw profileError;
+      const providerId = profileRow?.id; 
+
+      // Fetch today's appointments FOR THIS PROVIDER
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
           *,
           patient:patients(id, first_name, last_name)
         `)
+        .eq('dentist_id', providerId)
         .gte('appointment_date', startOfToday.toISOString())
         .lte('appointment_date', endOfToday.toISOString())
         .order('appointment_date', { ascending: true });
@@ -167,10 +177,11 @@ const DentistDashboard = () => {
       if (allergiesResult.error) throw allergiesResult.error;
       if (conditionsResult.error) throw conditionsResult.error;
 
-      // Fetch dashboard stats
+      // Fetch dashboard stats for this provider
       const { data: allAppointments, error: allAppointmentsError } = await supabase
         .from('appointments')
-        .select('id, status, appointment_date');
+        .select('id, status, appointment_date')
+        .eq('dentist_id', providerId);
 
       if (allAppointmentsError) throw allAppointmentsError;
 
@@ -189,10 +200,18 @@ const DentistDashboard = () => {
         isToday(new Date(apt.appointment_date)) && apt.status === 'completed'
       ).length || 0;
 
-      const upcomingTodayCount = allAppointments?.filter(apt => 
-        isToday(new Date(apt.appointment_date)) && 
-        ['scheduled', 'confirmed', 'pending'].includes(apt.status)
-      ).length || 0;
+      // Upcoming tomorrow (open statuses only)
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const startOfTomorrow = startOfDay(tomorrow);
+      const endOfTomorrow = endOfDay(tomorrow);
+
+      const upcomingTomorrowCount = allAppointments?.filter(apt => {
+        const d = new Date(apt.appointment_date);
+        const isTomorrow = d >= startOfTomorrow && d <= endOfTomorrow;
+        const isOpen = ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
+        return isTomorrow && isOpen;
+      }).length || 0;
 
       // Set state
       setTodayAppointments(appointments || []);
@@ -204,7 +223,7 @@ const DentistDashboard = () => {
       setDashboardStats({
         totalAppointments: todayCount,
         completedToday: completedTodayCount,
-        upcomingToday: upcomingTodayCount,
+        upcomingTomorrow: upcomingTodayCount,
         totalPatients: patients?.length || 0
       });
 
@@ -304,7 +323,7 @@ const DentistDashboard = () => {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card onClick={() => navigate('/schedule')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
+          <Card onClick={() => navigate('/schedule?filter=today-open')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Today's Appointments
@@ -318,7 +337,7 @@ const DentistDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card onClick={() => navigate('/schedule?filter=today-completed')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Completed Today
@@ -332,15 +351,15 @@ const DentistDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card onClick={() => navigate('/schedule?filter=upcoming')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
+          <Card onClick={() => navigate('/schedule?filter=tomorrow-open')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Upcoming Today
+                Upcoming Tomorrow
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <p className="text-2xl font-bold text-blue-600">{dashboardStats.upcomingToday}</p>
+                <p className="text-2xl font-bold text-blue-600">{dashboardStats.upcomingTomorrow}</p>
                 <Clock className="w-6 h-6 text-blue-500" />
               </div>
             </CardContent>

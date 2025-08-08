@@ -7,8 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "@/hooks/useAppointments";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, addDays } from "date-fns";
 import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar,
   Clock,
@@ -34,7 +35,8 @@ export default function Schedule() {
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
   const { appointments, loading, refetch } = useAppointments(view === "day" ? currentDate : undefined);
   const [searchParams] = useSearchParams();
-  const filter = (searchParams.get('filter') || 'today') as 'today' | 'upcoming';
+  const filter = (searchParams.get('filter') || 'today') as 'today' | 'today-open' | 'today-completed' | 'tomorrow-open';
+  const [providerId, setProviderId] = useState<string | null>(null);
 
   // Audit logging on page access
   useEffect(() => {
@@ -53,6 +55,31 @@ export default function Schedule() {
       });
     }
   }, [user, logAction]);
+
+  // Initialize by filter param (e.g., tomorrow-open)
+  useEffect(() => {
+    if (filter === 'tomorrow-open') {
+      const tomorrow = addDays(new Date(), 1);
+      setCurrentDate(tomorrow);
+      setView('day');
+    } else if (filter === 'today-open' || filter === 'today-completed' || filter === 'today') {
+      setView('day');
+    }
+  }, [filter]);
+
+  // Load provider profile id to filter assignments to the logged-in provider
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      if (!error && data) setProviderId(data.id);
+    }
+    loadProfile();
+  }, [user?.id]);
 
   // Log view changes
   const handleViewChange = (newView: 'day' | 'week' | 'month') => {
@@ -98,7 +125,36 @@ export default function Schedule() {
 
   // Transform and optionally filter appointments for display
   const displayAppointments = useMemo(() => {
-    const base = appointments.map(apt => ({
+    // Date window depending on view
+    let start = startOfDay(currentDate);
+    let end = endOfDay(currentDate);
+    if (view === 'week') {
+      start = startOfWeek(currentDate, { weekStartsOn: 1 });
+      end = endOfWeek(currentDate, { weekStartsOn: 1 });
+    } else if (view === 'month') {
+      start = startOfMonth(currentDate);
+      end = endOfMonth(currentDate);
+    }
+
+    // Filter by date window when not day view (day view already filtered at query layer)
+    let filtered = appointments.filter(apt => {
+      const d = new Date(apt.appointment_date);
+      return view === 'day' ? true : isWithinInterval(d, { start, end });
+    });
+
+    // Filter by provider
+    if (providerId) {
+      filtered = filtered.filter(apt => apt.dentist_id === providerId);
+    }
+
+    // Apply status filters
+    if (filter === 'today-open' || filter === 'tomorrow-open') {
+      filtered = filtered.filter(apt => ['scheduled','confirmed','pending'].includes(apt.status || 'scheduled'));
+    } else if (filter === 'today-completed') {
+      filtered = filtered.filter(apt => (apt.status || '').toLowerCase() === 'completed');
+    }
+
+    const base = filtered.map(apt => ({
       id: apt.id,
       time: format(new Date(apt.appointment_date), 'h:mm a'),
       duration: apt.duration || 60,
@@ -112,11 +168,9 @@ export default function Schedule() {
       treatment_type: apt.treatment_type,
       isBlockedTime: apt.treatment_type === 'block'
     }));
-    if (filter === 'upcoming') {
-      return base.filter(a => ['scheduled','confirmed','pending'].includes(a.status));
-    }
+
     return base;
-  }, [appointments, filter]);
+  }, [appointments, filter, view, currentDate, providerId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -210,10 +264,10 @@ export default function Schedule() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-primary" />
-                Today's Schedule
+                {view === 'day' ? "Day's Schedule" : `${view.charAt(0).toUpperCase() + view.slice(1)} Schedule`}
               </CardTitle>
               <CardDescription>
-                {displayAppointments.length} {filter === 'upcoming' ? 'upcoming' : ''} appointments scheduled
+                {displayAppointments.length} {filter.includes('open') ? 'open' : filter.includes('completed') ? 'completed' : ''} appointments {view === 'day' ? 'for this day' : `in this ${view}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -225,7 +279,7 @@ export default function Schedule() {
                 ) : displayAppointments.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No {filter === 'upcoming' ? 'upcoming ' : ''}appointments for this day</p>
+                    <p>No {filter.includes('open') ? 'open ' : filter.includes('completed') ? 'completed ' : ''}appointments {view === 'day' ? 'for this day' : `in this ${view}`}</p>
                   </div>
                 ) : displayAppointments.map((appointment) => (
                   <div
@@ -310,7 +364,7 @@ export default function Schedule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Today's Summary</CardTitle>
+              <CardTitle className="text-lg">{view === 'day' ? "Today's Summary" : `${view.charAt(0).toUpperCase() + view.slice(1)} Summary`}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
