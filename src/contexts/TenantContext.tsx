@@ -78,7 +78,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('user_id', user?.id);
 
-      if (corporateError) throw corporateError;
+      if (corporateError) {
+        console.warn('Corporate lookup failed or not permitted, falling back to tenant assignments:', corporateError);
+      }
 
       let allTenants: Tenant[] = [];
       let userCorporationRole = null;

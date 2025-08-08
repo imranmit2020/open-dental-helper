@@ -191,10 +191,12 @@ const DentistDashboard = () => {
 
       if (patientsError) throw patientsError;
 
-      // Calculate stats
-      const todayCount = allAppointments?.filter(apt => 
-        isToday(new Date(apt.appointment_date))
-      ).length || 0;
+      // Open appointments today (exclude blocked/cancelled/completed)
+      const todayOpenCount = allAppointments?.filter(apt => {
+        const isTodayApt = isToday(new Date(apt.appointment_date));
+        const isOpen = ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
+        return isTodayApt && isOpen;
+      }).length || 0;
 
       const completedTodayCount = allAppointments?.filter(apt => 
         isToday(new Date(apt.appointment_date)) && apt.status === 'completed'
@@ -221,9 +223,9 @@ const DentistDashboard = () => {
         ...(conditionsResult.data || [])
       ]);
       setDashboardStats({
-        totalAppointments: todayCount,
+        totalAppointments: todayOpenCount,
         completedToday: completedTodayCount,
-        upcomingTomorrow: upcomingTodayCount,
+        upcomingTomorrow: upcomingTomorrowCount,
         totalPatients: patients?.length || 0
       });
 
