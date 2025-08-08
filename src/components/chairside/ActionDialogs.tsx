@@ -30,9 +30,18 @@ export function PrescribeMedicationDialog({ open, onOpenChange, patientId, onSuc
     if (!medicationName) return toast.error("Medication name is required");
     try {
       setLoading(true);
+      let prescribedBy: string | null = null;
+      if (user?.id) {
+        const { data: prof, error: profErr } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!profErr && prof?.id) prescribedBy = prof.id as string;
+      }
       const { error } = await supabase.from("medications").insert({
         patient_id: patientId,
-        prescribed_by: user?.id || null,
+        prescribed_by: prescribedBy,
         medication_name: medicationName,
         dosage: dosage || null,
         frequency: frequency || null,
