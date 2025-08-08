@@ -1,4 +1,4 @@
-import FirecrawlApp from '@mendable/firecrawl-js';
+// Firecrawl is dynamically imported to avoid bundling Node/CJS code in the browser
 
 interface ErrorResponse {
   success: false;
@@ -19,11 +19,23 @@ type CrawlResponse = CrawlStatusResponse | ErrorResponse;
 
 export class FirecrawlService {
   private static API_KEY_STORAGE_KEY = 'firecrawl_api_key';
-  private static firecrawlApp: FirecrawlApp | null = null;
+  private static firecrawlApp: any | null = null;
+  private static firecrawlModulePromise: Promise<any> | null = null;
+
+  private static async getFirecrawlApp(apiKey: string) {
+    if (!this.firecrawlModulePromise) {
+      this.firecrawlModulePromise = import('@mendable/firecrawl-js');
+    }
+    const mod = await this.firecrawlModulePromise;
+    const FirecrawlApp = mod.default ?? mod.FirecrawlApp;
+    return new FirecrawlApp({ apiKey });
+  }
 
   static saveApiKey(apiKey: string): void {
     localStorage.setItem(this.API_KEY_STORAGE_KEY, apiKey);
-    this.firecrawlApp = new FirecrawlApp({ apiKey });
+    this.getFirecrawlApp(apiKey)
+      .then(app => { this.firecrawlApp = app; })
+      .catch(console.error);
     console.log('API key saved successfully');
   }
 
@@ -34,7 +46,7 @@ export class FirecrawlService {
   static async testApiKey(apiKey: string): Promise<boolean> {
     try {
       console.log('Testing API key with Firecrawl API');
-      this.firecrawlApp = new FirecrawlApp({ apiKey });
+      this.firecrawlApp = await this.getFirecrawlApp(apiKey);
       // A simple test crawl to verify the API key
       const testResponse = await this.firecrawlApp.crawlUrl('https://example.com', {
         limit: 1
@@ -55,7 +67,7 @@ export class FirecrawlService {
     try {
       console.log('Crawling dental research for:', query);
       if (!this.firecrawlApp) {
-        this.firecrawlApp = new FirecrawlApp({ apiKey });
+        this.firecrawlApp = await this.getFirecrawlApp(apiKey);
       }
 
       // Search dental research websites
@@ -109,7 +121,7 @@ export class FirecrawlService {
     try {
       console.log('Making crawl request to Firecrawl API');
       if (!this.firecrawlApp) {
-        this.firecrawlApp = new FirecrawlApp({ apiKey });
+        this.firecrawlApp = await this.getFirecrawlApp(apiKey);
       }
 
       const crawlResponse = await this.firecrawlApp.crawlUrl(url, {
