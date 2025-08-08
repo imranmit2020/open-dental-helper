@@ -28,6 +28,10 @@ import {
   Pill
 } from "lucide-react";
 
+import NewAppointmentForm from "@/components/NewAppointmentForm";
+import GenerateInvoiceDialog from "@/components/GenerateInvoiceDialog";
+import SendConsentDialog from "@/components/SendConsentDialog";
+
 export default function PatientProfile() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -270,18 +274,35 @@ export default function PatientProfile() {
                 <Phone className="h-4 w-4 mr-2" />
                 Call Patient
               </Button>
-              <Button variant="outline" className="hover:bg-primary/5">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule
-              </Button>
-              <Button variant="outline" className="hover:bg-primary/5">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Generate Invoice
-              </Button>
-              <Button variant="outline" className="hover:bg-primary/5">
-                <Send className="h-4 w-4 mr-2" />
-                Send Consent
-              </Button>
+              <NewAppointmentForm
+                defaultPatient={{ id: patient.id, first_name: patient.first_name, last_name: patient.last_name, email: patient.email, phone: patient.phone } as any}
+                trigger={
+                  <Button variant="outline" className="hover:bg-primary/5">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule
+                  </Button>
+                }
+              />
+              <GenerateInvoiceDialog
+                patientId={id as string}
+                patientName={`${patient.first_name} ${patient.last_name}`}
+                trigger={
+                  <Button variant="outline" className="hover:bg-primary/5">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Generate Invoice
+                  </Button>
+                }
+              />
+              <SendConsentDialog
+                patientId={id as string}
+                trigger={
+                  <Button variant="outline" className="hover:bg-primary/5">
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Consent
+                  </Button>
+                }
+                onSent={fetchPatientData}
+              />
             </div>
           </div>
         </CardContent>

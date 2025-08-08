@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,6 +55,7 @@ type AppointmentFormData = z.infer<typeof appointmentSchema>;
 interface NewAppointmentFormProps {
   onAppointmentAdded?: (appointment: any) => void;
   trigger?: React.ReactNode;
+  defaultPatient?: Patient | null;
 }
 
 const timeSlots = [
@@ -84,7 +85,7 @@ const providers = [
 
 const rooms = ["Room 1", "Room 2", "Room 3", "Consultation Room"];
 
-export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewAppointmentFormProps) {
+export default function NewAppointmentForm({ onAppointmentAdded, trigger, defaultPatient }: NewAppointmentFormProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
@@ -105,6 +106,21 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger }: NewA
       email: "",
     },
   });
+
+  // Prefill when a defaultPatient is provided
+  useEffect(() => {
+    if (open && defaultPatient) {
+      setSelectedPatient(defaultPatient);
+      form.setValue("patientType", "existing");
+      form.setValue("patientId", defaultPatient.id);
+      form.setValue("firstName", defaultPatient.first_name);
+      form.setValue("lastName", defaultPatient.last_name);
+      form.setValue("phone", defaultPatient.phone || "");
+      form.setValue("email", defaultPatient.email || "");
+      setSearchQuery(`${defaultPatient.first_name} ${defaultPatient.last_name}`);
+      setSearchResults([]);
+    }
+  }, [open, defaultPatient]);
 
   const selectedType = form.watch("appointmentType");
   const patientType = form.watch("patientType");
