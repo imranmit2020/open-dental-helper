@@ -461,6 +461,69 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          corporation_id: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          employee_id: string | null
+          employment_type: string | null
+          first_name: string
+          hire_date: string | null
+          id: string
+          job_title: string | null
+          last_name: string
+          phone: string | null
+          role: string | null
+          status: string
+          tenant_id: string | null
+          termination_date: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          corporation_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_id?: string | null
+          employment_type?: string | null
+          first_name: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          last_name: string
+          phone?: string | null
+          role?: string | null
+          status?: string
+          tenant_id?: string | null
+          termination_date?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          corporation_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          employee_id?: string | null
+          employment_type?: string | null
+          first_name?: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          last_name?: string
+          phone?: string | null
+          role?: string | null
+          status?: string
+          tenant_id?: string | null
+          termination_date?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       failed_login_attempts: {
         Row: {
           attempted_at: string
@@ -1982,6 +2045,10 @@ export type Database = {
       }
       generate_employee_id: {
         Args: { _tenant_id: string }
+        Returns: string
+      }
+      generate_employee_id_for_corporation: {
+        Args: { _corp_id: string }
         Returns: string
       }
       get_current_tenant_id: {
