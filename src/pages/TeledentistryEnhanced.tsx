@@ -103,13 +103,23 @@ export default function TeledentistryEnhanced() {
 
   const startCall = async () => {
     try {
-      // Get user media for video/audio
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: isVideoEnabled,
-        audio: isAudioEnabled
-      });
+      let stream: MediaStream | null = null;
+
+      // Try full audio+video first
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setIsVideoEnabled(true);
+        setIsAudioEnabled(true);
+      } catch (err: any) {
+        console.warn("Full AV getUserMedia failed, retrying audio-only:", err?.name || err);
+        // Fallback to audio-only so the session can still start
+        stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        setIsVideoEnabled(false);
+        setIsAudioEnabled(true);
+        toast("Starting audio-only (camera blocked). Enable camera in your browser settings and rejoin if needed.");
+      }
       
-      if (videoRef.current) {
+      if (videoRef.current && stream) {
         videoRef.current.srcObject = stream;
       }
 
@@ -128,9 +138,13 @@ export default function TeledentistryEnhanced() {
       setCurrentSession(upcomingSessions[0]);
       
       toast.success("Call started with AI transcription enabled");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error starting call:", error);
-      toast.error("Failed to start call");
+      const msg =
+        error?.name === "NotAllowedError"
+          ? "Permission denied. Allow mic/camera for this site (address bar) and try again."
+          : "Failed to start call. Check mic/camera permissions and try again.";
+      toast.error(msg);
     }
   };
 
