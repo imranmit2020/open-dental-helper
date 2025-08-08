@@ -7,6 +7,7 @@ import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill } from "lucid
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog, UpdateAllergiesDialog } from "@/components/chairside/ActionDialogs";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -159,10 +160,23 @@ export default function ChairsideAssistant() {
   const [openSecondOpinion, setOpenSecondOpinion] = useState(false);
   const [openUpdateAllergies, setOpenUpdateAllergies] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { user } = useAuth();
+  const [providerName, setProviderName] = useState<string | null>(null);
+
+document.title = "Chairside AI Assistant – Patient Safety & Dosage";
+}, []);
 
 useEffect(() => {
-  document.title = "Chairside AI Assistant – Patient Safety & Dosage";
-}, []);
+  const fetchProfileName = async () => {
+    if (!user?.id) return;
+    const { data, error } = await supabase.from('profiles').select('first_name, last_name').eq('user_id', user.id).maybeSingle();
+    if (!error && data) {
+      const name = `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim();
+      setProviderName(name || null);
+    }
+  };
+  fetchProfileName();
+}, [user?.id]);
 
 const loadPatients = async () => {
   setLoading(true);
@@ -266,11 +280,14 @@ const seedDemo = async () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-2">
         <h1 className="text-4xl font-bold gradient-text">Chairside AI Assistant</h1>
         <p className="text-lg text-muted-foreground">
           Real-time clinical assistance with dosage recommendations and safety alerts
         </p>
+        <div className="flex justify-center">
+          <Badge variant="secondary">Provider: {providerName || 'Unknown'}</Badge>
+        </div>
       </div>
 
       {/* Patient & Procedure Selection */}

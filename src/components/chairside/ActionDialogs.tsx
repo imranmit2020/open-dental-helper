@@ -116,6 +116,11 @@ export function ScheduleFollowUpDialog({ open, onOpenChange, patientId, onSucces
   const [duration, setDuration] = useState(60);
   const [notes, setNotes] = useState("");
 
+  const [providerType, setProviderType] = useState<'dentist' | 'hygienist'>("dentist");
+  const [providers, setProviders] = useState<Array<{ profile_id: string; name: string; user_id: string }>>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [availability, setAvailability] = useState<{ is_available?: boolean; start_time?: string | null; end_time?: string | null; break_start_time?: string | null; break_end_time?: string | null } | null>(null);
+
   const submit = async () => {
     if (!patientId) return toast.error("Select a patient first");
     if (!currentTenant?.id) return toast.error("No clinic selected");
