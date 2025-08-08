@@ -9,6 +9,7 @@ import { removeBackground, loadImage } from '@/services/BackgroundRemovalService
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import AnnotationCanvas from '@/components/AnnotationCanvas';
 
 export const ImageAnalysis: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -517,6 +518,10 @@ export const ImageAnalysis: React.FC = () => {
                         {saving ? 'Saving...' : 'Save to Patient'}
                       </Button>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-md font-medium">Annotate</h3>
+                    <AnnotationCanvas imageUrl={processedImage || previewUrl!} />
                   </div>
                 </div>
               ) : (
