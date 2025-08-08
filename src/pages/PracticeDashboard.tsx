@@ -4,23 +4,80 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
-import { 
-  Users, 
-  Calendar, 
-  DollarSign, 
-  TrendingUp, 
-  Clock, 
+import {
+  Users,
+  Calendar as CalendarIcon,
+  DollarSign,
+  TrendingUp,
+  Clock,
   Star,
   AlertCircle,
   CheckCircle,
   Building
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ClinicSwitcher } from "@/components/ClinicSwitcher";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as DateRangeCalendar } from "@/components/ui/calendar";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
 
 const PracticeDashboard = () => {
   const [locationsOpen, setLocationsOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(new Date().setDate(new Date().getDate() - 29)),
+    to: new Date(),
+  });
+  const [analytics, setAnalytics] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const fromDay = new Date(dateRange.from.toDateString());
+        const toDay = new Date(dateRange.to.toDateString());
+        const toNext = new Date(toDay);
+        toNext.setDate(toNext.getDate() + 1);
+        const { data, error } = await supabase
+          .from('practice_analytics')
+          .select('*')
+          .gte('period_start', fromDay.toISOString())
+          .lt('period_start', toNext.toISOString())
+          .order('period_start', { ascending: true });
+        if (error) throw error;
+        setAnalytics(data || []);
+      } catch (e: any) {
+        console.error(e);
+        toast({ title: 'Failed to load analytics', description: e.message, variant: 'destructive' });
+      }
+    };
+    load();
+  }, [dateRange.from, dateRange.to]);
+
+  const dailyRevenueSeries = useMemo(() => {
+    const points = analytics
+      .filter((r: any) => r.metric_name === 'daily_revenue_total' || (r.metric_type === 'daily_snapshot' && r.metric_name === 'daily_revenue_total'))
+      .map((r: any) => ({
+        date: (r.period_start || r.created_at || '').slice(0, 10),
+        value: Number(r.metric_value || 0)
+      }));
+    const byDate: Record<string, number> = {};
+    points.forEach((p: any) => { byDate[p.date] = (byDate[p.date] || 0) + p.value; });
+    return Object.entries(byDate).map(([date, value]) => ({ date, value: value as number })).sort((a: any, b: any) => (a.date as string).localeCompare(b.date as string));
+  }, [analytics]);
+
+  const categoryTotals = useMemo(() => {
+    const totals: Record<string, number> = {};
+    analytics.forEach((r: any) => {
+      if (r.metric_type === 'revenue_by_type' || (r.metric_type === 'revenue' && r.metadata?.treatment)) {
+        const key = r.metric_name || r.metadata?.treatment || 'Other';
+        totals[key] = (totals[key] || 0) + Number(r.metric_value || 0);
+      }
+    });
+    return Object.entries(totals).map(([name, value]) => ({ name, value }));
+  }, [analytics]);
 
   const handleGenerateReport = () => {
     const csvRows: string[] = [];
@@ -53,7 +110,7 @@ const PracticeDashboard = () => {
       value: "24",
       change: "+3",
       changeType: "positive" as const,
-      icon: Calendar,
+      icon: CalendarIcon,
     },
     {
       title: "Monthly Revenue",
@@ -188,6 +245,72 @@ const PracticeDashboard = () => {
             </Card>
           ))}
         </div>
+
+        {/* Analytics Overview */}
+        <Card>
+          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <CardTitle>Analytics Overview</CardTitle>
+              <CardDescription>Saved KPIs and daily snapshots</CardDescription>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.from.toISOString().slice(0, 10)} – {dateRange.to.toISOString().slice(0, 10)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" align="end">
+                <DateRangeCalendar
+                  mode="range"
+                  selected={dateRange as any}
+                  onSelect={(v: any) => {
+                    if (!v?.from) return;
+                    const to = v.to ?? v.from;
+                    setDateRange({ from: v.from, to });
+                  }}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="h-64">
+                <h4 className="text-sm font-medium mb-2">Daily Revenue</h4>
+                {dailyRevenueSeries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No data in range.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dailyRevenueSeries}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+              <div className="h-64">
+                <h4 className="text-sm font-medium mb-2">Revenue by Treatment</h4>
+                {categoryTotals.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No data in range.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categoryTotals}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Practice Performance */}
