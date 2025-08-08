@@ -210,7 +210,7 @@ export default function TeamManagement() {
                 </FormItem>
               )} />
               <div className="md:col-span-2">
-                <Button type="submit" className="w-full">Send Invitation</Button>
+                <Button type="submit" className="w-full">Save & Send Invitation</Button>
               </div>
             </form>
           </Form>
