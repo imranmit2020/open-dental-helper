@@ -163,7 +163,8 @@ export default function ChairsideAssistant() {
   const { user } = useAuth();
   const [providerName, setProviderName] = useState<string | null>(null);
 
-document.title = "Chairside AI Assistant – Patient Safety & Dosage";
+useEffect(() => {
+  document.title = "Chairside AI Assistant – Patient Safety & Dosage";
 }, []);
 
 useEffect(() => {
