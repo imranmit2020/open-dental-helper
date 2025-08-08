@@ -52,6 +52,7 @@ export default function TeamManagement() {
   const [editing, setEditing] = useState<null | { user_id: string; first_name: string; last_name: string; email: string; role: FormValues["role"]; phone?: string }>(null);
   const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
   const [savingEmployee, setSavingEmployee] = useState(false);
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
 
   const { data: team, refetch, isLoading } = useQuery({
     queryKey: ["team-members"],
@@ -202,18 +203,44 @@ export default function TeamManagement() {
   };
 
   const deactivateEmployee = async (userId: string) => {
-    const rec = (employeeRecordByUserId as any)?.[userId];
-    if (!rec) return;
     try {
-      const { error } = await supabase
-        .from("employees")
-        .update({ status: "inactive" })
-        .eq("id", rec.id);
-      if (error) throw error;
+      setDeactivatingId(userId);
+      const rec = (employeeRecordByUserId as any)?.[userId];
+
+      if (rec) {
+        if (rec.status === 'inactive') {
+          toast({ title: 'Already inactive' });
+          return;
+        }
+        const { error } = await supabase
+          .from("employees")
+          .update({ status: "inactive" })
+          .eq("id", rec.id);
+        if (error) throw error;
+      } else {
+        if (!currentTenant?.id) throw new Error("No clinic selected.");
+        const profile = (combinedRows as any[]).find(r => r._type === 'member' && r.user_id === userId);
+        if (!profile) throw new Error("Member profile not found.");
+        const roleForId = ['dentist','hygienist','staff'].includes(profile.role) ? profile.role : 'staff';
+        const { error } = await supabase
+          .from("employees")
+          .insert({
+            user_id: userId,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            email: profile.email,
+            role: roleForId,
+            tenant_id: currentTenant.id,
+            status: 'inactive',
+          });
+        if (error) throw error;
+      }
       toast({ title: "Employee deactivated" });
       await refetchEmployees?.();
     } catch (e: any) {
       toast({ title: "Action failed", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setDeactivatingId(null);
     }
   };
 
