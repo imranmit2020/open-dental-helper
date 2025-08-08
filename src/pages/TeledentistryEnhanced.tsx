@@ -41,6 +41,7 @@ export default function TeledentistryEnhanced() {
     assessment: "",
     plan: ""
   });
+  const [savingRecord, setSavingRecord] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -159,6 +160,45 @@ export default function TeledentistryEnhanced() {
       if (audioTrack) {
         audioTrack.enabled = !isAudioEnabled;
       }
+    }
+  };
+
+  const saveToRecord = async () => {
+    try {
+      if (!currentSession) {
+        toast.error("Select a session before saving");
+        return;
+      }
+      setSavingRecord(true);
+
+      // Update teledentistry session with AI notes
+      updateNotesMutation({
+        sessionId: currentSession.id,
+        aiSoapNotes: soapNotes,
+        aiTranscript: aiTranscript,
+      });
+
+      // Insert into medical_records
+      const visitDate = new Date().toISOString().split('T')[0];
+      const { error } = await supabase.from('medical_records').insert({
+        patient_id: currentSession.patient_id,
+        dentist_id: currentSession.dentist_id,
+        record_type: 'teledentistry',
+        title: 'Teledentistry SOAP notes',
+        description: aiTranscript || null,
+        diagnosis: soapNotes.assessment || null,
+        treatment: soapNotes.plan || null,
+        visit_date: visitDate,
+        status: 'active',
+      });
+      if (error) throw error;
+
+      toast.success('Saved to patient record');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Failed to save to patient record');
+    } finally {
+      setSavingRecord(false);
     }
   };
 
@@ -409,9 +449,9 @@ export default function TeledentistryEnhanced() {
               </div>
               
               <div className="flex gap-2">
-                <Button className="flex-1">
+                <Button className="flex-1" onClick={saveToRecord} disabled={savingRecord || !currentSession}>
                   <FileText className="w-4 h-4 mr-2" />
-                  Save to Patient Record
+                  {savingRecord ? 'Saving...' : 'Save to Patient Record'}
                 </Button>
                 <Button variant="outline">
                   Export PDF
