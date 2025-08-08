@@ -24,6 +24,7 @@ const PracticeDashboard = lazy(() => import("./pages/PracticeDashboard"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const ScheduleManagement = lazy(() => import("./pages/ScheduleManagement"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
+const AdminAddEmployee = lazy(() => import("./pages/AdminAddEmployee"));
 const Patients = lazy(() => import("./pages/Patients"));
 const PatientProfile = lazy(() => import("./pages/PatientProfile"));
 const MedicalHistory = lazy(() => import("./pages/MedicalHistory"));
@@ -165,6 +166,11 @@ function App() {
             <Route path="admin/team" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><TeamManagement /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/employees/new" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminAddEmployee /></Suspense>
               </ProtectedRoute>
             } />
           </Route>

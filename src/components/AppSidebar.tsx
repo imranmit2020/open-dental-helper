@@ -120,6 +120,7 @@ const complianceItems: NavigationItem[] = [
 const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'] },
   { title: "Team Management", url: "/admin/team", icon: Users, requiredRoles: ['admin'] },
+  { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'] },
 ];
 
 export function AppSidebar() {
@@ -517,6 +518,14 @@ export function AppSidebar() {
                     <NavLink to="/admin/team" className={getNavCls}>
                       <Users className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Team Management</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/employees/new" className={getNavCls}>
+                      <UserPlus className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Add Employee</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
