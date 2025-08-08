@@ -23,6 +23,7 @@ import {
   Star,
   Loader2
 } from "lucide-react";
+import ReviewRequestDialog from "@/components/ReviewRequestDialog";
 
 interface Appointment {
   id: string;
@@ -569,10 +570,14 @@ const DentistDashboard = () => {
                   <FileText className="w-4 h-4 mr-2" />
                   Create Treatment Plan
                 </Button>
-                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/reputation-management')}>
-                  <Star className="w-4 h-4 mr-2" />
-                  Request Feedback
-                </Button>
+<ReviewRequestDialog
+                  trigger={
+                    <Button variant="outline" className="w-full justify-start">
+                      <Star className="w-4 h-4 mr-2" />
+                      Request Feedback
+                    </Button>
+                  }
+                />
               </CardContent>
             </Card>
           </div>
