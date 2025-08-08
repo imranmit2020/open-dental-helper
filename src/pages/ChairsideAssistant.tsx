@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog } from "@/components/chairside/ActionDialogs";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -153,6 +154,9 @@ export default function ChairsideAssistant() {
   const [anesthesiaRec, setAnesthesiaRec] = useState<AnesthesiaRecommendation | null>(null);
   const [riskFactors, setRiskFactors] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [openPrescribe, setOpenPrescribe] = useState(false);
+  const [openFollowUp, setOpenFollowUp] = useState(false);
+  const [openSecondOpinion, setOpenSecondOpinion] = useState(false);
 
 useEffect(() => {
   document.title = "Chairside AI Assistant – Patient Safety & Dosage";
@@ -482,19 +486,19 @@ const seedDemo = async () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16">
+            <Button variant="outline" className="h-16" onClick={() => setOpenPrescribe(true)}>
               <div className="text-center">
                 <Pill className="w-6 h-6 mx-auto mb-1" />
                 <span className="text-xs">Prescribe Medication</span>
               </div>
             </Button>
-            <Button variant="outline" className="h-16">
+            <Button variant="outline" className="h-16" onClick={() => setOpenFollowUp(true)}>
               <div className="text-center">
                 <Clock className="w-6 h-6 mx-auto mb-1" />
                 <span className="text-xs">Schedule Follow-up</span>
               </div>
             </Button>
-            <Button variant="outline" className="h-16">
+            <Button variant="outline" className="h-16" onClick={() => setOpenSecondOpinion(true)}>
               <div className="text-center">
                 <Brain className="w-6 h-6 mx-auto mb-1" />
                 <span className="text-xs">Get Second Opinion</span>
@@ -509,6 +513,22 @@ const seedDemo = async () => {
           </div>
         </CardContent>
       </Card>
+
+      <PrescribeMedicationDialog
+        open={openPrescribe}
+        onOpenChange={setOpenPrescribe}
+        patientId={selectedPatient}
+      />
+      <ScheduleFollowUpDialog
+        open={openFollowUp}
+        onOpenChange={setOpenFollowUp}
+        patientId={selectedPatient}
+      />
+      <SecondOpinionDialog
+        open={openSecondOpinion}
+        onOpenChange={setOpenSecondOpinion}
+        patientId={selectedPatient}
+      />
     </div>
   );
 }
