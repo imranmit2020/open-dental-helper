@@ -50,6 +50,8 @@ export default function TeamManagement() {
   useEffect(() => { setSEO(); }, []);
 
   const [editing, setEditing] = useState<null | { user_id: string; first_name: string; last_name: string; email: string; role: FormValues["role"]; phone?: string }>(null);
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+  const [savingEmployee, setSavingEmployee] = useState(false);
 
   const { data: team, refetch, isLoading } = useQuery({
     queryKey: ["team-members"],
@@ -78,13 +80,13 @@ export default function TeamManagement() {
     },
   });
 
-  const { data: employees } = useQuery({
+  const { data: employees, refetch: refetchEmployees } = useQuery({
     queryKey: ["employees", currentTenant?.id],
     enabled: !!currentTenant?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees")
-        .select("user_id, employee_id")
+        .select("id, user_id, employee_id, job_title, department, employment_type, status, hire_date, tenant_id")
         .eq("tenant_id", currentTenant!.id);
       if (error) throw error;
       return data ?? [];
@@ -95,6 +97,14 @@ export default function TeamManagement() {
     const map: Record<string, string> = {};
     (employees || []).forEach((e: any) => {
       if (e.user_id && e.employee_id) map[e.user_id] = e.employee_id;
+    });
+    return map;
+  }, [employees]);
+
+  const employeeRecordByUserId = useMemo(() => {
+    const map: Record<string, any> = {};
+    (employees || []).forEach((e: any) => {
+      if (e.user_id) map[e.user_id] = e;
     });
     return map;
   }, [employees]);
@@ -163,6 +173,47 @@ export default function TeamManagement() {
       await refetch();
     } catch (e: any) {
       toast({ title: "Remove failed", description: e.message || "Please try again.", variant: "destructive" });
+    }
+  };
+
+  const openEditEmployee = (userId: string) => {
+    const rec = (employeeRecordByUserId as any)?.[userId];
+    if (rec) setEditingEmployee({ ...rec });
+  };
+
+  const saveEmployeeEdit = async () => {
+    if (!editingEmployee) return;
+    try {
+      setSavingEmployee(true);
+      const { id, job_title, department, employment_type, status, hire_date } = editingEmployee;
+      const { error } = await supabase
+        .from("employees")
+        .update({ job_title, department, employment_type, status, hire_date })
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: "Employee updated" });
+      setEditingEmployee(null);
+      await refetchEmployees?.();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingEmployee(false);
+    }
+  };
+
+  const deactivateEmployee = async (userId: string) => {
+    const rec = (employeeRecordByUserId as any)?.[userId];
+    if (!rec) return;
+    try {
+      const { error } = await supabase
+        .from("employees")
+        .update({ status: "inactive" })
+        .eq("id", rec.id);
+      if (error) throw error;
+      toast({ title: "Employee deactivated" });
+      await refetchEmployees?.();
+    } catch (e: any) {
+      toast({ title: "Action failed", description: e.message || "Please try again.", variant: "destructive" });
     }
   };
 
@@ -373,6 +424,22 @@ export default function TeamManagement() {
                         {u._type === 'member' ? (
                           <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditEmployee(u.user_id)}
+                              disabled={!employeeRecordByUserId?.[u.user_id]}
+                            >
+                              Edit Employee
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => deactivateEmployee(u.user_id)}
+                              disabled={!employeeRecordByUserId?.[u.user_id] || employeeRecordByUserId?.[u.user_id]?.status === 'inactive'}
+                            >
+                              Deactivate
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="destructive" size="sm" disabled={u.user_id === user?.id}>Remove</Button>
@@ -427,6 +494,58 @@ export default function TeamManagement() {
           )}
         </CardContent>
       </Card>
+      <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit employee</DialogTitle>
+          </DialogHeader>
+          {editingEmployee && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1 md:col-span-2">
+                <Label>Employee ID</Label>
+                <Input value={editingEmployee.employee_id || ''} disabled />
+              </div>
+              <div className="col-span-1">
+                <Label>Job title</Label>
+                <Input value={editingEmployee.job_title ?? ''} onChange={(e) => setEditingEmployee({ ...editingEmployee, job_title: e.target.value })} />
+              </div>
+              <div className="col-span-1">
+                <Label>Department</Label>
+                <Input value={editingEmployee.department ?? ''} onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value })} />
+              </div>
+              <div className="col-span-1">
+                <Label>Employment type</Label>
+                <Select value={editingEmployee.employment_type ?? 'full_time'} onValueChange={(v) => setEditingEmployee({ ...editingEmployee, employment_type: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full_time">Full-time</SelectItem>
+                    <SelectItem value="part_time">Part-time</SelectItem>
+                    <SelectItem value="contractor">Contractor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-1">
+                <Label>Status</Label>
+                <Select value={editingEmployee.status ?? 'active'} onValueChange={(v) => setEditingEmployee({ ...editingEmployee, status: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <Label>Hire date</Label>
+                <Input type="date" value={(editingEmployee.hire_date || '').slice(0,10)} onChange={(e) => setEditingEmployee({ ...editingEmployee, hire_date: e.target.value })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditingEmployee(null)}>Cancel</Button>
+            <Button onClick={saveEmployeeEdit} disabled={savingEmployee}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
