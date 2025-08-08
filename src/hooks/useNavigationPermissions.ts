@@ -9,7 +9,7 @@ export interface NavigationItem {
   requiredRoles?: string[];
   requiredFeature?: string;
   requiresSubscription?: boolean;
-  moduleKey?: string; // optional key to control access via admin permissions
+  moduleKey?: ModuleKey; // optional key to control access via admin permissions
 }
 
 export function useNavigationPermissions() {
