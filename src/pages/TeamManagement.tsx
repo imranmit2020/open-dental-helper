@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const schema = z.object({
   first_name: z.string().min(1, "Required"),
@@ -231,19 +232,19 @@ export default function TeamManagement() {
           {editing && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-1">
-                <FormLabel>First name</FormLabel>
+                <Label>First name</Label>
                 <Input value={editing.first_name} onChange={(e) => setEditing({ ...editing, first_name: e.target.value })} />
               </div>
               <div className="col-span-1">
-                <FormLabel>Last name</FormLabel>
+                <Label>Last name</Label>
                 <Input value={editing.last_name} onChange={(e) => setEditing({ ...editing, last_name: e.target.value })} />
               </div>
               <div className="col-span-1 md:col-span-2">
-                <FormLabel>Email</FormLabel>
+                <Label>Email</Label>
                 <Input value={editing.email} disabled />
               </div>
               <div className="col-span-1">
-                <FormLabel>Role</FormLabel>
+                <Label>Role</Label>
                 <Select value={editing.role} onValueChange={(v) => setEditing({ ...editing, role: v as FormValues["role"] })}>
                   <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
                   <SelectContent>
@@ -256,7 +257,7 @@ export default function TeamManagement() {
                 </Select>
               </div>
               <div className="col-span-1">
-                <FormLabel>Phone</FormLabel>
+                <Label>Phone</Label>
                 <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
               </div>
             </div>
