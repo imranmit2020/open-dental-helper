@@ -53,20 +53,38 @@ export default function AdminPasswordManagement() {
       if (!currentTenant?.id) return;
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('employees')
+        // 1) Get all assigned users for this clinic
+        const { data: tenantUsers, error: tuErr } = await supabase
+          .from('tenant_users')
+          .select('user_id')
+          .eq('tenant_id', currentTenant.id);
+        if (tuErr) throw tuErr;
+
+        const userIds = (tenantUsers || []).map((tu: any) => tu.user_id).filter(Boolean);
+        if (userIds.length === 0) {
+          setRows([]);
+          return;
+        }
+
+        // 2) Load profiles for names/emails
+        const { data: profiles, error: profErr } = await supabase
+          .from('profiles')
           .select('user_id, first_name, last_name, email')
-          .eq('tenant_id', currentTenant.id)
-          .not('user_id', 'is', null);
-        if (error) throw error;
-        setRows((data || []).map((e: any) => ({
-          user_id: e.user_id,
-          first_name: e.first_name,
-          last_name: e.last_name,
-          email: e.email,
-        })));
+          .in('user_id', userIds);
+        if (profErr) throw profErr;
+
+        const mapped: Row[] = (profiles || []).map((p: any) => ({
+          user_id: p.user_id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          email: p.email,
+        }));
+
+        // Sort by name
+        mapped.sort((a, b) => `${a.first_name ?? ''} ${a.last_name ?? ''}`.localeCompare(`${b.first_name ?? ''} ${b.last_name ?? ''}`));
+        setRows(mapped);
       } catch (e: any) {
-        toast({ title: 'Failed to load employees', description: e.message || 'Please try again.', variant: 'destructive' });
+        toast({ title: 'Failed to load users', description: e.message || 'Please try again.', variant: 'destructive' });
       } finally {
         setLoading(false);
       }
@@ -156,7 +174,7 @@ export default function AdminPasswordManagement() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No employees with portal accounts found.</div>
+                <div className="text-sm text-muted-foreground">No users assigned to this clinic yet.</div>
               ) : (
                 <Table>
                   <TableHeader>
