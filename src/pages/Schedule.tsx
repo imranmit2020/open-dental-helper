@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { useAuditLog } from "@/hooks/useAuditLog";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "@/hooks/useAppointments";
 import { format } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 import { 
   Calendar,
   Clock,
@@ -32,6 +33,8 @@ export default function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
   const { appointments, loading, refetch } = useAppointments(view === "day" ? currentDate : undefined);
+  const [searchParams] = useSearchParams();
+  const filter = (searchParams.get('filter') || 'today') as 'today' | 'upcoming';
 
   // Audit logging on page access
   useEffect(() => {
@@ -93,21 +96,27 @@ export default function Schedule() {
     }
   };
 
-  // Transform appointments for display
-  const displayAppointments = appointments.map(apt => ({
-    id: apt.id,
-    time: format(new Date(apt.appointment_date), 'h:mm a'),
-    duration: apt.duration || 60,
-    patient: apt.treatment_type === 'block' 
-      ? apt.title // For blocked time, show the reason as the "patient"
-      : apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Unknown Patient',
-    type: apt.treatment_type === 'block' ? 'Blocked Time' : apt.title,
-    status: apt.status || 'scheduled',
-    room: "Room 1", // Default room since not in database
-    phone: apt.treatment_type === 'block' ? '' : (apt.patient?.phone || ''),
-    treatment_type: apt.treatment_type,
-    isBlockedTime: apt.treatment_type === 'block'
-  }));
+  // Transform and optionally filter appointments for display
+  const displayAppointments = useMemo(() => {
+    const base = appointments.map(apt => ({
+      id: apt.id,
+      time: format(new Date(apt.appointment_date), 'h:mm a'),
+      duration: apt.duration || 60,
+      patient: apt.treatment_type === 'block' 
+        ? apt.title // For blocked time, show the reason as the "patient"
+        : apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : 'Unknown Patient',
+      type: apt.treatment_type === 'block' ? 'Blocked Time' : apt.title,
+      status: apt.status || 'scheduled',
+      room: "Room 1", // Default room since not in database
+      phone: apt.treatment_type === 'block' ? '' : (apt.patient?.phone || ''),
+      treatment_type: apt.treatment_type,
+      isBlockedTime: apt.treatment_type === 'block'
+    }));
+    if (filter === 'upcoming') {
+      return base.filter(a => ['scheduled','confirmed','pending'].includes(a.status));
+    }
+    return base;
+  }, [appointments, filter]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -204,7 +213,7 @@ export default function Schedule() {
                 Today's Schedule
               </CardTitle>
               <CardDescription>
-                {displayAppointments.length} appointments scheduled
+                {displayAppointments.length} {filter === 'upcoming' ? 'upcoming' : ''} appointments scheduled
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -216,7 +225,7 @@ export default function Schedule() {
                 ) : displayAppointments.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No appointments scheduled for this day</p>
+                    <p>No {filter === 'upcoming' ? 'upcoming ' : ''}appointments for this day</p>
                   </div>
                 ) : displayAppointments.map((appointment) => (
                   <div

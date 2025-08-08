@@ -304,7 +304,7 @@ const DentistDashboard = () => {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card onClick={() => navigate('/schedule')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Today's Appointments
@@ -332,7 +332,7 @@ const DentistDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card onClick={() => navigate('/schedule?filter=upcoming')} className="cursor-pointer hover:ring-2 ring-primary/30 transition">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Upcoming Today
