@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as DateRangeCalendar } from "@/components/ui/calendar";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 
 const PracticeDashboard = () => {
   const [locationsOpen, setLocationsOpen] = useState(false);
@@ -32,6 +33,11 @@ const PracticeDashboard = () => {
   });
   const [analytics, setAnalytics] = useState<any[]>([]);
   const { toast } = useToast();
+  const [drillOpen, setDrillOpen] = useState(false);
+  const [drillDate, setDrillDate] = useState<string | null>(null);
+  const [drillInvoices, setDrillInvoices] = useState<any[]>([]);
+  const [drillAppointments, setDrillAppointments] = useState<any[]>([]);
+  const [drillLoading, setDrillLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -56,6 +62,57 @@ const PracticeDashboard = () => {
     load();
   }, [dateRange.from, dateRange.to]);
 
+  // Realtime updates for invoices and appointments
+  useEffect(() => {
+    const channel = supabase
+      .channel('practice-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => {
+        // Refresh analytics when invoices change
+        const from = dateRange.from;
+        const to = dateRange.to;
+        (async () => {
+          try {
+            const fromDay = new Date(from.toDateString());
+            const toDay = new Date(to.toDateString());
+            const toNext = new Date(toDay);
+            toNext.setDate(toNext.getDate() + 1);
+            const { data } = await supabase
+              .from('practice_analytics')
+              .select('*')
+              .gte('period_start', fromDay.toISOString())
+              .lt('period_start', toNext.toISOString())
+              .order('period_start', { ascending: true });
+            setAnalytics(data || []);
+          } catch {}
+        })();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+        // Same refresh on appointment changes
+        const from = dateRange.from;
+        const to = dateRange.to;
+        (async () => {
+          try {
+            const fromDay = new Date(from.toDateString());
+            const toDay = new Date(to.toDateString());
+            const toNext = new Date(toDay);
+            toNext.setDate(toNext.getDate() + 1);
+            const { data } = await supabase
+              .from('practice_analytics')
+              .select('*')
+              .gte('period_start', fromDay.toISOString())
+              .lt('period_start', toNext.toISOString())
+              .order('period_start', { ascending: true });
+            setAnalytics(data || []);
+          } catch {}
+        })();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [dateRange.from, dateRange.to]);
+
   const dailyRevenueSeries = useMemo(() => {
     const points = analytics
       .filter((r: any) => r.metric_name === 'daily_revenue_total' || (r.metric_type === 'daily_snapshot' && r.metric_name === 'daily_revenue_total'))
@@ -78,6 +135,37 @@ const PracticeDashboard = () => {
     });
     return Object.entries(totals).map(([name, value]) => ({ name, value }));
   }, [analytics]);
+
+  const openDrillForDate = async (dateStr: string) => {
+    try {
+      setDrillLoading(true);
+      setDrillDate(dateStr);
+      setDrillOpen(true);
+      const start = new Date(dateStr + 'T00:00:00Z');
+      const end = new Date(dateStr + 'T00:00:00Z');
+      end.setUTCDate(end.getUTCDate() + 1);
+
+      const [{ data: invoices }, { data: appts }] = await Promise.all([
+        supabase.from('invoices').select('*').gte('issued_at', start.toISOString()).lt('issued_at', end.toISOString()).order('issued_at', { ascending: true }),
+        supabase.from('appointments').select('*').gte('appointment_date', start.toISOString()).lt('appointment_date', end.toISOString()).order('appointment_date', { ascending: true })
+      ]);
+
+      setDrillInvoices(invoices || []);
+      setDrillAppointments(appts || []);
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Failed to load drill-down', variant: 'destructive' });
+    } finally {
+      setDrillLoading(false);
+    }
+  };
+
+  const handleLineChartClick = (state: any) => {
+    const date = state?.activeLabel as string | undefined;
+    if (date) {
+      openDrillForDate(date);
+    }
+  };
 
   const handleGenerateReport = () => {
     const csvRows: string[] = [];
@@ -246,6 +334,34 @@ const PracticeDashboard = () => {
           ))}
         </div>
 
+        {/* Revenue MoM / YoY & Target */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trends</CardTitle>
+            <CardDescription>Month-over-month, year-over-year, and target progress</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <div className="text-sm text-muted-foreground">MTD vs Last Month</div>
+                <div className="text-2xl font-bold">${dailyRevenueSeries.reduce((s: number, p: any) => s + p.value, 0).toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground">Comparison updates as you change date range</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">YoY (same range)</div>
+                <div className="text-2xl font-bold">—</div>
+                <div className="text-xs text-muted-foreground">Hook to historical data when available</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Progress to Target</div>
+                <Progress value={Math.min(100, (dailyRevenueSeries.reduce((s: number, p: any) => s + p.value, 0) / 100000) * 100)} className="h-2" />
+                <div className="text-xs text-muted-foreground mt-1">Target: $100,000</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+
         {/* Analytics Overview */}
         <Card>
           <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -282,7 +398,7 @@ const PracticeDashboard = () => {
                   <p className="text-sm text-muted-foreground">No data in range.</p>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dailyRevenueSeries}>
+                    <LineChart data={dailyRevenueSeries} onClick={handleLineChartClick}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis />
@@ -423,6 +539,52 @@ const PracticeDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Drill-down Drawer */}
+        <Drawer open={drillOpen} onOpenChange={setDrillOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>Details for {drillDate}</DrawerTitle>
+              <DrawerDescription>Invoices and appointments</DrawerDescription>
+            </DrawerHeader>
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-2">Invoices</h4>
+                {drillLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading…</p>
+                ) : drillInvoices.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No invoices.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {drillInvoices.map((inv) => (
+                      <div key={inv.id} className="flex items-center justify-between p-3 border rounded">
+                        <span className="text-sm">{new Date(inv.issued_at).toLocaleTimeString()} • {inv.status}</span>
+                        <span className="font-semibold">${(Number(inv.total)||0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Appointments</h4>
+                {drillLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading…</p>
+                ) : drillAppointments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No appointments.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {drillAppointments.map((a) => (
+                      <div key={a.id} className="flex items-center justify-between p-3 border rounded">
+                        <span className="text-sm">{new Date(a.appointment_date).toLocaleTimeString()} • {a.status}</span>
+                        <Badge variant="outline">{a.treatment_type || 'General'}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
     </div>
   );

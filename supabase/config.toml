@@ -1,1 +1,7 @@
 project_id = "nqrwtihwuvyfucmbcsem"
+
+[functions.kpi-daily-snapshot]
+verify_jwt = false
+
+[functions.kpi-email-digest]
+verify_jwt = false
