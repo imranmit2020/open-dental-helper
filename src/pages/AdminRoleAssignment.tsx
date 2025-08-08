@@ -161,7 +161,7 @@ export default function AdminRoleAssignment() {
     setActionLoading(`reset:${email}`);
     try {
       const { error } = await supabase.functions.invoke("admin-auth", {
-        body: { action: "send_reset", email, redirectTo: window.location.origin },
+        body: { action: "send_reset", email, redirectTo: `${window.location.origin}/reset-password` },
       });
       if (error) throw error as any;
       toast({ title: "Reset email sent", description: `Password reset sent to ${email}` });

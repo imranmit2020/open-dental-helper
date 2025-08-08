@@ -64,6 +64,7 @@ const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard"));
 const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
 const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -100,6 +101,7 @@ function App() {
             <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
           <Route path="/patient-signup" element={<PatientSignUp />} />
           <Route path="/" element={<AuthProtectedRoute><Layout /></AuthProtectedRoute>}>
