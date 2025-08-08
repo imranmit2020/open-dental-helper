@@ -60,7 +60,7 @@ export default function TeamManagement() {
   const saveEdit = async () => {
     if (!editing) return;
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({
           first_name: editing.first_name,
@@ -68,8 +68,12 @@ export default function TeamManagement() {
           role: editing.role,
           phone: editing.phone ?? null,
         })
-        .eq("user_id", editing.user_id);
+        .eq("user_id", editing.user_id)
+        .select("user_id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No permission to update this member. Ask a Super Admin.");
+      }
       toast({ title: "Updated", description: "Team member updated successfully." });
       setEditing(null);
       refetch();
