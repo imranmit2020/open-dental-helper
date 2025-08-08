@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const schema = z.object({
   first_name: z.string().min(1, "Required"),
@@ -40,18 +41,41 @@ export default function TeamManagement() {
 
   useEffect(() => { setSEO(); }, []);
 
+  const [editing, setEditing] = useState<null | { user_id: string; first_name: string; last_name: string; email: string; role: FormValues["role"]; phone?: string }>(null);
+
   const { data: team, refetch, isLoading } = useQuery({
     queryKey: ["team-members"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, first_name, last_name, email, role")
+        .select("user_id, first_name, last_name, email, phone, role")
         .in("role", ["admin", "super_admin", "dentist", "hygienist", "staff"])
         .order("role", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: editing.first_name,
+          last_name: editing.last_name,
+          role: editing.role,
+          phone: editing.phone ?? null,
+        })
+        .eq("user_id", editing.user_id);
+      if (error) throw error;
+      toast({ title: "Updated", description: "Team member updated successfully." });
+      setEditing(null);
+      refetch();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message || "Please try again.", variant: "destructive" });
+    }
+  };
 
   const grouped = useMemo(() => {
     const g: Record<string, any[]> = { super_admin: [], admin: [], dentist: [], hygienist: [], staff: [] };
@@ -99,6 +123,12 @@ export default function TeamManagement() {
           <CardTitle>Invite Team Member</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground">Quick role:</span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => form.setValue("role","dentist")}>Dentist</Button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => form.setValue("role","hygienist")}>Hygienist</Button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => form.setValue("role","staff")}>Staff</Button>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField name="first_name" control={form.control} render={({ field }) => (
@@ -170,16 +200,18 @@ export default function TeamManagement() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {grouped[r].length === 0 ? (
-                        <TableRow><TableCell colSpan={2} className="text-muted-foreground">No {r}s yet.</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={3} className="text-muted-foreground">No {r}s yet.</TableCell></TableRow>
                       ) : (
                         grouped[r].map((u) => (
                           <TableRow key={u.user_id}>
                             <TableCell>{u.first_name} {u.last_name}</TableCell>
                             <TableCell>{u.email}</TableCell>
+                            <TableCell><Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button></TableCell>
                           </TableRow>
                         ))
                       )}
@@ -191,6 +223,50 @@ export default function TeamManagement() {
           )}
         </CardContent>
       </Card>
+      <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit team member</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1">
+                <FormLabel>First name</FormLabel>
+                <Input value={editing.first_name} onChange={(e) => setEditing({ ...editing, first_name: e.target.value })} />
+              </div>
+              <div className="col-span-1">
+                <FormLabel>Last name</FormLabel>
+                <Input value={editing.last_name} onChange={(e) => setEditing({ ...editing, last_name: e.target.value })} />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <FormLabel>Email</FormLabel>
+                <Input value={editing.email} disabled />
+              </div>
+              <div className="col-span-1">
+                <FormLabel>Role</FormLabel>
+                <Select value={editing.role} onValueChange={(v) => setEditing({ ...editing, role: v as FormValues["role"] })}>
+                  <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dentist">Dentist</SelectItem>
+                    <SelectItem value="hygienist">Hygienist</SelectItem>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-1">
+                <FormLabel>Phone</FormLabel>
+                <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button onClick={saveEdit}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
