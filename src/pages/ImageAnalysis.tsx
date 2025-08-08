@@ -9,7 +9,10 @@ import { removeBackground, loadImage } from '@/services/BackgroundRemovalService
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import AnnotationCanvas from '@/components/AnnotationCanvas';
+import BeforeAfterCompare from '@/components/BeforeAfterCompare';
 
 export const ImageAnalysis: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -20,6 +23,10 @@ export const ImageAnalysis: React.FC = () => {
   const [patientId, setPatientId] = useState<string>("");
   const [analysisType, setAnalysisType] = useState<string>("background_removal");
   const [saving, setSaving] = useState(false);
+  const [versions, setVersions] = useState<Array<{ id: string; name: string; url: string }>>([]);
+  const [versionName, setVersionName] = useState<string>("");
+  const [compareBeforeUrl, setCompareBeforeUrl] = useState<string | null>(null);
+  const [compareAfterUrl, setCompareAfterUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -61,6 +68,16 @@ export const ImageAnalysis: React.FC = () => {
     };
     loadPatients();
   }, []);
+
+  // Keep compare sources in sync
+  useEffect(() => {
+    setCompareBeforeUrl(previewUrl || null);
+  }, [previewUrl]);
+
+  useEffect(() => {
+    if (processedImage) setCompareAfterUrl(processedImage);
+  }, [processedImage]);
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -483,6 +500,45 @@ export const ImageAnalysis: React.FC = () => {
                     Download Processed Image
                   </Button>
 
+                  {/* Versions Manager */}
+                  <div className="space-y-2">
+                    <Label>Save as Version</Label>
+                    <div className="flex gap-2">
+                      <Input placeholder="e.g. Background Removed" value={versionName} onChange={(e) => setVersionName(e.target.value)} />
+                      <Button
+                        onClick={() => {
+                          if (!processedImage) return;
+                          const name = versionName || `Version ${versions.length + 1}`;
+                          const v = { id: `${Date.now()}`, name, url: processedImage };
+                          setVersions((prev) => [v, ...prev]);
+                          setVersionName("");
+                          setCompareAfterUrl(processedImage);
+                          toast({ title: 'Version saved', description: name });
+                        }}
+                      >
+                        Save Version
+                      </Button>
+                    </div>
+                    {versions.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {versions.map((v) => (
+                          <Button key={v.id} size="sm" variant={compareAfterUrl === v.url ? 'default' : 'outline'} onClick={() => setCompareAfterUrl(v.url)}>
+                            {v.name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Before / After Compare */}
+                  {compareBeforeUrl && (compareAfterUrl || processedImage) && (
+                    <div className="space-y-2 mt-4">
+                      <Label>Before / After</Label>
+                      <BeforeAfterCompare beforeUrl={compareBeforeUrl!} afterUrl={(compareAfterUrl || processedImage)!} />
+                    </div>
+                  )}
+
+                  {/* Save to Patient */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Patient</Label>
@@ -519,7 +575,9 @@ export const ImageAnalysis: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="space-y-2">
+
+                  {/* Annotation Canvas */}
+                  <div className="space-y-2 mt-4">
                     <h3 className="text-md font-medium">Annotate</h3>
                     <AnnotationCanvas imageUrl={processedImage || previewUrl!} />
                   </div>
