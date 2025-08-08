@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Canvas as FabricCanvas, Circle, Rect, Text as FabricText, Line as FabricLine, Image as FabricImage } from 'fabric';
+import { Canvas as FabricCanvas, Circle, Rect, Text as FabricText, Line as FabricLine, Image as FabricImage, PencilBrush } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
@@ -21,9 +21,12 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
 
   // Initialize Fabric canvas
   useEffect(() => {
-    if (!canvasRef.current) return;
+    const el = canvasRef.current;
+    if (!el) return;
+    // Prevent double init (React StrictMode)
+    if ((el as any).dataset?.fabricInit === '1') return;
 
-    const c = new FabricCanvas(canvasRef.current, {
+    const c = new FabricCanvas(el, {
       backgroundColor: '#ffffff',
       width: containerRef.current?.clientWidth || 800,
       height,
@@ -31,15 +34,23 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
       selection: true,
     });
 
-    // Free drawing brush config
-    c.freeDrawingBrush.color = color;
-    c.freeDrawingBrush.width = 2;
+    // Initialize drawing brush for v6
+    const brush = new PencilBrush(c);
+    brush.color = color;
+    brush.width = 2;
+    c.freeDrawingBrush = brush;
+    c.isDrawingMode = false;
 
+    (el as any).dataset.fabricInit = '1';
     setFabricCanvas(c);
     toast.success('Annotation canvas ready');
 
     return () => {
-      c.dispose();
+      try {
+        c.dispose();
+      } finally {
+        el.removeAttribute('data-fabric-init');
+      }
     };
   }, []);
 
@@ -86,9 +97,16 @@ export const AnnotationCanvas: React.FC<AnnotationCanvasProps> = ({ imageUrl, he
   // Update drawing mode and brush color
   useEffect(() => {
     if (!fabricCanvas) return;
+    // Ensure brush exists (Fabric v6)
+    if (!(fabricCanvas as any).freeDrawingBrush) {
+      const brush = new PencilBrush(fabricCanvas);
+      brush.color = color;
+      brush.width = 2;
+      (fabricCanvas as any).freeDrawingBrush = brush;
+    }
     fabricCanvas.isDrawingMode = activeTool === 'draw';
-    fabricCanvas.freeDrawingBrush.color = color;
-    fabricCanvas.freeDrawingBrush.width = 2;
+    (fabricCanvas as any).freeDrawingBrush.color = color;
+    (fabricCanvas as any).freeDrawingBrush.width = 2;
   }, [activeTool, color, fabricCanvas]);
 
   // Pointer handling for shape tools
