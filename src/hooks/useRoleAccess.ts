@@ -120,6 +120,7 @@ export function useRoleAccess() {
   });
 
   const userRole: UserRole = (profile?.role as UserRole) || 'patient';
+  const isSuperAdmin = profile?.role === 'super_admin';
   const isCorporateAdmin = corporateRole?.role === 'admin';
   const isLoading = profileLoading || corporateLoading;
   
@@ -129,8 +130,9 @@ export function useRoleAccess() {
 
   const hasRole = useCallback((role: UserRole | UserRole[]) => {
     const rolesToCheck = Array.isArray(role) ? role : [role];
+    if (rolesToCheck.includes('admin') && isSuperAdmin) return true;
     return rolesToCheck.includes(userRole);
-  }, [userRole]);
+  }, [userRole, isSuperAdmin]);
 
   const hasPermission = useCallback((permission: keyof RolePermissions) => {
     return permissions[permission] || false;
@@ -142,7 +144,7 @@ export function useRoleAccess() {
   }, [userRole, isCorporateAdmin]);
 
   // Helper computed values
-  const isStaffMember = ['admin', 'dentist', 'staff'].includes(userRole);
+  const isStaffMember = ['admin', 'dentist', 'staff'].includes(userRole) || isSuperAdmin;
   const isPatient = userRole === 'patient';
   const isAdmin = userRole === 'admin';
 
