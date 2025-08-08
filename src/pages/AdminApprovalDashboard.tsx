@@ -143,19 +143,19 @@ export default function AdminApprovalDashboard() {
         if (request) {
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert({
-              user_id: request.user_id,
+            .update({
               first_name: request.first_name,
               last_name: request.last_name,
               email: request.email,
               role: request.requested_role,
-            });
+            })
+            .eq('user_id', request.user_id);
 
           if (profileError) {
-            console.error('Error creating profile:', profileError);
+            console.error('Error updating profile:', profileError);
             toast({
               title: "Warning",
-              description: "User approved but profile creation failed",
+              description: "User approved but profile update failed",
               variant: "destructive",
             });
           }

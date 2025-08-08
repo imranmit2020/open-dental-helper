@@ -26,6 +26,7 @@ import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import type { Patient } from "@/hooks/usePatients";
 import { debounce } from "@/utils/debounce";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PatientNote {
   id: string;
