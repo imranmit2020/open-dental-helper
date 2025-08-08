@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -20,67 +21,221 @@ interface AnesthesiaRecommendation {
   precautions: string[];
   contraindications: string[];
 }
+type Patient = { id: string; first_name: string; last_name: string; date_of_birth: string | null; gender: string | null };
+
+type AllergyRow = { allergen: string; severity: string | null };
+type MedicationRow = { medication_name: string; status: string | null; notes: string | null };
+type ConditionRow = { condition_name: string; status: string | null };
+
+const calcAge = (dob: string | null) => {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age;
+};
+
+function analyzePatientData(currentProcedure: string, allergies: AllergyRow[], meds: MedicationRow[], conds: ConditionRow[]): { alerts: PatientAlert[]; anesthesia: AnesthesiaRecommendation; risks: string[] } {
+  const alerts: PatientAlert[] = [];
+  const lowerAllergens = allergies.map(a => a.allergen.toLowerCase());
+  const lowerMeds = meds.map(m => m.medication_name.toLowerCase());
+  const lowerConds = conds.map(c => c.condition_name.toLowerCase());
+
+  // Allergies
+  if (lowerAllergens.some(a => a.includes('penicillin'))) {
+    alerts.push({
+      type: 'allergy',
+      severity: 'high',
+      message: 'Allergy: Penicillin',
+      recommendation: 'Avoid penicillin-class antibiotics. Consider clindamycin if indicated.'
+    });
+  }
+  if (lowerAllergens.some(a => a.includes('lidocaine'))) {
+    alerts.push({
+      type: 'allergy',
+      severity: 'high',
+      message: 'Allergy: Lidocaine',
+      recommendation: 'Use alternative local anesthetic (e.g., mepivacaine or prilocaine if not contraindicated).' 
+    });
+  }
+
+  // Medications
+  if (lowerMeds.some(m => ['warfarin','apixaban','rivaroxaban','dabigatran'].some(k => m.includes(k)))) {
+    alerts.push({
+      type: 'medication',
+      severity: 'medium',
+      message: 'Anticoagulant therapy',
+      recommendation: 'Expect increased bleeding; use local hemostatic measures and minimize tissue trauma.'
+    });
+  }
+  if (lowerMeds.some(m => ['propranolol','metoprolol','atenolol','nadolol'].some(k => m.includes(k)))) {
+    alerts.push({
+      type: 'medication',
+      severity: 'medium',
+      message: 'Beta-blocker in use',
+      recommendation: 'Limit epinephrine dose; monitor BP/HR closely.'
+    });
+  }
+
+  // Conditions
+  if (lowerConds.some(c => ['hypertension','cardiovascular','arrhythmia'].some(k => c.includes(k)))) {
+    alerts.push({
+      type: 'condition',
+      severity: 'medium',
+      message: 'Cardiovascular condition',
+      recommendation: 'Monitor vitals; minimize epinephrine; stress reduction protocol.'
+    });
+  }
+  if (lowerConds.some(c => c.includes('asthma'))) {
+    alerts.push({
+      type: 'condition',
+      severity: 'low',
+      message: 'Asthma history',
+      recommendation: 'Have bronchodilator available; avoid sulfite-containing anesthetics if sulfite-sensitive.'
+    });
+  }
+  if (lowerConds.some(c => c.includes('diabetes'))) {
+    alerts.push({
+      type: 'condition',
+      severity: 'medium',
+      message: 'Diabetes',
+      recommendation: 'Confirm meal/insulin timing; watch for hypoglycemia; consider morning appointments.'
+    });
+  }
+
+  // Anesthesia recommendation baseline
+  let anesthesia: AnesthesiaRecommendation = {
+    type: "Lidocaine 2% with epinephrine 1:100,000",
+    dosage: "1–2 cartridges (1.8–3.6 mL) as needed; max 7 mg/kg (not to exceed 500 mg)",
+    route: currentProcedure === 'extraction' ? "Inferior alveolar nerve block + buccal infiltration" : "Buccal + palatal/lingual infiltration",
+    precautions: ["Aspirate prior to injection", "Inject slowly", "Monitor vitals and patient comfort"],
+    contraindications: []
+  };
+
+  const epiSensitive = alerts.some(a => a.message.includes('Cardiovascular')) || alerts.some(a => a.message.includes('Beta-blocker'));
+  if (epiSensitive) {
+    anesthesia = {
+      type: "Mepivacaine 3% (plain)",
+      dosage: "1–2 cartridges as needed; max 6.6 mg/kg (not to exceed 400 mg)",
+      route: anesthesia.route,
+      precautions: ["Avoid vasoconstrictors due to sensitivity", "Monitor for toxicity", "Shorter duration—plan accordingly"],
+      contraindications: ["Severe liver disease (relative)"]
+    };
+  }
+
+  if (lowerAllergens.some(a => a.includes('lidocaine'))) {
+    anesthesia = {
+      type: "Prilocaine 4% (consider felypressin variant if available)",
+      dosage: "Use conservative dosing; max 6 mg/kg",
+      route: anesthesia.route,
+      precautions: ["Assess for methemoglobinemia risk", "Avoid in significant anemia/G6PD deficiency"],
+      contraindications: ["Congenital methemoglobinemia", "Severe anemia"]
+    };
+  }
+
+  const risks: string[] = [];
+  if (currentProcedure === 'root_canal') risks.push('Complex canal morphology possible—consider CBCT if indicated');
+  if (currentProcedure === 'extraction') risks.push('Post-op bleeding risk—apply local hemostatics and sutures');
+  if (currentProcedure === 'crown_prep') risks.push('Tissue management: use retraction and careful isolation');
+  if (alerts.some(a => a.type === 'medication')) risks.push('Medication interactions—verify with physician if unsure');
+  if (alerts.some(a => a.type === 'condition')) risks.push('Medical compromise—stress reduction and shorter visits helpful');
+
+  return { alerts, anesthesia, risks };
+}
 
 export default function ChairsideAssistant() {
-  const [selectedPatient, setSelectedPatient] = useState("patient_001");
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [currentProcedure, setCurrentProcedure] = useState("root_canal");
   const [alerts, setAlerts] = useState<PatientAlert[]>([]);
   const [anesthesiaRec, setAnesthesiaRec] = useState<AnesthesiaRecommendation | null>(null);
   const [riskFactors, setRiskFactors] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const mockAlerts: PatientAlert[] = [
-    {
-      type: 'allergy',
-      severity: 'high',
-      message: 'Patient allergic to Penicillin',
-      recommendation: 'Use Amoxicillin alternative (Clindamycin 300mg)'
-    },
-    {
-      type: 'condition',
-      severity: 'medium', 
-      message: 'History of hypertension',
-      recommendation: 'Monitor blood pressure during procedure'
-    },
-    {
-      type: 'medication',
-      severity: 'medium',
-      message: 'Taking Warfarin (blood thinner)',
-      recommendation: 'Consider hemostatic agents, minimal trauma technique'
+useEffect(() => {
+  document.title = "Chairside AI Assistant – Patient Safety & Dosage";
+}, []);
+
+const loadPatients = async () => {
+  setLoading(true);
+  try {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('id, first_name, last_name, date_of_birth, gender')
+      .order('last_name', { ascending: true })
+      .limit(50);
+    if (error) throw error;
+    const list = (data || []) as Patient[];
+    setPatients(list);
+    if (!selectedPatient && list.length > 0) {
+      setSelectedPatient(list[0].id);
     }
-  ];
+    if (!list || list.length === 0) {
+      toast("No patients found. You can seed demo data.");
+    }
+  } catch (err) {
+    console.error('Error loading patients:', err);
+    toast.error("Failed to load patients");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const mockAnesthesia: AnesthesiaRecommendation = {
-    type: "Lidocaine 2% with Epinephrine 1:100,000",
-    dosage: "1.8ml (1 cartridge) for infiltration",
-    route: "Buccal and palatal infiltration",
-    precautions: [
-      "Aspirate before injection",
-      "Inject slowly to minimize discomfort",
-      "Monitor for allergic reactions"
-    ],
-    contraindications: [
-      "Known lidocaine allergy",
-      "Severe cardiovascular disease"
-    ]
+useEffect(() => {
+  loadPatients();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+useEffect(() => {
+  const run = async () => {
+    if (!selectedPatient) return;
+    setLoading(true);
+    try {
+      const [allergiesRes, medsRes, condsRes] = await Promise.all([
+        supabase.from('allergies').select('allergen, severity').eq('patient_id', selectedPatient),
+        supabase.from('medications').select('medication_name, status, notes').eq('patient_id', selectedPatient),
+        supabase.from('medical_conditions').select('condition_name, status').eq('patient_id', selectedPatient),
+      ]);
+      if (allergiesRes.error) throw allergiesRes.error;
+      if (medsRes.error) throw medsRes.error;
+      if (condsRes.error) throw condsRes.error;
+
+      const { alerts, anesthesia, risks } = analyzePatientData(
+        currentProcedure,
+        (allergiesRes.data || []) as AllergyRow[],
+        (medsRes.data || []) as MedicationRow[],
+        (condsRes.data || []) as ConditionRow[]
+      );
+
+      setAlerts(alerts);
+      setAnesthesiaRec(anesthesia);
+      setRiskFactors(risks);
+    } catch (err) {
+      console.error('Error analyzing data:', err);
+      toast.error("Failed to analyze patient data");
+    } finally {
+      setLoading(false);
+    }
   };
+  run();
+}, [selectedPatient, currentProcedure]);
 
-  const mockRiskFactors = [
-    "Patient anxiety level: High",
-    "Complex root canal anatomy",
-    "Previous failed endodontic treatment",
-    "Limited mouth opening"
-  ];
-
-  useEffect(() => {
-    // Simulate AI analysis based on patient and procedure
-    const timer = setTimeout(() => {
-      setAlerts(mockAlerts);
-      setAnesthesiaRec(mockAnesthesia);
-      setRiskFactors(mockRiskFactors);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [selectedPatient, currentProcedure]);
+const seedDemo = async () => {
+  try {
+    setLoading(true);
+    const { data, error } = await supabase.functions.invoke('seed-chairside-data', { body: {} });
+    if (error) throw error;
+    await loadPatients();
+    toast.success("Demo data seeded");
+  } catch (err) {
+    console.error('Seed error:', err);
+    toast.error("Failed to seed demo data");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -123,11 +278,24 @@ export default function ChairsideAssistant() {
               value={selectedPatient}
               onChange={(e) => setSelectedPatient(e.target.value)}
               className="w-full p-2 border rounded-md"
+              disabled={loading || patients.length === 0}
             >
-              <option value="patient_001">John Smith (Age: 45, Male)</option>
-              <option value="patient_002">Sarah Johnson (Age: 32, Female)</option>
-              <option value="patient_003">Mike Davis (Age: 58, Male)</option>
+              <option value="" disabled>
+                {loading ? 'Loading patients...' : patients.length === 0 ? 'No patients found' : 'Select a patient'}
+              </option>
+              {patients.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.last_name}, {p.first_name}
+                  {p.date_of_birth ? ` (Age: ${calcAge(p.date_of_birth)})` : ''}
+                  {p.gender ? `, ${p.gender}` : ''}
+                </option>
+              ))}
             </select>
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" variant="outline" onClick={seedDemo} disabled={loading}>
+                Seed demo data
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
