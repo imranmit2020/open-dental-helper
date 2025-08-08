@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog } from "@/components/chairside/ActionDialogs";
+import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog, UpdateAllergiesDialog } from "@/components/chairside/ActionDialogs";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -157,6 +157,8 @@ export default function ChairsideAssistant() {
   const [openPrescribe, setOpenPrescribe] = useState(false);
   const [openFollowUp, setOpenFollowUp] = useState(false);
   const [openSecondOpinion, setOpenSecondOpinion] = useState(false);
+  const [openUpdateAllergies, setOpenUpdateAllergies] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
 useEffect(() => {
   document.title = "Chairside AI Assistant – Patient Safety & Dosage";
@@ -224,7 +226,7 @@ useEffect(() => {
     }
   };
   run();
-}, [selectedPatient, currentProcedure]);
+}, [selectedPatient, currentProcedure, refreshKey]);
 
 const seedDemo = async () => {
   try {
@@ -504,7 +506,7 @@ const seedDemo = async () => {
                 <span className="text-xs">Get Second Opinion</span>
               </div>
             </Button>
-            <Button variant="outline" className="h-16">
+            <Button variant="outline" className="h-16" onClick={() => setOpenUpdateAllergies(true)}>
               <div className="text-center">
                 <Shield className="w-6 h-6 mx-auto mb-1" />
                 <span className="text-xs">Update Allergies</span>
@@ -518,16 +520,25 @@ const seedDemo = async () => {
         open={openPrescribe}
         onOpenChange={setOpenPrescribe}
         patientId={selectedPatient}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
       />
       <ScheduleFollowUpDialog
         open={openFollowUp}
         onOpenChange={setOpenFollowUp}
         patientId={selectedPatient}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
       />
       <SecondOpinionDialog
         open={openSecondOpinion}
         onOpenChange={setOpenSecondOpinion}
         patientId={selectedPatient}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
+      />
+      <UpdateAllergiesDialog
+        open={openUpdateAllergies}
+        onOpenChange={setOpenUpdateAllergies}
+        patientId={selectedPatient}
+        onSuccess={() => setRefreshKey((k) => k + 1)}
       />
     </div>
   );

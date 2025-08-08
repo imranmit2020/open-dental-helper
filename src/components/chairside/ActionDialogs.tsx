@@ -234,3 +234,140 @@ export function SecondOpinionDialog({ open, onOpenChange, patientId, onSuccess }
     </Dialog>
   );
 }
+
+// --- New: Update Allergies Dialog ---
+export function UpdateAllergiesDialog({ open, onOpenChange, patientId, onSuccess }: BaseDialogProps) {
+  const [loading, setLoading] = useState(false);
+  const [allergies, setAllergies] = useState<Array<{ id: string; allergen: string; severity: string | null; notes: string | null }>>([]);
+  const [newAllergen, setNewAllergen] = useState("");
+  const [newSeverity, setNewSeverity] = useState<string | null>("medium");
+  const [newNotes, setNewNotes] = useState("");
+
+  const load = async () => {
+    if (!patientId) return;
+    const { data, error } = await supabase
+      .from('allergies')
+      .select('id, allergen, severity, notes')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error(error);
+      toast.error('Failed to load allergies');
+      return;
+    }
+    setAllergies((data || []) as any);
+  };
+
+  React.useEffect(() => {
+    if (open) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, patientId]);
+
+  const addAllergy = async () => {
+    if (!patientId) return toast.error('Select a patient first');
+    if (!newAllergen) return toast.error('Allergen is required');
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('allergies').insert({
+        patient_id: patientId,
+        allergen: newAllergen,
+        severity: newSeverity,
+        notes: newNotes || null,
+      }).select('id, allergen, severity, notes').single();
+      if (error) throw error;
+      setAllergies((prev) => [data as any, ...prev]);
+      setNewAllergen('');
+      setNewSeverity('medium');
+      setNewNotes('');
+      toast.success('Allergy added');
+      onSuccess?.();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to add allergy');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAllergy = async (id: string) => {
+    try {
+      const { error } = await supabase.from('allergies').delete().eq('id', id);
+      if (error) throw error;
+      setAllergies((prev) => prev.filter((a) => a.id !== id));
+      toast.success('Allergy removed');
+      onSuccess?.();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to remove');
+    }
+  };
+
+  const updateSeverity = async (id: string, severity: string) => {
+    try {
+      const { error } = await supabase.from('allergies').update({ severity }).eq('id', id);
+      if (error) throw error;
+      setAllergies((prev) => prev.map((a) => a.id === id ? { ...a, severity } : a));
+      onSuccess?.();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to update');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Update Allergies</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid gap-2 md:grid-cols-3">
+            <div className="grid gap-2 md:col-span-1">
+              <Label htmlFor="allergen">Allergen</Label>
+              <Input id="allergen" value={newAllergen} onChange={(e) => setNewAllergen(e.target.value)} placeholder="e.g., Penicillin" />
+            </div>
+            <div className="grid gap-2 md:col-span-1">
+              <Label htmlFor="severity">Severity</Label>
+              <select id="severity" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={newSeverity ?? ''} onChange={(e) => setNewSeverity(e.target.value)}>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+              </select>
+            </div>
+            <div className="grid gap-2 md:col-span-1">
+              <Label htmlFor="notes">Notes</Label>
+              <Input id="notes" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder="Optional" />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={addAllergy} disabled={loading}>Add</Button>
+          </div>
+
+          <div className="space-y-2">
+            {allergies.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No allergies recorded.</p>
+            ) : (
+              allergies.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 border rounded-md p-2">
+                  <div className="flex-1">
+                    <div className="font-medium">{a.allergen}</div>
+                    {a.notes ? <div className="text-xs text-muted-foreground">{a.notes}</div> : null}
+                  </div>
+                  <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={a.severity ?? ''} onChange={(e) => updateSeverity(a.id, e.target.value)}>
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
+                  </select>
+                  <Button variant="destructive" size="sm" onClick={() => deleteAllergy(a.id)}>Delete</Button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
