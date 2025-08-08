@@ -1375,6 +1375,57 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string
+          sent_at: string | null
+          status: string
+          tenant_id: string | null
+          token: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by: string
+          email: string
+          expires_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role: string
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string | null
+          token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string | null
+          token?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       teledentistry_sessions: {
         Row: {
           ai_soap_notes: Json | null

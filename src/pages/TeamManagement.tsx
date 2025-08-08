@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,7 +21,9 @@ const schema = z.object({
   last_name: z.string().min(1, "Required"),
   email: z.string().email(),
   phone: z.string().optional(),
-  role: z.enum(["dentist", "hygienist", "staff", "admin", "super_admin"]),
+  role: z.enum(["dentist", "hygienist", "staff", "admin", "super_admin"]).refine((r) => r !== "super_admin", {
+    message: "Super Admin invites are restricted",
+  }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -38,6 +41,7 @@ function setSEO() {
 
 export default function TeamManagement() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { role: "staff" } });
 
   useEffect(() => { setSEO(); }, []);
@@ -90,24 +94,42 @@ export default function TeamManagement() {
 
   const onSubmit = async (values: FormValues) => {
     try {
+      if (!user) throw new Error("You must be logged in.");
       const redirectUrl = `${window.location.origin}/`;
-      const randomPwd = crypto.getRandomValues(new Uint32Array(4)).join("-");
-      const { error } = await supabase.auth.signUp({
+
+      // 1) Record invitation in DB
+      const { data: invite, error: insertError } = await supabase
+        .from("team_invitations")
+        .insert({
+          email: values.email,
+          first_name: values.first_name,
+          last_name: values.last_name,
+          role: values.role,
+          created_by: user.id,
+        })
+        .select("id")
+        .maybeSingle();
+      if (insertError) throw insertError;
+
+      // 2) Send magic login link
+      const { error: otpError } = await supabase.auth.signInWithOtp({
         email: values.email,
-        password: randomPwd,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            role: values.role,
-            first_name: values.first_name,
-            last_name: values.last_name,
-            phone: values.phone || "",
-            organization_type: "clinic",
-          },
-        },
+        options: { emailRedirectTo: redirectUrl },
       });
-      if (error) throw error;
-      toast({ title: "Invitation sent", description: "They'll receive an email to complete signup." });
+
+      if (otpError) {
+        if (invite?.id) {
+          await supabase.from("team_invitations").update({ status: "failed" }).eq("id", invite.id);
+        }
+        throw otpError;
+      } else if (invite?.id) {
+        await supabase
+          .from("team_invitations")
+          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .eq("id", invite.id);
+      }
+
+      toast({ title: "Invitation sent", description: "We emailed a login link to the user." });
       form.reset({ role: values.role } as any);
       setTimeout(() => refetch(), 800);
     } catch (e: any) {
