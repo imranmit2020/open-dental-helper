@@ -62,6 +62,7 @@ const QuantumDentalAI = lazy(() => import("./pages/QuantumDentalAI"));
 const QuantumScheduling = lazy(() => import("./pages/QuantumScheduling"));
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard"));
+const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -163,9 +164,19 @@ function App() {
                 <Suspense fallback={<PageLoader />}><AdminApprovalDashboard /></Suspense>
               </ProtectedRoute>
             } />
+            <Route path="admin/employees" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><TeamManagement /></Suspense>
+              </ProtectedRoute>
+            } />
             <Route path="admin/team" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><TeamManagement /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/roles" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminRoleAssignment /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="admin/employees/new" element={

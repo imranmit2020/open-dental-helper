@@ -119,7 +119,8 @@ const complianceItems: NavigationItem[] = [
 
 const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'] },
-  { title: "Team Management", url: "/admin/team", icon: Users, requiredRoles: ['admin'] },
+  { title: "Employees", url: "/admin/employees", icon: Users, requiredRoles: ['admin'] },
+  { title: "Role Assignment", url: "/admin/roles", icon: User, requiredRoles: ['admin'] },
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'] },
 ];
 
@@ -515,9 +516,17 @@ export function AppSidebar() {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/admin/team" className={getNavCls}>
+                    <NavLink to="/admin/employees" className={getNavCls}>
                       <Users className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Team Management</span>}
+                      {!isCollapsed && <span className="font-medium">Employees</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/roles" className={getNavCls}>
+                      <User className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Role Assignment</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
