@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { RealtimeChat } from "@/utils/RealtimeAudio";
 import { useTeledentistry, TeledentistrySession as DbSession } from "@/hooks/useTeledentistry";
+import { supabase } from "@/integrations/supabase/client";
 
 // Use DB session type
 
