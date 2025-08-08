@@ -63,6 +63,32 @@ export default function TeamManagement() {
     },
   });
 
+  const { data: invitations, refetch: refetchInvites } = useQuery({
+    queryKey: ["team-invitations", currentTenant?.id],
+    enabled: !!currentTenant?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select("id, email, first_name, last_name, role, status, created_at, sent_at")
+        .eq("tenant_id", currentTenant!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const combinedRows = useMemo(() => {
+    const members = (team || []).map((u: any) => ({ ...u, _type: "member" as const }));
+    const invites = (invitations || []).map((i: any) => ({
+      ...i,
+      _type: "invite" as const,
+      user_id: null,
+      phone: null,
+      id: null,
+    }));
+    return [...members, ...invites];
+  }, [team, invitations]);
+
   const saveEdit = async () => {
     if (!editing) return;
     try {
@@ -94,14 +120,14 @@ export default function TeamManagement() {
   const pageSize = 10;
 
   const sortedTeam = useMemo(() => {
-    const arr = [...(team || [])];
+    const arr = [...(combinedRows || [])];
     arr.sort((a: any, b: any) => {
       const getVal = (u: any) => {
         switch (sortKey) {
           case 'name':
             return `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
           default:
-            return (u[sortKey] || '').toString().toLowerCase();
+            return ((u as any)[sortKey] || '').toString().toLowerCase();
         }
       };
       const va = getVal(a);
@@ -111,10 +137,10 @@ export default function TeamManagement() {
       return 0;
     });
     return arr;
-  }, [team, sortKey, sortDir]);
+  }, [combinedRows, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(((sortedTeam?.length) || 0) / pageSize));
-  useEffect(() => { setPage(1); }, [team]);
+  useEffect(() => { setPage(1); }, [combinedRows]);
   const paginatedTeam = useMemo(() => {
     const start = (page - 1) * pageSize;
     return (sortedTeam || []).slice(start, start + pageSize);
@@ -166,7 +192,7 @@ export default function TeamManagement() {
 
       toast({ title: "Invitation sent", description: "We emailed a login link to the user." });
       form.reset({ role: values.role } as any);
-      setTimeout(() => refetch(), 800);
+      setTimeout(() => { refetch(); refetchInvites?.(); }, 800);
     } catch (e: any) {
       toast({ title: "Invite failed", description: e.message || "Please try again.", variant: "destructive" });
     }
@@ -279,17 +305,25 @@ export default function TeamManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(!team || team.length === 0) ? (
+                {(!combinedRows || combinedRows.length === 0) ? (
                   <TableRow><TableCell colSpan={6} className="text-muted-foreground">No team members yet.</TableCell></TableRow>
                 ) : (
                   paginatedTeam.map((u: any) => (
-                    <TableRow key={u.user_id}>
-                      <TableCell>{u.user_id}</TableCell>
-                      <TableCell>{u.first_name} {u.last_name}</TableCell>
+                    <TableRow key={u._type === 'invite' ? `invite-${u.id ?? u.email}` : `user-${u.user_id}`}>
+                      <TableCell>{u.user_id || '—'}</TableCell>
+                      <TableCell>
+                        {u.first_name} {u.last_name}{u._type === 'invite' ? ' (Invited)' : ''}
+                      </TableCell>
                       <TableCell>{u.email}</TableCell>
-                      <TableCell>{u.id}</TableCell>
+                      <TableCell>{u._type === 'invite' ? '—' : (u.id || '—')}</TableCell>
                       <TableCell className="capitalize">{u.role}</TableCell>
-                      <TableCell><Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button></TableCell>
+                      <TableCell>
+                        {u._type === 'member' ? (
+                          <Button variant="outline" size="sm" onClick={() => setEditing(u)}>Edit</Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Pending</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
