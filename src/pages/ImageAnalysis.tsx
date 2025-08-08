@@ -571,11 +571,9 @@ export const ImageAnalysis: React.FC = () => {
                         onClick={() => {
                           if (!processedImage) return;
                           const name = versionName || `Version ${versions.length + 1}`;
-                          const v = { id: `${Date.now()}`, name, url: processedImage };
-                          setVersions((prev) => [v, ...prev]);
+                          // Persist version to Storage + DB
+                          saveDataUrlAsVersion(processedImage, analysisType || 'background_removal', name);
                           setVersionName("");
-                          setCompareAfterUrl(processedImage);
-                          toast({ title: 'Version saved', description: name });
                         }}
                       >
                         Save Version
