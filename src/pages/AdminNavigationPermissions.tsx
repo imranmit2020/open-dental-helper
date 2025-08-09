@@ -94,6 +94,25 @@ export default function AdminNavigationPermissions() {
     corporationId: isSuperAdmin ? (selectedTenant?.corporation_id ?? null) : (corporation?.id ?? null),
   });
 
+  useEffect(() => {
+    const desc = `Manage module access per clinic${selectedTenant?.name ? ' - ' + selectedTenant.name : ''}`;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', desc.slice(0, 160));
+
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', window.location.origin + '/admin/navigation-permissions');
+  }, [selectedTenant?.name]);
+
   const permissionMap = useMemo(() => {
     const map = new Map<string, boolean>();
     for (const m of permissions) {
@@ -127,14 +146,33 @@ export default function AdminNavigationPermissions() {
 
   return (
     <main className="p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">Module Access Control (Per Clinic)</h1>
-        <p className="text-muted-foreground">Toggle which roles can see modules in the left navigation for this clinic.</p>
+      <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Module Access Control (Per Clinic)</h1>
+          <p className="text-muted-foreground">Toggle which roles can see modules in the left navigation for this clinic.</p>
+        </div>
+        {(isSuperAdmin || (tenantOptions?.length ?? 0) > 1) && (
+          <div className="w-full md:w-80">
+            <label className="mb-1 block text-sm text-muted-foreground">Clinic</label>
+            <Select value={selectedTenantId} onValueChange={(v) => setSelectedTenantId(v)}>
+              <SelectTrigger aria-label="Select clinic">
+                <SelectValue placeholder="Select clinic" />
+              </SelectTrigger>
+              <SelectContent>
+                {tenantOptions.map((t: any) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}{t.clinic_code ? ` (${t.clinic_code})` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </header>
 
       <Card>
         <CardHeader>
-          <CardTitle>Clinic: {currentTenant.name}</CardTitle>
+          <CardTitle>Clinic: {selectedTenant?.name || currentTenant.name}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-auto">
@@ -158,6 +196,7 @@ export default function AdminNavigationPermissions() {
                         <TableCell key={r} className="text-center">
                           <Switch
                             checked={checked}
+                            disabled={!selectedTenantId || loading}
                             onCheckedChange={(v) => handleToggle(m.key, r, v)}
                             aria-label={`Allow ${r} to access ${m.label}`}
                           />
