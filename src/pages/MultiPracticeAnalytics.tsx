@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Building, 
@@ -112,6 +113,7 @@ const staffEfficiency = [
 
 export default function MultiPracticeAnalytics() {
   const { t } = useLanguage();
+  const { tenants, currentTenant, corporation } = useTenant();
   const [selectedPractice, setSelectedPractice] = useState("all");
   const [timeRange, setTimeRange] = useState("6months");
   const [activeTab, setActiveTab] = useState("overview");
@@ -120,62 +122,61 @@ export default function MultiPracticeAnalytics() {
   const [staffPerformanceData, setStaffPerformanceData] = useState<any[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
+  const [networkRevenue, setNetworkRevenue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAllData();
-  }, [timeRange]);
+  }, [timeRange, tenants.length, currentTenant?.id, corporation?.id]);
+
+  const getStartDate = () => {
+    const now = new Date();
+    switch (timeRange) {
+      case '1month': now.setMonth(now.getMonth() - 1); break;
+      case '3months': now.setMonth(now.getMonth() - 3); break;
+      case '6months': now.setMonth(now.getMonth() - 6); break;
+      case '1year': now.setFullYear(now.getFullYear() - 1); break;
+    }
+    return now.toISOString();
+  };
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      // Fetch practice analytics
+      // 1) Practice analytics (optional metrics)
       const { data: practiceData, error: practiceError } = await supabase
         .from('practice_analytics')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
+      if (practiceError) console.warn('practice_analytics not available for this role:', practiceError.message);
 
-      if (practiceError) throw practiceError;
+      // 2) Live revenue from invoices across allowed clinics
+      const tenantIds = (corporation ? tenants.map(t => t.id) : currentTenant ? [currentTenant.id] : []).filter(Boolean);
+      if (tenantIds.length > 0) {
+        const { data: invoices, error: invError } = await supabase
+          .from('invoices')
+          .select('tenant_id,total,issued_at')
+          .in('tenant_id', tenantIds)
+          .gte('issued_at', getStartDate());
+        if (invError) throw invError;
 
-      // Fetch service revenue data
-      const { data: serviceData, error: serviceError } = await supabase
-        .from('service_revenue')
-        .select('*')
-        .order('service_date', { ascending: false });
+        const total = (invoices || []).reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+        setNetworkRevenue(total);
+      } else {
+        setNetworkRevenue(0);
+      }
 
-      if (serviceError) throw serviceError;
+      // 3) Leaderboard and AI insights (existing)
+      const [{ data: leaderData, error: leaderError }, { data: insightsData, error: insightsError }] = await Promise.all([
+        supabase.from('practice_leaderboard').select('*').order('ranking', { ascending: true }),
+        supabase.from('ai_practice_insights').select('*').order('created_at', { ascending: false }).limit(10),
+      ]);
+      if (leaderError) console.warn('practice_leaderboard fetch warning:', leaderError.message);
+      if (insightsError) console.warn('ai_practice_insights fetch warning:', insightsError.message);
 
-      // Fetch staff performance data
-      const { data: staffData, error: staffError } = await supabase
-        .from('staff_performance')
-        .select('*')
-        .order('performance_date', { ascending: false });
-
-      if (staffError) throw staffError;
-
-      // Fetch leaderboard data
-      const { data: leaderData, error: leaderError } = await supabase
-        .from('practice_leaderboard')
-        .select('*')
-        .order('ranking', { ascending: true });
-
-      if (leaderError) throw leaderError;
-
-      // Fetch AI insights
-      const { data: insightsData, error: insightsError } = await supabase
-        .from('ai_practice_insights')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (insightsError) throw insightsError;
-
-      // Group and set data
       const practiceMetrics = groupMetricsByPractice(practiceData || []);
       setAnalyticsData(practiceMetrics);
-      setServiceRevenueData(serviceData || []);
-      setStaffPerformanceData(staffData || []);
       setLeaderboardData(leaderData || []);
       setAiInsightsData(insightsData || []);
     } catch (error) {
@@ -355,9 +356,9 @@ export default function MultiPracticeAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              <CurrencyDisplay amount={totalMetrics.totalRevenue} variant="large" />
+              <CurrencyDisplay amount={networkRevenue || totalMetrics.totalRevenue} variant="large" />
             </div>
-            <p className="text-xs text-muted-foreground">+12.5% from last period</p>
+            <p className="text-xs text-muted-foreground">Time range applied</p>
             <Progress value={85} className="mt-2" />
           </CardContent>
         </Card>
