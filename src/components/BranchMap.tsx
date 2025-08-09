@@ -168,17 +168,53 @@ const BranchMap: React.FC = () => {
     }
   }, [geojson]);
 
-  if (error) {
+  if (error && mapboxToken) {
     return <div className="p-4 text-sm text-destructive">{error}</div>;
+  }
+
+  // Fallback: render a simple dummy map with sample markers when no Mapbox token
+  if (!mapboxToken) {
+    const markers = [
+      { name: "Default Clinic", status: "above" as const, top: "32%", left: "26%" },
+      { name: "Downtown Dental", status: "risk" as const, top: "48%", left: "62%" },
+      { name: "Smile Care East", status: "attention" as const, top: "68%", left: "36%" },
+      { name: "Northside Ortho", status: "above" as const, top: "22%", left: "72%" },
+    ];
+
+    const statusClass = (s: "above" | "risk" | "attention") =>
+      s === "above" ? "bg-primary" : s === "risk" ? "bg-accent" : "bg-destructive";
+
+    return (
+      <div className="relative w-full h-full rounded-md border overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-background to-muted" />
+        {/* Decorative grid */}
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: "linear-gradient(hsl(var(--muted-foreground)/0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted-foreground)/0.15) 1px, transparent 1px)",
+          backgroundSize: "40px 40px"
+        }} />
+
+        {/* Sample markers */}
+        {markers.map((m, i) => (
+          <div
+            key={i}
+            className={`absolute -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border border-background shadow ${statusClass(m.status)}`}
+            style={{ top: m.top, left: m.left }}
+            title={`${m.name}`}
+          />
+        ))}
+
+        {/* Legend */}
+        <div className="absolute bottom-2 left-2 rounded-md bg-background/85 backdrop-blur px-3 py-2 text-xs border flex gap-4">
+          <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-primary border border-background" /> Above target</div>
+          <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-accent border border-background" /> At risk</div>
+          <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-destructive border border-background" /> Needs attention</div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="relative w-full h-full">
-      {!mapboxToken && (
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-          Loading map...
-        </div>
-      )}
       {loading && (
         <div className="absolute top-2 left-2 rounded-md bg-background/80 backdrop-blur px-2 py-1 text-xs border">
           Geocoding addresses...

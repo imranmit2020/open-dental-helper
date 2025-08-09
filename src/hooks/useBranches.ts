@@ -50,7 +50,7 @@ export function useBranches() {
       setMapboxToken(data.token);
       return data.token as string;
     } catch (e: any) {
-      setError(e.message || "Failed to load Mapbox token");
+      // Silently fall back to dummy mode when token cannot be fetched
       return null;
     }
   };
