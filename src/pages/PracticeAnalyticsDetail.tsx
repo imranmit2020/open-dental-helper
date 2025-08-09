@@ -10,6 +10,8 @@ import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, Calendar, FileDown, MapPin, Receipt, TrendingUp } from "lucide-react";
+import RevenueTrendChart from "@/components/analytics/RevenueTrendChart";
+import AppointmentsTrendChart from "@/components/analytics/AppointmentsTrendChart";
 
 export default function PracticeAnalyticsDetail() {
   const { tenantId } = useParams();
@@ -24,6 +26,22 @@ export default function PracticeAnalyticsDetail() {
   const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
+  const [invoicesAll, setInvoicesAll] = useState<any[]>([]);
+  const [appointmentsAll, setAppointmentsAll] = useState<any[]>([]);
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>("all");
+  const [apptStatusFilter, setApptStatusFilter] = useState<string>("all");
+
+  const filteredInvoices = useMemo(() => {
+    return (invoicesAll || []).filter((inv: any) =>
+      invoiceStatusFilter === "all" ? true : inv.status === invoiceStatusFilter
+    );
+  }, [invoicesAll, invoiceStatusFilter]);
+
+  const filteredAppointments = useMemo(() => {
+    return (appointmentsAll || []).filter((ap: any) =>
+      apptStatusFilter === "all" ? true : ap.status === apptStatusFilter
+    );
+  }, [appointmentsAll, apptStatusFilter]);
 
   const tenant = useMemo(() => tenants.find(t => t.id === tenantId), [tenants, tenantId]);
 
@@ -76,6 +94,7 @@ export default function PracticeAnalyticsDetail() {
         const total = (invoices || []).reduce((sum, r: any) => sum + (Number(r.total) || 0), 0);
         setRevenue(total);
         setInvoiceCount(invoices?.length || 0);
+        setInvoicesAll(invoices || []);
         setRecentInvoices((invoices || []).slice(0, 10));
 
         // Appointments summary + list
@@ -101,13 +120,26 @@ export default function PracticeAnalyticsDetail() {
 
   const exportInvoicesCsv = () => {
     const headers = ['id','total','issued_at','status','currency'];
-    const rows = recentInvoices.map(r => [r.id, r.total, r.issued_at, r.status, r.currency]);
+    const rows = filteredInvoices.map(r => [r.id, r.total, r.issued_at, r.status, r.currency]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `invoices_${tenant?.name || tenantId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportAppointmentsCsv = () => {
+    const headers = ['id','appointment_date','status','patient_id'];
+    const rows = filteredAppointments.map(r => [r.id, r.appointment_date, r.status, r.patient_id]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `appointments_${tenant?.name || tenantId}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -171,7 +203,7 @@ export default function PracticeAnalyticsDetail() {
 
       <main className="space-y-6">
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card role="button" tabIndex={0} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => setActiveTab("invoices")} >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Revenue</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -182,7 +214,7 @@ export default function PracticeAnalyticsDetail() {
               <Progress value={Math.min(100, revenue ? 85 : 0)} className="mt-2" />
             </CardContent>
           </Card>
-          <Card>
+          <Card role="button" tabIndex={0} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => setActiveTab("invoices")} >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Invoices</CardTitle>
               <Receipt className="h-4 w-4 text-muted-foreground" />
@@ -193,7 +225,7 @@ export default function PracticeAnalyticsDetail() {
               <Progress value={Math.min(100, (invoiceCount / 50) * 100)} className="mt-2" />
             </CardContent>
           </Card>
-          <Card>
+          <Card role="button" tabIndex={0} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => setActiveTab("appointments")} >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Appointments</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -226,6 +258,24 @@ export default function PracticeAnalyticsDetail() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trends</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">Revenue Over Time</h3>
+                      <RevenueTrendChart invoices={invoicesAll} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2">Appointments Over Time</h3>
+                      <AppointmentsTrendChart appointments={appointmentsAll} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
@@ -263,8 +313,25 @@ export default function PracticeAnalyticsDetail() {
 
             <TabsContent value="invoices">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <CardTitle>Invoices ({invoiceCount})</CardTitle>
+                  <div className="mt-2 md:mt-0 flex items-center gap-3">
+                    <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" onClick={exportInvoicesCsv}>
+                      <FileDown className="h-4 w-4 mr-2" /> Export CSV
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -277,15 +344,15 @@ export default function PracticeAnalyticsDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentInvoices.map(inv => (
+                        {filteredInvoices.map(inv => (
                           <tr key={inv.id} className="border-t">
                             <td className="py-2 pr-4">{new Date(inv.issued_at).toLocaleString()}</td>
                             <td className="py-2 pr-4">{inv.status}</td>
                             <td className="py-2 pr-4"><CurrencyDisplay amount={Number(inv.total) || 0} /></td>
                           </tr>
                         ))}
-                        {recentInvoices.length === 0 && (
-                          <tr><td className="py-4" colSpan={3}>No invoices in this period.</td></tr>
+                        {filteredInvoices.length === 0 && (
+                          <tr><td className="py-4" colSpan={3}>No invoices match the selected filters.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -296,8 +363,24 @@ export default function PracticeAnalyticsDetail() {
 
             <TabsContent value="appointments">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <CardTitle>Appointments ({appointmentsCount})</CardTitle>
+                  <div className="mt-2 md:mt-0 flex items-center gap-3">
+                    <Select value={apptStatusFilter} onValueChange={setApptStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" onClick={exportAppointmentsCsv}>
+                      <FileDown className="h-4 w-4 mr-2" /> Export CSV
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -310,15 +393,15 @@ export default function PracticeAnalyticsDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentAppointments.map(ap => (
+                        {filteredAppointments.map(ap => (
                           <tr key={ap.id} className="border-t">
                             <td className="py-2 pr-4">{new Date(ap.appointment_date).toLocaleString()}</td>
                             <td className="py-2 pr-4">{ap.status}</td>
                             <td className="py-2 pr-4">{ap.patient_id?.slice(0,8)}</td>
                           </tr>
                         ))}
-                        {recentAppointments.length === 0 && (
-                          <tr><td className="py-4" colSpan={3}>No appointments in this period.</td></tr>
+                        {filteredAppointments.length === 0 && (
+                          <tr><td className="py-4" colSpan={3}>No appointments match the selected filters.</td></tr>
                         )}
                       </tbody>
                     </table>
