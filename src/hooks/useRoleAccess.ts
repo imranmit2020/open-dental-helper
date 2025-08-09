@@ -160,5 +160,6 @@ export function useRoleAccess() {
     isCorporateAdmin,
     corporateInfo: corporateRole,
     isLoading,
+    isSuperAdmin,
   };
 }

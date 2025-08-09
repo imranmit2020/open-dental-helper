@@ -57,12 +57,13 @@ interface ModulePermissionRow {
   allowed: boolean;
 }
 
-export function useModulePermissions() {
+export function useModulePermissions(override?: { tenantId?: string; corporationId?: string | null }) {
   const { currentTenant, corporation } = useTenant();
   const { userRole } = useRoleAccess();
   const queryClient = useQueryClient();
 
-  const tenantId = currentTenant?.id;
+  const tenantId = override?.tenantId ?? currentTenant?.id;
+  const corpId = override?.corporationId ?? corporation?.id ?? null;
 
   const { data, isLoading } = useQuery({
     queryKey: ['module-permissions', tenantId],
@@ -86,7 +87,7 @@ export function useModulePermissions() {
       if (!tenantId) throw new Error('No tenant selected');
       const payload = {
         tenant_id: tenantId,
-        corporation_id: corporation?.id || null,
+        corporation_id: corpId,
         module_key: input.module_key,
         role: input.role,
         allowed: input.allowed,

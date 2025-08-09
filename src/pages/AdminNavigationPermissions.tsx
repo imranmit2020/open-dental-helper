@@ -1,10 +1,13 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useModulePermissions, ModuleKey } from '@/hooks/useModulePermissions';
 import { useTenant } from '@/contexts/TenantContext';
 import { useRoleAccess } from '@/hooks/useRoleAccess';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const MODULES: { key: ModuleKey; label: string }[] = [
@@ -51,13 +54,45 @@ const MODULES: { key: ModuleKey; label: string }[] = [
 const ROLES: Array<'admin' | 'dentist' | 'staff' | 'patient'> = ['admin', 'dentist', 'staff', 'patient'];
 
 export default function AdminNavigationPermissions() {
-  const { currentTenant } = useTenant();
-  const { isAdmin } = useRoleAccess();
-  const { permissions, loading, canAccessModule, setPermission } = useModulePermissions();
+  const { currentTenant, tenants, corporation } = useTenant();
+  const { isAdmin, isCorporateAdmin, isSuperAdmin } = useRoleAccess();
+  const [selectedTenantId, setSelectedTenantId] = useState<string | undefined>(currentTenant?.id);
+
+  // Load all clinics for super admins
+  const { data: allTenants } = useQuery({
+    queryKey: ['all-tenants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('id, name, clinic_code, corporation_id')
+        .order('name');
+      if (error) {
+        console.error('Failed to load tenants', error);
+        return [] as any[];
+      }
+      return (data || []) as any[];
+    },
+    enabled: !!isSuperAdmin,
+  });
 
   useEffect(() => {
     document.title = 'Module Access Control | DentalAI Pro';
   }, []);
+
+  // Initialize selection from current tenant when available
+  useEffect(() => {
+    if (currentTenant?.id && !selectedTenantId) {
+      setSelectedTenantId(currentTenant.id);
+    }
+  }, [currentTenant?.id, selectedTenantId]);
+
+  const tenantOptions: any[] = (isSuperAdmin ? (allTenants || []) : (tenants || [])) as any[];
+  const selectedTenant: any = tenantOptions.find((t) => t.id === selectedTenantId) || currentTenant || null;
+
+  const { permissions, loading, setPermission } = useModulePermissions({
+    tenantId: selectedTenant?.id,
+    corporationId: isSuperAdmin ? (selectedTenant?.corporation_id ?? null) : (corporation?.id ?? null),
+  });
 
   const permissionMap = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -76,9 +111,8 @@ export default function AdminNavigationPermissions() {
       toast.error('Failed to update permission');
     }
   };
-
   if (!currentTenant) return null;
-  if (!isAdmin) return (
+  if (!isAdmin && !isSuperAdmin && !isCorporateAdmin) return (
     <main className="p-6">
       <Card>
         <CardHeader>
