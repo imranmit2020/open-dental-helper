@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 import { useNavigate } from "react-router-dom";
+import BranchMap from "@/components/BranchMap";
 
 // Chart data arrays (can be enhanced with live data in the future)
 
@@ -1011,34 +1012,8 @@ const exportCSV = (rows: any[], filename: string = 'practices.csv') => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="relative h-96 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border border-blue-200 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-blue-800">Interactive Map Coming Soon</h3>
-                  <p className="text-blue-600 mt-2">Real-time practice locations with color-coded performance indicators</p>
-                </div>
-                
-                {/* Simulated map pins */}
-                <div className="absolute top-20 left-20 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
-                <div className="absolute top-32 right-24 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white shadow-lg"></div>
-                <div className="absolute bottom-32 left-32 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
-                <div className="absolute bottom-20 right-20 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
-              </div>
-              
-              {/* Map Legend */}
-              <div className="mt-4 flex justify-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm">Above Target</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span className="text-sm">At Risk</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-sm">Needs Attention</span>
-                </div>
+              <div className="relative h-96 rounded-lg overflow-hidden">
+                <BranchMap />
               </div>
             </CardContent>
           </Card>
