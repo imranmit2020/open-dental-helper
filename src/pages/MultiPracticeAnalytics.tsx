@@ -152,19 +152,33 @@ export default function MultiPracticeAnalytics() {
       if (practiceError) console.warn('practice_analytics not available for this role:', practiceError.message);
 
       // 2) Live revenue from invoices across allowed clinics
-      const tenantIds = (corporation ? tenants.map(t => t.id) : currentTenant ? [currentTenant.id] : []).filter(Boolean);
-      if (tenantIds.length > 0) {
-        const { data: invoices, error: invError } = await supabase
-          .from('invoices')
-          .select('tenant_id,total,issued_at')
-          .in('tenant_id', tenantIds)
-          .gte('issued_at', getStartDate());
-        if (invError) throw invError;
+      // 2) Live revenue: corporation-wide via secure RPC, otherwise current clinic fallback
+      const start = getStartDate();
+      const end = new Date().toISOString();
 
-        const total = (invoices || []).reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+      if (corporation?.id) {
+        const { data: corpRows, error: corpErr } = await supabase.rpc('get_corporation_revenue', {
+          _start: start,
+          _end: end,
+        });
+        if (corpErr) throw corpErr;
+        const total = (corpRows || []).reduce((sum: number, r: any) => sum + (Number(r.total_revenue) || 0), 0);
         setNetworkRevenue(total);
       } else {
-        setNetworkRevenue(0);
+        const tenantIds = currentTenant ? [currentTenant.id] : [];
+        if (tenantIds.length > 0) {
+          const { data: invoices, error: invError } = await supabase
+            .from('invoices')
+            .select('tenant_id,total,issued_at')
+            .in('tenant_id', tenantIds)
+            .gte('issued_at', start)
+            .lte('issued_at', end);
+          if (invError) throw invError;
+          const total = (invoices || []).reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+          setNetworkRevenue(total);
+        } else {
+          setNetworkRevenue(0);
+        }
       }
 
       // 3) Leaderboard and AI insights (existing)
