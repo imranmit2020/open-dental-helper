@@ -81,6 +81,30 @@ export default function PracticeAnalyticsDetail() {
   const invoiceTotalPages = useMemo(() => Math.max(1, Math.ceil(filteredInvoices.length / pageSize)), [filteredInvoices.length, pageSize]);
   const apptTotalPages = useMemo(() => Math.max(1, Math.ceil(filteredAppointments.length / pageSize)), [filteredAppointments.length, pageSize]);
 
+  // Staff KPIs
+  const staffStats = useMemo(() => {
+    const nameMap = new Map<string, string>();
+    dentists.forEach(d => nameMap.set(d.id, `${d.first_name || ''} ${d.last_name || ''}`.trim() || 'Dentist'));
+    const map = new Map<string, { id: string; name: string; total: number; completed: number; cancelled: number; noShow: number }>();
+    (filteredAppointments || []).forEach((ap: any) => {
+      const id = ap.dentist_id || 'unassigned';
+      const name = id === 'unassigned' ? 'Unassigned' : (nameMap.get(id) || 'Dentist');
+      if (!map.has(id)) map.set(id, { id, name, total: 0, completed: 0, cancelled: 0, noShow: 0 });
+      const rec = map.get(id)!;
+      const status = (ap.status || '').toLowerCase();
+      if (status === 'completed') rec.completed += 1;
+      else if (status === 'cancelled') rec.cancelled += 1;
+      else if (status === 'no_show') rec.noShow += 1;
+      rec.total += 1;
+    });
+    return Array.from(map.values()).sort((a, b) => b.total - a.total).map(r => ({
+      ...r,
+      completionRate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
+      cancellationRate: r.total ? Math.round((r.cancelled / r.total) * 100) : 0,
+      noShowRate: r.total ? Math.round((r.noShow / r.total) * 100) : 0,
+    }));
+  }, [filteredAppointments, dentists]);
+
   // AI insights
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState<any[]>([]);
@@ -450,6 +474,36 @@ export default function PracticeAnalyticsDetail() {
                 </CardHeader>
                 <CardContent>
                   <StaffPerformanceChart appointments={filteredAppointments} dentists={dentists} />
+
+                  <div className="overflow-x-auto mt-6">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-muted-foreground">
+                          <th className="py-2 pr-4">Dentist</th>
+                          <th className="py-2 pr-4">Total</th>
+                          <th className="py-2 pr-4">Completed</th>
+                          <th className="py-2 pr-4">Cancelled</th>
+                          <th className="py-2 pr-4">No‑show</th>
+                          <th className="py-2 pr-4">Completion Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {staffStats.map((s: any) => (
+                          <tr key={s.id} className="border-t">
+                            <td className="py-2 pr-4">{s.name}</td>
+                            <td className="py-2 pr-4">{s.total}</td>
+                            <td className="py-2 pr-4">{s.completed}</td>
+                            <td className="py-2 pr-4">{s.cancelled}</td>
+                            <td className="py-2 pr-4">{s.noShow}</td>
+                            <td className="py-2 pr-4">{s.completionRate}%</td>
+                          </tr>
+                        ))}
+                        {staffStats.length === 0 && (
+                          <tr><td className="py-4" colSpan={6}>No data for the selected filters.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
