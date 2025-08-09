@@ -51,7 +51,7 @@ const MODULES: { key: ModuleKey; label: string }[] = [
   { key: 'admin_navigation_permissions', label: 'Admin • Module Access' },
 ];
 
-const ROLES: Array<'admin' | 'dentist' | 'staff' | 'patient'> = ['admin', 'dentist', 'staff', 'patient'];
+const ROLES: Array<'admin' | 'dentist' | 'hygienist' | 'staff'> = ['admin', 'dentist', 'hygienist', 'staff'];
 
 export default function AdminNavigationPermissions() {
   const { currentTenant, tenants, corporation } = useTenant();

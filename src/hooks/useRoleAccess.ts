@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export type UserRole = 'admin' | 'dentist' | 'staff' | 'patient';
+export type UserRole = 'admin' | 'dentist' | 'hygienist' | 'staff' | 'patient';
 
 interface RolePermissions {
   canViewAllPatients: boolean;
@@ -45,6 +45,19 @@ const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canManageAppointments: true,
     canViewConsentForms: true,
     canManageConsentForms: true,
+  },
+  hygienist: {
+    canViewAllPatients: true,
+    canEditPatients: true,
+    canViewAuditLogs: false,
+    canManageUsers: false,
+    canViewAnalytics: false,
+    canManageSettings: false,
+    canViewMedicalRecords: true,
+    canEditMedicalRecords: false,
+    canManageAppointments: true,
+    canViewConsentForms: true,
+    canManageConsentForms: false,
   },
   staff: {
     canViewAllPatients: true,
@@ -144,7 +157,7 @@ export function useRoleAccess() {
   }, [userRole, isCorporateAdmin]);
 
   // Helper computed values
-  const isStaffMember = ['admin', 'dentist', 'staff'].includes(userRole) || isSuperAdmin;
+  const isStaffMember = ['admin', 'dentist', 'hygienist', 'staff'].includes(userRole) || isSuperAdmin;
   const isPatient = userRole === 'patient';
   const isAdmin = userRole === 'admin';
 

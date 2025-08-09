@@ -53,7 +53,7 @@ interface ModulePermissionRow {
   tenant_id: string;
   corporation_id: string | null;
   module_key: ModuleKey;
-  role: 'admin' | 'dentist' | 'staff' | 'patient';
+  role: 'admin' | 'dentist' | 'hygienist' | 'staff' | 'patient';
   allowed: boolean;
 }
 

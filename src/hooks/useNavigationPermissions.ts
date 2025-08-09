@@ -51,7 +51,7 @@ export function useNavigationPermissions() {
   const navigationConfig = {
     // Basic access for all staff
     basic: {
-      requiredRoles: ['admin', 'dentist', 'staff'],
+      requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'],
     },
     // Admin only
     adminOnly: {
@@ -59,12 +59,12 @@ export function useNavigationPermissions() {
     },
     // Staff with subscription
     staffWithSubscription: {
-      requiredRoles: ['admin', 'dentist', 'staff'],
+      requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'],
       requiresSubscription: true,
     },
     // Premium features
     premiumFeatures: {
-      requiredRoles: ['admin', 'dentist', 'staff'],
+      requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'],
       requiredFeature: 'ai_features',
     },
     // Enterprise features
