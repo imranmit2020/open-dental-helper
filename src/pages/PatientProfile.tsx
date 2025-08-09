@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuditLog } from "@/hooks/useAuditLog";
@@ -207,9 +207,11 @@ export default function PatientProfile() {
       {/* Header with patient info */}
       <div className="flex items-center justify-between animate-fade-in">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="hover:bg-primary/10">
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Patients
+          <Button asChild variant="ghost" size="sm" className="hover:bg-primary/10">
+            <Link to="/patients">
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Patients
+            </Link>
           </Button>
         </div>
       </div>
