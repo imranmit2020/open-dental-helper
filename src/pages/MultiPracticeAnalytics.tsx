@@ -625,12 +625,28 @@ const exportCSV = (rows: any[], filename: string = 'practices.csv') => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {displayedPractices.map((practice) => (
+            {filteredPractices.map((practice: any) => (
               <Card key={practice.id} className="border-l-4 border-l-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{practice.name}</h3>
-                    <Badge variant="secondary">{practice.location}</Badge>
+                    <div>
+                      <h3 className="font-semibold">{practice.name}</h3>
+                      {practice.code && (
+                        <p className="text-xs text-muted-foreground">Code: {practice.code}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{practice.location}</Badge>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => exportCSV([practice], `${(practice.code || practice.name || 'practice').toString().toLowerCase().replace(/\s+/g,'-')}.csv`)}
+                        title="Export CSV"
+                        aria-label={`Export ${practice.name}`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
