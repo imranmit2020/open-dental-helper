@@ -275,15 +275,19 @@ export default function MultiPracticeAnalytics() {
     chairCount: Math.ceil(practice.chair_utilization / 15) // Estimate chairs based on utilization
   })) : [];
 
-  const totalMetrics = practices.length > 0 ? {
-    totalRevenue: practices.reduce((sum, p) => sum + p.revenue, 0),
-    totalPatients: practices.reduce((sum, p) => sum + p.patients, 0),
-    totalAppointments: practices.reduce((sum, p) => sum + p.appointments, 0),
-    avgRevenue: practices.reduce((sum, p) => sum + p.revenue, 0) / practices.length,
-    avgChairUtilization: practices.reduce((sum, p) => sum + p.chairUtilization, 0) / practices.length,
-    avgTreatmentAcceptance: practices.reduce((sum, p) => sum + p.treatmentAcceptance, 0) / practices.length,
-    totalMissedAppointments: practices.reduce((sum, p) => sum + p.missedAppointments, 0),
-    avgInsuranceSuccess: practices.reduce((sum, p) => sum + p.insuranceClaimSuccess, 0) / practices.length
+  const displayedPractices = selectedPractice === "all"
+    ? practices
+    : practices.filter((p) => p.id.toString() === selectedPractice);
+
+  const totalMetrics = displayedPractices.length > 0 ? {
+    totalRevenue: displayedPractices.reduce((sum, p) => sum + p.revenue, 0),
+    totalPatients: displayedPractices.reduce((sum, p) => sum + p.patients, 0),
+    totalAppointments: displayedPractices.reduce((sum, p) => sum + p.appointments, 0),
+    avgRevenue: displayedPractices.reduce((sum, p) => sum + p.revenue, 0) / displayedPractices.length,
+    avgChairUtilization: displayedPractices.reduce((sum, p) => sum + p.chairUtilization, 0) / displayedPractices.length,
+    avgTreatmentAcceptance: displayedPractices.reduce((sum, p) => sum + p.treatmentAcceptance, 0) / displayedPractices.length,
+    totalMissedAppointments: displayedPractices.reduce((sum, p) => sum + p.missedAppointments, 0),
+    avgInsuranceSuccess: displayedPractices.reduce((sum, p) => sum + p.insuranceClaimSuccess, 0) / displayedPractices.length
   } : {
     totalRevenue: 0,
     totalPatients: 0,
@@ -503,7 +507,7 @@ export default function MultiPracticeAnalytics() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {practices.map((practice) => (
+            {displayedPractices.map((practice) => (
               <Card key={practice.id} className="border-l-4 border-l-primary">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -544,7 +548,7 @@ export default function MultiPracticeAnalytics() {
         <TabsContent value="overview" className="space-y-6">
           {/* Practice Comparison KPIs with Color Coding */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-            {practices.map((practice) => (
+            {displayedPractices.map((practice) => (
               <Card key={practice.id} className={`border-l-4 ${
                 practice.status === 'above_target' ? 'border-l-green-500' :
                 practice.status === 'at_risk' ? 'border-l-yellow-500' :
@@ -826,7 +830,7 @@ export default function MultiPracticeAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {practices.map((practice) => (
+                  {displayedPractices.map((practice) => (
                     <div key={practice.id} className="p-3 rounded-lg border">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{practice.name}</h4>
