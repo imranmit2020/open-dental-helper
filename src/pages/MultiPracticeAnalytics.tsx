@@ -6,6 +6,7 @@ import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,10 @@ import {
   Clock,
   Star,
   Brain,
-  TrendingDown
+  TrendingDown,
+  Search,
+  Download,
+  ArrowUpDown
 } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 import { useNavigate } from "react-router-dom";
@@ -124,9 +128,41 @@ export default function MultiPracticeAnalytics() {
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
   const [networkRevenue, setNetworkRevenue] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<'revenue' | 'invoices' | 'appointments' | 'patients'>("revenue");
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>("desc");
+  const [corpRows, setCorpRows] = useState<any[]>([]);
 
-  const navigate = useNavigate();
+const navigate = useNavigate();
+
+// CSV export helper
+const exportCSV = (rows: any[], filename: string = 'practices.csv') => {
+  const headers = [
+    'Name','Code','Revenue','Invoices','Appointments','Patients','Chair Utilization','Treatment Acceptance','Insurance Success'
+  ];
+  const csvRows = rows.map((p: any) => [
+    p.name ?? '',
+    p.code ?? '',
+    Number(p.revenue ?? 0),
+    Number(p.invoices ?? 0),
+    Number(p.appointments ?? 0),
+    Number(p.patients ?? 0),
+    Number(p.chairUtilization ?? 0),
+    Number(p.treatmentAcceptance ?? 0),
+    Number(p.insuranceClaimSuccess ?? 0)
+  ]);
+  const lines = [headers.join(','), ...csvRows.map((r) => r.map((v) => typeof v === 'string' ? '"' + v.replace(/"/g, '""') + '"' : String(v)).join(','))];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
   useEffect(() => {
     fetchAllData();
@@ -160,15 +196,17 @@ export default function MultiPracticeAnalytics() {
       const end = new Date().toISOString();
 
       if (corporation?.id) {
-        const { data: corpRows, error: corpErr } = await supabase.rpc('get_corporation_revenue', {
+        const { data: corpRowsData, error: corpErr } = await supabase.rpc('get_corporation_revenue', {
           _start: start,
           _end: end,
         });
         if (corpErr) throw corpErr;
-        const total = (corpRows || []).reduce((sum: number, r: any) => sum + (Number(r.total_revenue) || 0), 0);
+        const total = (corpRowsData || []).reduce((sum: number, r: any) => sum + (Number(r.total_revenue) || 0), 0);
         setNetworkRevenue(total);
+        setCorpRows(corpRowsData || []);
       } else {
         const tenantIds = currentTenant ? [currentTenant.id] : [];
+        setCorpRows([]);
         if (tenantIds.length > 0) {
           const { data: invoices, error: invError } = await supabase
             .from('invoices')
@@ -259,28 +297,70 @@ export default function MultiPracticeAnalytics() {
   };
 
   // Transform analytics data into practices format
-  const practices = analyticsData.length > 0 ? analyticsData.map((practice, index) => ({
-    id: practice.id,
-    name: practice.practice_name,
-    location: practice.location,
-    patients: practice.patient_count,
-    revenue: practice.revenue,
-    appointments: practice.appointments_count,
-    target: practice.revenue * 0.9, // Set target as 90% of current revenue
-    chairUtilization: practice.chair_utilization,
-    treatmentAcceptance: practice.treatment_acceptance_rate,
-    missedAppointments: Math.floor(practice.appointments_count * (practice.no_show_rate / 100)),
-    insuranceClaimSuccess: practice.insurance_claim_success_rate,
-    status: practice.revenue >= (practice.revenue * 0.9) ? 'above_target' : 
-            practice.chair_utilization >= 75 ? 'at_risk' : 'needs_attention',
-    coordinates: { lat: 40.7128 + (index * 0.1), lng: -74.0060 + (index * 0.1) },
-    staffCount: practice.staff_count,
-    chairCount: Math.ceil(practice.chair_utilization / 15) // Estimate chairs based on utilization
-  })) : [];
+  const analyticsByName = new Map<string, any>((analyticsData || []).map((p: any) => [p.practice_name, p]));
+  const practices = (corpRows && corpRows.length > 0)
+    ? corpRows.map((row: any, index: number) => {
+        const a = analyticsByName.get(row.tenant_name);
+        const revenue = Number(row.total_revenue) || 0;
+        const target = revenue * 0.9;
+        const appointmentsCount = a?.appointments_count || 0;
+        const noShowRate = a?.no_show_rate || 0;
+        return {
+          id: row.tenant_id,
+          name: row.tenant_name,
+          code: row.clinic_code,
+          location: a?.location || 'Unknown',
+          patients: a?.patient_count || 0,
+          revenue,
+          invoices: Number(row.invoices_count) || 0,
+          appointments: appointmentsCount,
+          target,
+          chairUtilization: a?.chair_utilization || 0,
+          treatmentAcceptance: a?.treatment_acceptance_rate || 0,
+          missedAppointments: Math.floor(appointmentsCount * (noShowRate / 100)),
+          insuranceClaimSuccess: a?.insurance_claim_success_rate || 0,
+          status: revenue >= target ? 'above_target' : (a?.chair_utilization || 0) >= 75 ? 'at_risk' : 'needs_attention',
+          coordinates: { lat: 40.7128 + (index * 0.1), lng: -74.0060 + (index * 0.1) },
+          staffCount: a?.staff_count || 0,
+          chairCount: Math.ceil((a?.chair_utilization || 0) / 15)
+        };
+      })
+    : (analyticsData.length > 0 ? analyticsData.map((practice: any, index: number) => ({
+        id: practice.id,
+        name: practice.practice_name,
+        location: practice.location,
+        patients: practice.patient_count,
+        revenue: practice.revenue,
+        invoices: 0,
+        appointments: practice.appointments_count,
+        target: practice.revenue * 0.9,
+        chairUtilization: practice.chair_utilization,
+        treatmentAcceptance: practice.treatment_acceptance_rate,
+        missedAppointments: Math.floor(practice.appointments_count * (practice.no_show_rate / 100)),
+        insuranceClaimSuccess: practice.insurance_claim_success_rate,
+        status: practice.revenue >= (practice.revenue * 0.9) ? 'above_target' : 
+                practice.chair_utilization >= 75 ? 'at_risk' : 'needs_attention',
+        coordinates: { lat: 40.7128 + (index * 0.1), lng: -74.0060 + (index * 0.1) },
+        staffCount: practice.staff_count,
+        chairCount: Math.ceil(practice.chair_utilization / 15)
+      })) : []);
 
   const displayedPractices = selectedPractice === "all"
     ? practices
     : practices.filter((p) => p.id.toString() === selectedPractice);
+
+  const filteredPractices = (() => {
+    const q = (search || '').toLowerCase();
+    const base = displayedPractices.filter((p: any) =>
+      p.name?.toLowerCase().includes(q) || (p.code || '').toLowerCase().includes(q)
+    );
+    const sorted = [...base].sort((a: any, b: any) => {
+      const va = Number(a[sortKey] ?? 0);
+      const vb = Number(b[sortKey] ?? 0);
+      return sortDir === 'desc' ? vb - va : va - vb;
+    });
+    return sorted;
+  })();
 
   const totalMetrics = displayedPractices.length > 0 ? {
     totalRevenue: displayedPractices.reduce((sum, p) => sum + p.revenue, 0),
@@ -508,10 +588,40 @@ export default function MultiPracticeAnalytics() {
       {/* Practice Comparison */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            Practice Performance Comparison
-          </CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Practice Performance Comparison
+            </CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
+                  placeholder="Search name or code"
+                  className="pl-8 w-56"
+                />
+              </div>
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as any)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="revenue">Revenue</SelectItem>
+                  <SelectItem value="invoices">Invoices</SelectItem>
+                  <SelectItem value="appointments">Appointments</SelectItem>
+                  <SelectItem value="patients">Patients</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="icon" onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')} title={`Sort ${sortDir}`}>
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" onClick={() => exportCSV(filteredPractices, 'multi-practice.csv')}>
+                <Download className="h-4 w-4 mr-2" /> Export CSV
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
