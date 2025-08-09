@@ -2084,6 +2084,19 @@ export type Database = {
         Args: { _corp_id: string }
         Returns: string
       }
+      get_corporation_revenue: {
+        Args: { _start: string; _end: string }
+        Returns: {
+          tenant_id: string
+          tenant_name: string
+          clinic_code: string
+          corporation_id: string
+          invoices_count: number
+          total_revenue: number
+          period_start: string
+          period_end: string
+        }[]
+      }
       get_current_tenant_id: {
         Args: Record<PropertyKey, never>
         Returns: string
