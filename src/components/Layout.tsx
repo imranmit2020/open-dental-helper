@@ -1,3 +1,4 @@
+import * as React from "react";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -19,15 +20,28 @@ const Layout = () => {
   const { t } = useLanguage();
   
   const getBreadcrumbFromPath = (path: string) => {
-    const segments = path.split('/').filter(Boolean);
-    if (segments.length === 0) return 'Dashboard';
-    
-    return segments.map(segment => 
-      segment.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ')
-    ).join(' / ');
-  };
+    const segments = path.split('/').filter(Boolean)
+    if (segments.length === 0) return 'Dashboard'
+
+    return segments
+      .map((segment) => segment.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+      .join(' / ')
+  }
+
+  const getBreadcrumbItems = (path: string) => {
+    const segments = path.split('/').filter(Boolean)
+    const format = (segment: string) =>
+      segment
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+
+    return segments.map((seg, idx) => ({
+      label: format(seg),
+      href: '/' + segments.slice(0, idx + 1).join('/'),
+      isLast: idx === segments.length - 1,
+    }))
+  }
 
   const handleSignOut = async () => {
     try {
@@ -53,19 +67,34 @@ const Layout = () => {
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
+            <Breadcrumb aria-label="Breadcrumbs" className="max-w-full">
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild>
-                    <Link to="/">
-                      DentalAI Pro
-                    </Link>
+                  <BreadcrumbLink asChild className="font-medium">
+                    <Link to="/">DentalAI Pro</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{getBreadcrumbFromPath(location.pathname)}</BreadcrumbPage>
-                </BreadcrumbItem>
+                {getBreadcrumbItems(location.pathname).length > 0 && (
+                  <BreadcrumbSeparator className="hidden md:block" />
+                )}
+                {getBreadcrumbItems(location.pathname).map((item) => (
+                  <React.Fragment key={item.href}>
+                    <BreadcrumbItem className="hidden md:block">
+                      {item.isLast ? (
+                        <BreadcrumbPage className="font-semibold tracking-tight">
+                          {item.label}
+                        </BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <Link to={item.href}>{item.label}</Link>
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                    {!item.isLast && (
+                      <BreadcrumbSeparator className="hidden md:block" />
+                    )}
+                  </React.Fragment>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
