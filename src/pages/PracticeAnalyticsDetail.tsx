@@ -28,20 +28,49 @@ export default function PracticeAnalyticsDetail() {
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [invoicesAll, setInvoicesAll] = useState<any[]>([]);
   const [appointmentsAll, setAppointmentsAll] = useState<any[]>([]);
+
+  // Filters
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>("all");
   const [apptStatusFilter, setApptStatusFilter] = useState<string>("all");
+  const [selectedPatient, setSelectedPatient] = useState<string>("all");
+  const [selectedDentist, setSelectedDentist] = useState<string>("all");
+  const [granularity, setGranularity] = useState<"daily" | "weekly" | "monthly">("daily");
+
+  // Reference data
+  const [patients, setPatients] = useState<any[]>([]);
+  const [dentists, setDentists] = useState<any[]>([]);
+
+  // Pagination
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [invoicePage, setInvoicePage] = useState<number>(0);
+  const [apptPage, setApptPage] = useState<number>(0);
 
   const filteredInvoices = useMemo(() => {
-    return (invoicesAll || []).filter((inv: any) =>
-      invoiceStatusFilter === "all" ? true : inv.status === invoiceStatusFilter
-    );
-  }, [invoicesAll, invoiceStatusFilter]);
+    return (invoicesAll || []).filter((inv: any) => {
+      const statusOk = invoiceStatusFilter === "all" ? true : inv.status === invoiceStatusFilter;
+      const patientOk = selectedPatient === "all" ? true : inv.patient_id === selectedPatient;
+      return statusOk && patientOk;
+    });
+  }, [invoicesAll, invoiceStatusFilter, selectedPatient]);
 
   const filteredAppointments = useMemo(() => {
-    return (appointmentsAll || []).filter((ap: any) =>
-      apptStatusFilter === "all" ? true : ap.status === apptStatusFilter
-    );
-  }, [appointmentsAll, apptStatusFilter]);
+    return (appointmentsAll || []).filter((ap: any) => {
+      const statusOk = apptStatusFilter === "all" ? true : ap.status === apptStatusFilter;
+      const patientOk = selectedPatient === "all" ? true : ap.patient_id === selectedPatient;
+      const dentistOk = selectedDentist === "all" ? true : ap.dentist_id === selectedDentist;
+      return statusOk && patientOk && dentistOk;
+    });
+  }, [appointmentsAll, apptStatusFilter, selectedPatient, selectedDentist]);
+
+  const pagedInvoices = useMemo(() => {
+    const start = invoicePage * pageSize;
+    return filteredInvoices.slice(start, start + pageSize);
+  }, [filteredInvoices, invoicePage, pageSize]);
+
+  const pagedAppointments = useMemo(() => {
+    const start = apptPage * pageSize;
+    return filteredAppointments.slice(start, start + pageSize);
+  }, [filteredAppointments, apptPage, pageSize]);
 
   const tenant = useMemo(() => tenants.find(t => t.id === tenantId), [tenants, tenantId]);
 
@@ -85,7 +114,7 @@ export default function PracticeAnalyticsDetail() {
         // Invoices summary + list
         const { data: invoices, error: invErr } = await supabase
           .from('invoices')
-          .select('id,total,issued_at,status,currency,tenant_id')
+          .select('id,total,issued_at,status,currency,tenant_id,patient_id')
           .eq('tenant_id', tenantId)
           .gte('issued_at', start)
           .lte('issued_at', end)
@@ -100,13 +129,14 @@ export default function PracticeAnalyticsDetail() {
         // Appointments summary + list
         const { data: appts, error: apptErr } = await supabase
           .from('appointments')
-          .select('id,appointment_date,status,patient_id')
+          .select('id,appointment_date,status,patient_id,dentist_id')
           .eq('tenant_id', tenantId)
           .gte('appointment_date', start)
           .lte('appointment_date', end)
           .order('appointment_date', { ascending: false });
         if (apptErr) throw apptErr;
         setAppointmentsCount(appts?.length || 0);
+        setAppointmentsAll(appts || []);
         setRecentAppointments((appts || []).slice(0, 10));
       } catch (e) {
         console.error('Practice detail fetch error:', e);
@@ -117,6 +147,28 @@ export default function PracticeAnalyticsDetail() {
 
     fetchData();
   }, [tenantId, timeRange]);
+
+  // Fetch reference data for filters
+  useEffect(() => {
+    if (!tenantId) return;
+    const fetchRefs = async () => {
+      try {
+        const [{ data: pats }, { data: docs }] = await Promise.all([
+          supabase.from('patients').select('id,first_name,last_name').eq('tenant_id', tenantId).order('first_name', { ascending: true }),
+          supabase.from('employees').select('id,first_name,last_name').eq('tenant_id', tenantId).eq('role', 'dentist').order('first_name', { ascending: true }),
+        ]);
+        setPatients(pats || []);
+        setDentists(docs || []);
+      } catch (e) {
+        console.error('Reference data fetch error:', e);
+      }
+    };
+    fetchRefs();
+  }, [tenantId]);
+
+  // Reset pagination on filter changes
+  useEffect(() => { setInvoicePage(0); }, [invoiceStatusFilter, selectedPatient, timeRange, tenantId]);
+  useEffect(() => { setApptPage(0); }, [apptStatusFilter, selectedPatient, selectedDentist, timeRange, tenantId]);
 
   const exportInvoicesCsv = () => {
     const headers = ['id','total','issued_at','status','currency'];
@@ -195,6 +247,16 @@ export default function PracticeAnalyticsDetail() {
               <SelectItem value="1year">1 Year</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={granularity} onValueChange={(v) => setGranularity(v as any)}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Granularity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={exportInvoicesCsv}>
             <FileDown className="h-4 w-4 mr-2" /> Export CSV
           </Button>
@@ -266,11 +328,11 @@ export default function PracticeAnalyticsDetail() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
                       <h3 className="font-semibold mb-2">Revenue Over Time</h3>
-                      <RevenueTrendChart invoices={invoicesAll} />
+                      <RevenueTrendChart invoices={filteredInvoices} granularity={granularity} />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-2">Appointments Over Time</h3>
-                      <AppointmentsTrendChart appointments={appointmentsAll} />
+                      <AppointmentsTrendChart appointments={filteredAppointments} granularity={granularity} />
                     </div>
                   </div>
                 </CardContent>
