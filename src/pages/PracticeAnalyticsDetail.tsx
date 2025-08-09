@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Activity, Calendar, FileDown, MapPin, Receipt, TrendingUp } from "lucide-react";
 import RevenueTrendChart from "@/components/analytics/RevenueTrendChart";
 import AppointmentsTrendChart from "@/components/analytics/AppointmentsTrendChart";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PracticeAnalyticsDetail() {
   const { tenantId } = useParams();
@@ -28,6 +29,9 @@ export default function PracticeAnalyticsDetail() {
   const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
   const [invoicesAll, setInvoicesAll] = useState<any[]>([]);
   const [appointmentsAll, setAppointmentsAll] = useState<any[]>([]);
+
+  // Toast
+  const { toast } = useToast();
 
   // Filters
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>("all");
@@ -71,6 +75,13 @@ export default function PracticeAnalyticsDetail() {
     const start = apptPage * pageSize;
     return filteredAppointments.slice(start, start + pageSize);
   }, [filteredAppointments, apptPage, pageSize]);
+
+  const invoiceTotalPages = useMemo(() => Math.max(1, Math.ceil(filteredInvoices.length / pageSize)), [filteredInvoices.length, pageSize]);
+  const apptTotalPages = useMemo(() => Math.max(1, Math.ceil(filteredAppointments.length / pageSize)), [filteredAppointments.length, pageSize]);
+
+  // AI insights
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsights, setAiInsights] = useState<any[]>([]);
 
   const tenant = useMemo(() => tenants.find(t => t.id === tenantId), [tenants, tenantId]);
 
@@ -140,6 +151,7 @@ export default function PracticeAnalyticsDetail() {
         setRecentAppointments((appts || []).slice(0, 10));
       } catch (e) {
         console.error('Practice detail fetch error:', e);
+        toast({ title: 'Error', description: 'Failed to load analytics data', variant: 'destructive' });
       } finally {
         setLoading(false);
       }
@@ -169,6 +181,7 @@ export default function PracticeAnalyticsDetail() {
   // Reset pagination on filter changes
   useEffect(() => { setInvoicePage(0); }, [invoiceStatusFilter, selectedPatient, timeRange, tenantId]);
   useEffect(() => { setApptPage(0); }, [apptStatusFilter, selectedPatient, selectedDentist, timeRange, tenantId]);
+  useEffect(() => { setInvoicePage(0); setApptPage(0); }, [pageSize]);
 
   const exportInvoicesCsv = () => {
     const headers = ['id','total','issued_at','status','currency'];
@@ -181,6 +194,30 @@ export default function PracticeAnalyticsDetail() {
     a.download = `invoices_${tenant?.name || tenantId}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateInsights = async () => {
+    try {
+      setAiLoading(true);
+      const payload = {
+        tenantId,
+        timeRange,
+        revenue,
+        invoiceCount: filteredInvoices.length,
+        appointmentsCount: filteredAppointments.length,
+      };
+      const { data, error } = await supabase.functions.invoke('ai-practice-insights', { body: payload });
+      if (error) throw error;
+      setAiInsights(data?.insights || []);
+      if ((data?.insights || []).length === 0) {
+        toast({ title: 'No insights', description: 'No AI insights could be generated for the current filters.' });
+      }
+    } catch (e: any) {
+      console.error('AI insights error:', e);
+      toast({ title: 'AI Error', description: e.message || 'Failed to generate insights', variant: 'destructive' });
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const exportAppointmentsCsv = () => {
@@ -235,11 +272,9 @@ export default function PracticeAnalyticsDetail() {
             {tenant?.address && <div className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {tenant.address}</div>}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 justify-end">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="1month">1 Month</SelectItem>
               <SelectItem value="3months">3 Months</SelectItem>
@@ -247,16 +282,46 @@ export default function PracticeAnalyticsDetail() {
               <SelectItem value="1year">1 Year</SelectItem>
             </SelectContent>
           </Select>
+
           <Select value={granularity} onValueChange={(v) => setGranularity(v as any)}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Granularity" />
-            </SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Granularity" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="daily">Daily</SelectItem>
               <SelectItem value="weekly">Weekly</SelectItem>
               <SelectItem value="monthly">Monthly</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Patient" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Patients</SelectItem>
+              {patients.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Dentist" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Dentists</SelectItem>
+              {dentists.map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.first_name} {d.last_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+            <SelectTrigger className="w-36"><SelectValue placeholder="Rows/Page" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5 / page</SelectItem>
+              <SelectItem value="10">10 / page</SelectItem>
+              <SelectItem value="20">20 / page</SelectItem>
+              <SelectItem value="50">50 / page</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={exportInvoicesCsv}>
             <FileDown className="h-4 w-4 mr-2" /> Export CSV
           </Button>
@@ -266,7 +331,7 @@ export default function PracticeAnalyticsDetail() {
       <main className="space-y-6">
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card role="button" tabIndex={0} className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => setActiveTab("invoices")} >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2" >
               <CardTitle className="text-sm font-medium">Revenue</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -317,6 +382,7 @@ export default function PracticeAnalyticsDetail() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="invoices">Invoices</TabsTrigger>
               <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="insights">AI Insights</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
@@ -373,15 +439,49 @@ export default function PracticeAnalyticsDetail() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="insights">
+              <Card>
+                <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <CardTitle>AI Guidance & Recommendations</CardTitle>
+                  <div className="mt-2 md:mt-0 flex items-center gap-3">
+                    <Button variant="default" onClick={handleGenerateInsights} disabled={aiLoading}>
+                      {aiLoading ? 'Generating…' : 'Generate Insights'}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {aiInsights.length === 0 && !aiLoading && (
+                    <p className="text-sm text-muted-foreground">No insights yet. Click "Generate Insights" to analyze this period.</p>
+                  )}
+                  <div className="space-y-3">
+                    {aiInsights.map((ins: any, idx: number) => (
+                      <div key={idx} className="rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{ins.title}</h4>
+                          {ins.priority_level && <Badge variant="secondary">{ins.priority_level}</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">{ins.description}</p>
+                        {Array.isArray(ins.actionable_items) && ins.actionable_items.length > 0 && (
+                          <ul className="mt-2 list-disc pl-5 text-sm space-y-1">
+                            {ins.actionable_items.map((a: string, i: number) => (
+                              <li key={i}>{a}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="invoices">
               <Card>
                 <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <CardTitle>Invoices ({invoiceCount})</CardTitle>
+                  <CardTitle>Invoices ({filteredInvoices.length})</CardTitle>
                   <div className="mt-2 md:mt-0 flex items-center gap-3">
                     <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
+                      <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="draft">Draft</SelectItem>
@@ -390,6 +490,9 @@ export default function PracticeAnalyticsDetail() {
                         <SelectItem value="overdue">Overdue</SelectItem>
                       </SelectContent>
                     </Select>
+                    <div className="text-sm text-muted-foreground">Page {invoicePage + 1} / {invoiceTotalPages}</div>
+                    <Button variant="outline" onClick={() => setInvoicePage(Math.max(0, invoicePage - 1))} disabled={invoicePage === 0}>Prev</Button>
+                    <Button variant="outline" onClick={() => setInvoicePage(Math.min(invoiceTotalPages - 1, invoicePage + 1))} disabled={invoicePage + 1 >= invoiceTotalPages}>Next</Button>
                     <Button variant="outline" onClick={exportInvoicesCsv}>
                       <FileDown className="h-4 w-4 mr-2" /> Export CSV
                     </Button>
@@ -406,7 +509,7 @@ export default function PracticeAnalyticsDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredInvoices.map(inv => (
+                        {pagedInvoices.map(inv => (
                           <tr key={inv.id} className="border-t">
                             <td className="py-2 pr-4">{new Date(inv.issued_at).toLocaleString()}</td>
                             <td className="py-2 pr-4">{inv.status}</td>
@@ -426,12 +529,10 @@ export default function PracticeAnalyticsDetail() {
             <TabsContent value="appointments">
               <Card>
                 <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <CardTitle>Appointments ({appointmentsCount})</CardTitle>
+                  <CardTitle>Appointments ({filteredAppointments.length})</CardTitle>
                   <div className="mt-2 md:mt-0 flex items-center gap-3">
                     <Select value={apptStatusFilter} onValueChange={setApptStatusFilter}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
+                      <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="scheduled">Scheduled</SelectItem>
@@ -439,6 +540,9 @@ export default function PracticeAnalyticsDetail() {
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
+                    <div className="text-sm text-muted-foreground">Page {apptPage + 1} / {apptTotalPages}</div>
+                    <Button variant="outline" onClick={() => setApptPage(Math.max(0, apptPage - 1))} disabled={apptPage === 0}>Prev</Button>
+                    <Button variant="outline" onClick={() => setApptPage(Math.min(apptTotalPages - 1, apptPage + 1))} disabled={apptPage + 1 >= apptTotalPages}>Next</Button>
                     <Button variant="outline" onClick={exportAppointmentsCsv}>
                       <FileDown className="h-4 w-4 mr-2" /> Export CSV
                     </Button>
@@ -455,7 +559,7 @@ export default function PracticeAnalyticsDetail() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredAppointments.map(ap => (
+                        {pagedAppointments.map(ap => (
                           <tr key={ap.id} className="border-t">
                             <td className="py-2 pr-4">{new Date(ap.appointment_date).toLocaleString()}</td>
                             <td className="py-2 pr-4">{ap.status}</td>
