@@ -28,6 +28,7 @@ import {
   TrendingDown
 } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
+import { useNavigate } from "react-router-dom";
 
 // Chart data arrays (can be enhanced with live data in the future)
 
@@ -124,6 +125,8 @@ export default function MultiPracticeAnalytics() {
   const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
   const [networkRevenue, setNetworkRevenue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllData();
@@ -362,6 +365,11 @@ export default function MultiPracticeAnalytics() {
               <SelectItem value="1year">1 Year</SelectItem>
             </SelectContent>
           </Select>
+          {currentTenant?.id && (
+            <Button variant="outline" onClick={() => navigate(`/practice-analytics/${currentTenant.id}`)}>
+              View Clinic Detail
+            </Button>
+          )}
         </div>
       </div>
 
