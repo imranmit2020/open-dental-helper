@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Outlet, useLocation, Link } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Home } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,14 +19,6 @@ const Layout = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   
-  const getBreadcrumbFromPath = (path: string) => {
-    const segments = path.split('/').filter(Boolean)
-    if (segments.length === 0) return 'Dashboard'
-
-    return segments
-      .map((segment) => segment.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
-      .join(' / ')
-  }
 
   const getBreadcrumbItems = (path: string) => {
     const segments = path.split('/').filter(Boolean)
@@ -67,31 +59,31 @@ const Layout = () => {
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb aria-label="Breadcrumbs" className="max-w-full">
+            <Breadcrumb aria-label="Breadcrumbs" className="max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild className="font-medium">
-                    <Link to="/">DentalAI Pro</Link>
+                  <BreadcrumbLink asChild className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium transition-colors hover:bg-muted hover:text-foreground">
+                    <Link to="/"><Home className="h-4 w-4" aria-hidden="true" /><span>DentalAI Pro</span></Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {getBreadcrumbItems(location.pathname).length > 0 && (
-                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbSeparator className="hidden md:block text-muted-foreground" />
                 )}
                 {getBreadcrumbItems(location.pathname).map((item) => (
                   <React.Fragment key={item.href}>
                     <BreadcrumbItem className="hidden md:block">
                       {item.isLast ? (
-                        <BreadcrumbPage className="font-semibold tracking-tight">
+                        <BreadcrumbPage className="rounded-md bg-muted px-2 py-1 font-semibold tracking-tight text-foreground shadow-sm">
                           {item.label}
                         </BreadcrumbPage>
                       ) : (
-                        <BreadcrumbLink asChild>
+                        <BreadcrumbLink asChild className="rounded-md px-2 py-1 transition-colors hover:bg-muted hover:text-foreground">
                           <Link to={item.href}>{item.label}</Link>
                         </BreadcrumbLink>
                       )}
                     </BreadcrumbItem>
                     {!item.isLast && (
-                      <BreadcrumbSeparator className="hidden md:block" />
+                      <BreadcrumbSeparator className="hidden md:block text-muted-foreground" />
                     )}
                   </React.Fragment>
                 ))}
