@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, Clock, User, Building, Phone, Mail } from "lucide-react";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTenant } from "@/contexts/TenantContext";
 interface ApprovalRequest {
   id: string;
   user_id: string;
@@ -32,10 +34,17 @@ interface ApprovalRequest {
 export default function AdminApprovalDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { canAccessAdminApprovals, userRole, isCorporateAdmin, corporateInfo } = useRoleAccess();
+  const { canAccessAdminApprovals, userRole, isCorporateAdmin, corporateInfo, isSuperAdmin } = useRoleAccess();
+  const { currentTenant, tenants } = useTenant();
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminNotes, setAdminNotes] = useState<{ [key: string]: string }>({});
+  const [currentTab, setCurrentTab] = useState<'staff' | 'patients'>('staff');
+  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+  const [roleSelections, setRoleSelections] = useState<Record<string, string>>({});
+  const [clinicSelections, setClinicSelections] = useState<Record<string, string>>({});
+  const [allTenants, setAllTenants] = useState<{ id: string; name: string; clinic_code: string }[]>([]);
+  const [clinicFilter, setClinicFilter] = useState<string | 'all'>('all');
 
   // Check access on component mount
   if (!canAccessAdminApprovals()) {
@@ -85,6 +94,25 @@ export default function AdminApprovalDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    document.title = 'User Approval Dashboard | DentalAI Pro';
+  }, []);
+
+  useEffect(() => {
+    const loadTenants = async () => {
+      if (isSuperAdmin) {
+        const { data, error } = await supabase
+          .from('tenants')
+          .select('id, name, clinic_code')
+          .order('name');
+        if (!error) setAllTenants(data || []);
+      } else {
+        setAllTenants(tenants || []);
+      }
+    };
+    loadTenants();
+  }, [isSuperAdmin, tenants]);
+
   const fetchApprovalRequests = async () => {
     try {
       const { data, error } = await supabase
@@ -115,66 +143,90 @@ export default function AdminApprovalDashboard() {
     }
   };
 
-  const handleApproval = async (requestId: string, status: 'approved' | 'rejected') => {
+  const handleApproval = async (
+    requestId: string,
+    status: 'approved' | 'rejected',
+    options?: { role?: 'admin' | 'dentist' | 'hygienist' | 'staff' | 'patient'; tenantId?: string }
+  ) => {
     try {
-      const { error } = await supabase
+      const request = requests.find((r) => r.id === requestId);
+
+      const selectedRole = options?.role || request?.requested_role || 'staff';
+      const selectedTenantId = options?.tenantId || clinicSelections[requestId] || currentTenant?.id || null;
+
+      const { error: updateReqError } = await supabase
         .from('user_approval_requests')
         .update({
           status,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user?.id,
           admin_notes: adminNotes[requestId] || null,
+          requested_role: selectedRole,
+          organization_type: 'clinic',
+          organization_id: selectedTenantId,
         })
         .eq('id', requestId);
 
-      if (error) {
-        console.error('Error updating approval request:', error);
-        toast({
-          title: "Error",
-          description: `Failed to ${status} user`,
-          variant: "destructive",
-        });
+      if (updateReqError) {
+        console.error('Error updating approval request:', updateReqError);
+        toast({ title: 'Error', description: `Failed to ${status} user`, variant: 'destructive' });
         return;
       }
 
-      // If approved, create profile
-      if (status === 'approved') {
-        const request = requests.find(r => r.id === requestId);
-        if (request) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({
+      if (status === 'approved' && request) {
+        // Update profile with final role
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: request.first_name,
+            last_name: request.last_name,
+            email: request.email,
+            role: selectedRole,
+          })
+          .eq('user_id', request.user_id);
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+          toast({ title: 'Warning', description: 'User approved but profile update failed', variant: 'destructive' });
+        }
+
+        // Assign clinic membership for staff
+        if (selectedTenantId && selectedRole !== 'patient') {
+          const { error: tuError } = await supabase
+            .from('tenant_users')
+            .upsert({ tenant_id: selectedTenantId, user_id: request.user_id, role: selectedRole })
+            .select('user_id')
+            .single();
+          if (tuError) {
+            console.warn('Tenant assignment failed (inform clinic to add manually):', tuError);
+            toast({ title: 'Note', description: 'Approved. Tenant assignment may require clinic admin.', });
+          }
+        }
+
+        // Create patient record if patient role
+        if (selectedTenantId && selectedRole === 'patient') {
+          const { error: patError } = await supabase
+            .from('patients')
+            .insert({
+              tenant_id: selectedTenantId,
+              user_id: request.user_id,
               first_name: request.first_name,
               last_name: request.last_name,
               email: request.email,
-              role: request.requested_role,
-            })
-            .eq('user_id', request.user_id);
-
-          if (profileError) {
-            console.error('Error updating profile:', profileError);
-            toast({
-              title: "Warning",
-              description: "User approved but profile update failed",
-              variant: "destructive",
+              phone: request.phone,
             });
+          if (patError) {
+            console.warn('Patient record creation failed (likely permissions):', patError);
+            toast({ title: 'Note', description: 'Approved. Patient record will be created by clinic staff.' });
           }
         }
       }
 
-      toast({
-        title: "Success",
-        description: `User ${status} successfully`,
-      });
-
+      toast({ title: 'Success', description: `User ${status} successfully` });
       fetchApprovalRequests();
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${status} user`,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: `Failed to ${status} user`, variant: 'destructive' });
     }
   };
 
@@ -257,11 +309,17 @@ export default function AdminApprovalDashboard() {
   };
 
   const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const tenantOptions = (isSuperAdmin ? allTenants : (tenants || [])) as { id: string; name: string; clinic_code: string }[];
+  const staffRoles: Array<'admin' | 'dentist' | 'hygienist' | 'staff'> = ['admin', 'dentist', 'hygienist', 'staff'];
+  const filteredRequests = requests
+    .filter(r => (currentTab === 'patients' ? r.requested_role === 'patient' : r.requested_role !== 'patient'))
+    .filter(r => (statusFilter === 'all' ? true : r.status === statusFilter))
+    .filter(r => (clinicFilter === 'all' ? true : r.organization_id === clinicFilter));
 
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">User Approval Dashboard</h1>
             <p className="text-muted-foreground mt-2">
@@ -272,27 +330,57 @@ export default function AdminApprovalDashboard() {
                 </span>
               )}
               {userRole === 'admin' && !isCorporateAdmin && (
-                <span className="block text-sm text-primary font-medium">
-                  Clinic Administrator
-                </span>
+                <span className="block text-sm text-primary font-medium">Clinic Administrator</span>
               )}
             </p>
+            <Tabs value={currentTab} onValueChange={(v) => setCurrentTab(v as 'staff' | 'patients')} className="mt-4">
+              <TabsList>
+                <TabsTrigger value="staff">Staff</TabsTrigger>
+                <TabsTrigger value="patients">Patients</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-          <Button onClick={simulateNewRequest} variant="outline">
-            Simulate New Request
-          </Button>
+          <div className="flex items-center gap-3">
+            {isSuperAdmin && (
+              <Select value={clinicFilter} onValueChange={(v) => setClinicFilter(v)}>
+                <SelectTrigger className="w-[220px]" aria-label="Filter by clinic">
+                  <SelectValue placeholder="Filter by clinic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clinics</SelectItem>
+                  {tenantOptions.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}{t.clinic_code ? ` (${t.clinic_code})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+              <SelectTrigger className="w-[160px]" aria-label="Filter by status">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={simulateNewRequest} variant="outline">Simulate New Request</Button>
+          </div>
         </div>
       </div>
 
       <div className="grid gap-6">
-        {requests.length === 0 ? (
+        {filteredRequests.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-muted-foreground">No approval requests found</p>
             </CardContent>
           </Card>
         ) : (
-          requests.map((request) => (
+          filteredRequests.map((request) => (
             <Card key={request.id} className="w-full">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -360,9 +448,54 @@ export default function AdminApprovalDashboard() {
                         className="mt-1"
                       />
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-foreground">Assign Role</label>
+                        <Select
+                          value={(roleSelections[request.id] ?? (currentTab === 'patients' ? 'patient' : request.requested_role))}
+                          onValueChange={(v) => setRoleSelections({ ...roleSelections, [request.id]: v })}
+                          disabled={currentTab === 'patients'}
+                        >
+                          <SelectTrigger aria-label="Assign role">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          {currentTab === 'patients' ? (
+                            <SelectContent>
+                              <SelectItem value="patient">Patient</SelectItem>
+                            </SelectContent>
+                          ) : (
+                            <SelectContent>
+                              {staffRoles.map((r) => (
+                                <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          )}
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-foreground">Assign Clinic</label>
+                        <Select
+                          value={(clinicSelections[request.id] ?? request.organization_id ?? currentTenant?.id) as string | undefined}
+                          onValueChange={(v) => setClinicSelections({ ...clinicSelections, [request.id]: v })}
+                        >
+                          <SelectTrigger aria-label="Assign clinic">
+                            <SelectValue placeholder="Select clinic" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {tenantOptions.map((t) => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name}{t.clinic_code ? ` (${t.clinic_code})` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
                     <div className="flex gap-3">
                       <Button
-                        onClick={() => handleApproval(request.id, 'approved')}
+                        onClick={() => handleApproval(request.id, 'approved', { role: (roleSelections[request.id] || (currentTab === 'patients' ? 'patient' : request.requested_role)) as any, tenantId: (clinicSelections[request.id] || request.organization_id || currentTenant?.id) as string })}
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
