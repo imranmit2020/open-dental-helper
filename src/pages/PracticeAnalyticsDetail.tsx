@@ -13,6 +13,8 @@ import { Activity, Calendar, FileDown, MapPin, Receipt, TrendingUp } from "lucid
 import RevenueTrendChart from "@/components/analytics/RevenueTrendChart";
 import AppointmentsTrendChart from "@/components/analytics/AppointmentsTrendChart";
 import { useToast } from "@/hooks/use-toast";
+import StaffPerformanceChart from "@/components/analytics/StaffPerformanceChart";
+import TreatmentMixChart from "@/components/analytics/TreatmentMixChart";
 
 export default function PracticeAnalyticsDetail() {
   const { tenantId } = useParams();
@@ -382,6 +384,8 @@ export default function PracticeAnalyticsDetail() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="invoices">Invoices</TabsTrigger>
               <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              <TabsTrigger value="staff">Staff Performance</TabsTrigger>
+              <TabsTrigger value="treatments">Treatment Mix</TabsTrigger>
               <TabsTrigger value="insights">AI Insights</TabsTrigger>
             </TabsList>
 
@@ -435,6 +439,28 @@ export default function PracticeAnalyticsDetail() {
                       </ul>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="staff">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Staff Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <StaffPerformanceChart appointments={filteredAppointments} dentists={dentists} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="treatments">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Treatment Mix</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TreatmentMixChart appointments={filteredAppointments} />
                 </CardContent>
               </Card>
             </TabsContent>
