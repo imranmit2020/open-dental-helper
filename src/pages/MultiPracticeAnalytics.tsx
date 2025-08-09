@@ -682,7 +682,7 @@ const exportCSV = (rows: any[], filename: string = 'practices.csv') => {
         <TabsContent value="overview" className="space-y-6">
           {/* Practice Comparison KPIs with Color Coding */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-            {displayedPractices.map((practice) => (
+            {filteredPractices.map((practice: any) => (
               <Card key={practice.id} className={`border-l-4 ${
                 practice.status === 'above_target' ? 'border-l-green-500' :
                 practice.status === 'at_risk' ? 'border-l-yellow-500' :
@@ -964,13 +964,25 @@ const exportCSV = (rows: any[], filename: string = 'practices.csv') => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {displayedPractices.map((practice) => (
+                  {filteredPractices.map((practice: any) => (
                     <div key={practice.id} className="p-3 rounded-lg border">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{practice.name}</h4>
-                        <Badge variant={practice.status === 'above_target' ? 'default' : practice.status === 'at_risk' ? 'outline' : 'destructive'}>
-                          {practice.status === 'above_target' ? 'Optimal' : practice.status === 'at_risk' ? 'Monitor' : 'Action Needed'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={practice.status === 'above_target' ? 'default' : practice.status === 'at_risk' ? 'outline' : 'destructive'}>
+                            {practice.status === 'above_target' ? 'Optimal' : practice.status === 'at_risk' ? 'Monitor' : 'Action Needed'}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => exportCSV([practice], `${(practice.code || practice.name || 'practice').toString().toLowerCase().replace(/\s+/g,'-')}.csv`)}
+                            title="Export CSV"
+                            aria-label={`Export ${practice.name}`}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/practice-analytics/${practice.id}`)}>Details</Button>
+                        </div>
                       </div>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
