@@ -33,6 +33,7 @@ serve(async (req) => {
 
     const schema = {
       type: "object",
+      additionalProperties: false,
       properties: {
         id: { type: "string" },
         imageUrl: { type: "string" },
@@ -40,6 +41,7 @@ serve(async (req) => {
           type: "array",
           items: {
             type: "object",
+            additionalProperties: false,
             properties: {
               id: { type: "string" },
               type: { enum: ["cavity","fracture","root_infection","bone_density","oral_cancer","periodontal_disease"] },
@@ -49,6 +51,7 @@ serve(async (req) => {
               description: { type: "string" },
               coordinates: {
                 type: "object",
+                additionalProperties: false,
                 properties: {
                   x: { type: "number" },
                   y: { type: "number" },
