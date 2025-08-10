@@ -86,7 +86,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4.1-2025-04-14",
+        model: "gpt-4o-mini",
         temperature: 0.2,
         messages: [
           { role: "system", content: systemPrompt },
@@ -119,11 +119,25 @@ serve(async (req) => {
     }
 
     const json = await oaiRes.json();
-    const content = json.choices?.[0]?.message?.content;
+    const msg = json.choices?.[0]?.message;
+    const content = msg?.content;
 
-    let parsed: any;
+    let parsed: any = null;
     try {
-      parsed = typeof content === "string" ? JSON.parse(content) : content;
+      if (typeof content === "string") {
+        parsed = JSON.parse(content);
+      } else if (Array.isArray(content)) {
+        const schemaPart = content.find((p: any) => p?.type === "output_json_schema" && p?.json);
+        if (schemaPart?.json) {
+          parsed = schemaPart.json;
+        } else {
+          const textPart = content.find((p: any) => typeof p === "string" || p?.type === "text");
+          const text = typeof textPart === "string" ? textPart : textPart?.text;
+          if (text) parsed = JSON.parse(text);
+        }
+      } else if (content && typeof content === "object") {
+        parsed = content;
+      }
     } catch (e) {
       console.error("Failed to parse model JSON:", e, content);
       return new Response(JSON.stringify({ error: "Invalid model output" }), {
@@ -132,9 +146,16 @@ serve(async (req) => {
       });
     }
 
+    if (!parsed || typeof parsed !== 'object') {
+      return new Response(JSON.stringify({ error: "Invalid model output" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Attach imageUrl and model, normalize ranges just in case
     parsed.imageUrl = imageUrl;
-    parsed.aiModel = parsed.aiModel || "gpt-4.1-2025-04-14";
+    parsed.aiModel = parsed.aiModel || "gpt-4o-mini";
     if (Array.isArray(parsed.findings)) {
       parsed.findings = parsed.findings.map((f: any) => ({
         ...f,
