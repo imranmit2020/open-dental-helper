@@ -157,19 +157,36 @@ const { logError } = useErrorLogger();
         x = x1; y = y1; w = x2 - x1; h = y2 - y1;
       }
 
-      // Normalize all values to 0..1 regardless of input units
-      let nx = normX(x);
-      let ny = normY(y);
-      let nw = normX(w);
-      let nh = normY(h);
+      // Determine units consistently for all components
+      const iw = naturalSize.w || 1;
+      const ih = naturalSize.h || 1;
+      const hasPixelPos = (Number.isFinite(x) && x > 1) || (Number.isFinite(y) && y > 1);
+      const hasPixelSize = (Number.isFinite(w) && w > 1) || (Number.isFinite(h) && h > 1);
+      const allLTE1 = [x, y, w, h].every((v) => Number.isFinite(v) && v <= 1);
+      const allLTE100 = [x, y, w, h].every((v) => Number.isFinite(v) && v <= 100);
 
-      // If width/height were given in absolute after x1/x2 normalization, ensure positivity
-      nw = Math.abs(nw);
-      nh = Math.abs(nh);
+      let nx: number, ny: number, nw: number, nh: number;
+      if (hasPixelPos || hasPixelSize) {
+        // Treat everything as pixels
+        nx = clamp01(x / iw);
+        ny = clamp01(y / ih);
+        nw = Math.abs(w / iw);
+        nh = Math.abs(h / ih);
+      } else if (!allLTE1 && allLTE100) {
+        // Treat as percentages (0..100)
+        nx = clamp01(x / 100);
+        ny = clamp01(y / 100);
+        nw = Math.abs(w / 100);
+        nh = Math.abs(h / 100);
+      } else {
+        // Already normalized (0..1)
+        nx = clamp01(x);
+        ny = clamp01(y);
+        nw = Math.abs(w);
+        nh = Math.abs(h);
+      }
 
-      // Clamp to image bounds
-      nx = clamp01(nx);
-      ny = clamp01(ny);
+      // Ensure within bounds
       if (nx + nw > 1) nw = Math.max(0, 1 - nx);
       if (ny + nh > 1) nh = Math.max(0, 1 - ny);
 
