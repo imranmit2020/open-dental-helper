@@ -7,18 +7,23 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Outlet, useLocation, Link } from "react-router-dom";
-import { LogOut, Home } from "lucide-react";
+import { LogOut, Home, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar } from "./AppSidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const Layout = () => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [signingOut, setSigningOut] = React.useState(false);
 
   const getBreadcrumbItems = (path: string) => {
     const segments = path.split('/').filter(Boolean)
@@ -37,17 +42,21 @@ const Layout = () => {
 
   const handleSignOut = async () => {
     try {
+      setSigningOut(true);
       await signOut();
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
+      setConfirmOpen(false);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to sign out. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setSigningOut(false);
     }
   };
 
@@ -99,15 +108,63 @@ const Layout = () => {
           <div className="flex items-center gap-2 px-4">
             <LanguageSelector variant="minimal" />
             <CurrencySelector variant="minimal" showRefreshButton={false} />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
+
+            <DropdownMenu>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="professional" size="sm" className="gap-2 hover-scale">
+                        <Avatar className="h-6 w-6 ring-1 ring-border">
+                          <AvatarImage src={(user as any)?.user_metadata?.avatar_url} alt="User avatar" />
+                          <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                        </Avatar>
+                        <span className="hidden md:inline max-w-[140px] truncate">{user?.email ?? "Account"}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Account & Sign out</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel className="space-y-1">
+                  <div className="text-sm font-medium">Signed in</div>
+                  <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setConfirmOpen(true);
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sign out?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You will need to sign in again to continue.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={signingOut}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button variant="destructive" onClick={handleSignOut} disabled={signingOut} className="gap-2">
+                      {signingOut && <Loader2 className="h-4 w-4 animate-spin" />}
+                      Sign Out
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
