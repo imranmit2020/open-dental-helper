@@ -14,7 +14,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar } from "./AppSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 
@@ -127,22 +126,15 @@ const Layout = () => {
             <CurrencySelector variant="minimal" showRefreshButton={false} />
 
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <TooltipProvider delayDuration={200}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="professional" size="sm" className="gap-2 hover-scale" onMouseEnter={openWithDelay} onMouseLeave={closeWithDelay}>
-                        <Avatar className="h-6 w-6 ring-1 ring-border">
-                          <AvatarImage src={(user as any)?.user_metadata?.avatar_url} alt="User avatar" />
-                          <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
-                        </Avatar>
-                        <span className="hidden md:inline max-w-[140px] truncate">{user?.email ?? "Account"}</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">Account & Sign out</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <DropdownMenuTrigger asChild>
+                <Button variant="professional" size="sm" className="gap-2 hover-scale" onMouseEnter={openWithDelay} onMouseLeave={closeWithDelay} aria-label="Account menu">
+                  <Avatar className="h-6 w-6 ring-1 ring-border">
+                    <AvatarImage src={(user as any)?.user_metadata?.avatar_url} alt="User avatar" />
+                    <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline max-w-[140px] truncate">{user?.email ?? "Account"}</span>
+                </Button>
+              </DropdownMenuTrigger>
 
                 <DropdownMenuContent align="end" className="w-64 z-50 bg-popover text-popover-foreground border border-border shadow-elegant" onMouseEnter={openWithDelay} onMouseLeave={closeWithDelay}>
                   <DropdownMenuLabel className="space-y-1">
