@@ -50,6 +50,9 @@ export default function Patients() {
     appointmentsThisMonth: 0
   });
 
+  // Sorting: default to latest visit first
+  const [sortOption, setSortOption] = useState<'latest' | 'oldest' | 'name_asc' | 'name_desc' | 'newest'>('latest');
+
   const { toast } = useToast();
   const { currentTenant } = useTenant();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -238,12 +241,29 @@ export default function Patients() {
 
   const [page, setPage] = useState(1);
   const pageSize = 10;
-  const totalPages = Math.ceil(filteredPatients.length / pageSize) || 1;
-  const paginatedPatients = filteredPatients.slice((page - 1) * pageSize, page * pageSize);
 
+  const getTime = (d?: string) => (d ? new Date(d).getTime() : 0);
+  const sortedPatients = [...filteredPatients].sort((a, b) => {
+    switch (sortOption) {
+      case 'oldest':
+        return getTime(a.last_visit) - getTime(b.last_visit);
+      case 'name_asc':
+        return (a.last_name || '').localeCompare(b.last_name || '') || (a.first_name || '').localeCompare(b.first_name || '');
+      case 'name_desc':
+        return (b.last_name || '').localeCompare(a.last_name || '') || (b.first_name || '').localeCompare(a.first_name || '');
+      case 'newest':
+        return getTime(b.created_at) - getTime(a.created_at);
+      case 'latest':
+      default:
+        return getTime(b.last_visit) - getTime(a.last_visit);
+    }
+  });
+
+  const totalPages = Math.ceil(sortedPatients.length / pageSize) || 1;
+  const paginatedPatients = sortedPatients.slice((page - 1) * pageSize, page * pageSize);
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filters, patients.length]);
+  }, [searchTerm, filters, sortOption, patients.length]);
 
   // Export current filtered patients to CSV
   const handleExport = () => {
@@ -576,7 +596,22 @@ export default function Patients() {
                  {filteredPatients.length} patients found • AI-powered insights available
                </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-2 mr-2">
+                <span className="text-sm text-muted-foreground">Sort</span>
+                <Select value={sortOption} onValueChange={(v) => setSortOption(v as any)}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">Latest visit</SelectItem>
+                    <SelectItem value="oldest">Oldest visit</SelectItem>
+                    <SelectItem value="name_asc">Name A–Z</SelectItem>
+                    <SelectItem value="name_desc">Name Z–A</SelectItem>
+                    <SelectItem value="newest">Recently added</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button variant="ghost" size="sm" className="hover:bg-primary/5" onClick={handleExport}>Export</Button>
               <Button variant="ghost" size="sm" className="hover:bg-primary/5" onClick={handleImportClick}>Import</Button>
               <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} className="hidden" />
