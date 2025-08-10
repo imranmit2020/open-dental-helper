@@ -113,38 +113,75 @@ const { logError } = useErrorLogger();
     const severity = det.severity as DetectionBox['severity'];
 
     const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+    const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
+    const normX = (v: number) => {
+      if (!Number.isFinite(v)) return 0;
+      if (v <= 1) return clamp01(v);
+      if (v <= 100) return clamp01(v / 100);
+      return clamp01(v / iw);
+    };
+    const normY = (v: number) => {
+      if (!Number.isFinite(v)) return 0;
+      if (v <= 1) return clamp01(v);
+      if (v <= 100) return clamp01(v / 100);
+      return clamp01(v / ih);
+    };
 
-    if (det.rect) {
-      let { x, y, width, height } = det.rect as { x: number; y: number; width: number; height: number };
-      const m = Math.max(x, y, width, height);
-      if (m <= 1) {
-        // already unit 0..1
-      } else if (m <= 100) {
-        // percentage 0..100
-        x /= 100; y /= 100; width /= 100; height /= 100;
-      } else {
-        // pixels
-        const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
-        x = x / iw; y = y / ih; width = width / iw; height = height / ih;
+    // 1) Rect-like payloads: support multiple shapes (robust to model variations)
+    // Supported keys:
+    // - rect: { x,y,width,height } (top-left) OR { cx,cy,width,height } (center based) OR { center:{x,y}, width,height }
+    // - bbox: { x1,y1,x2,y2 }
+    // - box:  { x1,y1,x2,y2 } or { left,top,right,bottom }
+    const r: any = det.rect ?? det.bbox ?? det.box ?? det.rectangle;
+    if (r) {
+      let x = Number(r.x);
+      let y = Number(r.y);
+      let w = Number(r.width);
+      let h = Number(r.height);
+
+      // Center-based variants
+      const cx = Number(r.cx ?? r.center?.x);
+      const cy = Number(r.cy ?? r.center?.y);
+      if (Number.isFinite(cx) && Number.isFinite(cy) && Number.isFinite(w) && Number.isFinite(h)) {
+        // rect provided as center + size
+        x = cx - w / 2;
+        y = cy - h / 2;
       }
-      x = clamp01(x); y = clamp01(y);
-      width = Math.min(1 - x, Math.max(0, width));
-      height = Math.min(1 - y, Math.max(0, height));
-      return { id, label, confidence, severity, rect: { x, y, width, height } };
+
+      // x1,y1,x2,y2 variants
+      const x1 = Number(r.x1 ?? r.left);
+      const y1 = Number(r.y1 ?? r.top);
+      const x2 = Number(r.x2 ?? r.right);
+      const y2 = Number(r.y2 ?? r.bottom);
+      if ([x1, y1, x2, y2].every((v) => Number.isFinite(v))) {
+        x = x1; y = y1; w = x2 - x1; h = y2 - y1;
+      }
+
+      // Normalize all values to 0..1 regardless of input units
+      let nx = normX(x);
+      let ny = normY(y);
+      let nw = normX(w);
+      let nh = normY(h);
+
+      // If width/height were given in absolute after x1/x2 normalization, ensure positivity
+      nw = Math.abs(nw);
+      nh = Math.abs(nh);
+
+      // Clamp to image bounds
+      nx = clamp01(nx);
+      ny = clamp01(ny);
+      if (nx + nw > 1) nw = Math.max(0, 1 - nx);
+      if (ny + nh > 1) nh = Math.max(0, 1 - ny);
+
+      return { id, label, confidence, severity, rect: { x: nx, y: ny, width: nw, height: nh } };
     }
 
-    if (Array.isArray(det.poly) && det.poly.length >= 3) {
-      const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
-      const poly = det.poly.map((p: any) => {
-        let px = Number(p.x), py = Number(p.y);
-        const m = Math.max(px, py);
-        if (m <= 1) {
-          // already 0..1
-        } else if (m <= 100) {
-          px = px / 100; py = py / 100;
-        } else {
-          px = px / iw; py = py / ih;
-        }
+    // 2) Polygon-like payloads: support poly | polygon | points
+    const pts: any[] = det.poly ?? det.polygon ?? det.points;
+    if (Array.isArray(pts) && pts.length >= 3) {
+      const poly = pts.map((p: any) => {
+        const px = normX(Number(p.x ?? p[0]));
+        const py = normY(Number(p.y ?? p[1]));
         return { x: clamp01(px), y: clamp01(py) };
       });
       return { id, label, confidence, severity, poly };
