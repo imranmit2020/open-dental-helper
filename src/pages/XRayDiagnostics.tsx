@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import XRayOverlay, { DetectionBox } from "@/components/XRayOverlay";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Slider } from "@/components/ui/slider";
+import { jsPDF } from "jspdf";
 
 const LazyCBCTViewer = lazy(() => import("@/components/CBCTViewer"));
 interface XRayFinding {
@@ -682,16 +683,86 @@ const vizOverlayBoxes = useMemo(() => makeOverlayBoxes(), [makeOverlayBoxes]);
     }
   };
 
-  const downloadReport = () => {
+  const downloadReport = async () => {
     if (!analysis) return;
-    
-    logAction({
-      action: 'xray_report_downloaded',
-      resource_type: 'image_analyses',
-      details: { analysis_id: analysis.id }
-    });
-    
-    toast.success("Report download started");
+
+    try {
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      let y = 40;
+
+      // Header
+      doc.setFontSize(16);
+      doc.text('Dental X-ray AI Report', 40, y); y += 24;
+      doc.setFontSize(10);
+      doc.text(`Report ID: ${analysis.id}`, 40, y); y += 16;
+      doc.text(`Model: ${analysis.aiModel}`, 40, y); y += 16;
+      doc.text(`Timestamp: ${new Date(analysis.analysisTimestamp).toLocaleString()}`, 40, y); y += 24;
+
+      // Scores
+      doc.setFontSize(12);
+      doc.text(`Overall Risk: ${formatTenScale(analysis.overallRiskScore)}`, 40, y); y += 16;
+      doc.text(`Bone Density: ${formatTenScale(analysis.boneDensityScore)}`, 40, y); y += 24;
+
+      // Findings
+      doc.setFontSize(14);
+      doc.text('Findings', 40, y); y += 18;
+      doc.setFontSize(11);
+      (analysis.findings || []).forEach((f, idx) => {
+        const lines = [
+          `${idx + 1}. ${f.type.replace('_', ' ')} — ${f.severity} — ${Math.round(f.confidence)}%`,
+          `Location: ${f.location}`,
+          `Desc: ${f.description}`,
+          `Treatment: ${f.treatmentSuggestion} | Urgency: ${f.urgency}`,
+        ];
+        lines.forEach((line) => {
+          doc.text(line, 40, y);
+          y += 14;
+          if (y > 780) { doc.addPage(); y = 40; }
+        });
+        y += 6;
+      });
+
+      // Recommendations
+      if (analysis.recommendations?.length) {
+        if (y > 740) { doc.addPage(); y = 40; }
+        doc.setFontSize(14);
+        doc.text('Recommendations', 40, y); y += 18;
+        doc.setFontSize(11);
+        analysis.recommendations.forEach((rec) => {
+          doc.text(`• ${rec}`, 40, y);
+          y += 14;
+          if (y > 780) { doc.addPage(); y = 40; }
+        });
+      }
+
+      // Patient summary
+      if (analysis.patientSummary) {
+        doc.addPage(); y = 40;
+        doc.setFontSize(14);
+        doc.text('Patient Summary', 40, y); y += 18;
+        doc.setFontSize(11);
+        const wrapped = doc.splitTextToSize(analysis.patientSummary, 515);
+        wrapped.forEach((line) => {
+          doc.text(line, 40, y);
+          y += 14;
+          if (y > 780) { doc.addPage(); y = 40; }
+        });
+      }
+
+      // Save
+      doc.save(`xray-report-${analysis.id}.pdf`);
+
+      // Analytics + UX
+      logAction({
+        action: 'xray_report_downloaded',
+        resource_type: 'image_analyses',
+        details: { analysis_id: analysis.id },
+      });
+      toast.success('Report downloaded');
+    } catch (err) {
+      toast.error('Failed to generate report');
+      logError(err instanceof Error ? err : new Error(String(err)), { context: 'generate_report' });
+    }
   };
 
   const shareReport = () => {
