@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useLanguage } from "@/contexts/LanguageContext";
 import NewPatientForm from "@/components/NewPatientForm";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useToast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import { 
   Search, 
   Plus, 
@@ -46,6 +48,10 @@ export default function Patients() {
     overdueCheckups: 0,
     appointmentsThisMonth: 0
   });
+
+  const { toast } = useToast();
+  const { currentTenant } = useTenant();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -228,6 +234,125 @@ export default function Patients() {
 
     return matchesSearch && matchesStatus && matchesRisk && matchesAge && matchesInsurance;
   });
+
+  // Export current filtered patients to CSV
+  const handleExport = () => {
+    try {
+      const rows = filteredPatients.map((p) => ({
+        first_name: p.first_name ?? "",
+        last_name: p.last_name ?? "",
+        email: p.email ?? "",
+        phone: p.phone ?? "",
+        date_of_birth: p.date_of_birth ?? "",
+        gender: p.gender ?? "",
+        address: p.address ?? "",
+        insurance_provider: p.insurance_info?.provider ?? "",
+        risk_level: p.risk_level ?? "",
+        last_visit: p.last_visit ?? "",
+      }));
+      const headers = Object.keys(rows[0] || {
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+      });
+      const csvEscape = (val: any) => {
+        const s = String(val ?? "");
+        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+      const csv = [
+        headers.join(","),
+        ...rows.map((r) => headers.map((h) => csvEscape((r as any)[h])).join(",")),
+      ].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "patients_export.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "Export complete", description: `Exported ${rows.length} patients.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Export failed", description: "Could not export patients.", variant: "destructive" });
+    }
+  };
+
+  const handleImportClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (e: any) => {
+    try {
+      const file: File | undefined = e.target.files?.[0];
+      if (!file) return;
+      if (!currentTenant?.id) {
+        toast({ title: "No clinic selected", description: "Please select a clinic before importing.", variant: "destructive" });
+        return;
+      }
+      const text = await file.text();
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) {
+        toast({ title: "Empty file", description: "No data rows found.", variant: "destructive" });
+        return;
+      }
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+      const idx = (name: string) => headers.indexOf(name);
+      const get = (arr: string[], key: string) => {
+        const i = idx(key);
+        return i >= 0 ? arr[i]?.trim() : "";
+      };
+      const toISODate = (val: string) => {
+        if (!val) return null;
+        // accept YYYY-MM-DD or MM/DD/YYYY
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+        const m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+        if (m) {
+          const mm = m[1].padStart(2, '0');
+          const dd = m[2].padStart(2, '0');
+          const yyyy = m[3].length === 2 ? '20' + m[3] : m[3];
+          return `${yyyy}-${mm}-${dd}`;
+        }
+        return val; // fallback
+      };
+
+      const rows = lines.slice(1).map((line) => line.split(","));
+      const payload = rows
+        .filter((cols) => cols.some((c) => c && c.trim()))
+        .map((cols) => ({
+          first_name: get(cols, "first_name") || get(cols, "first name"),
+          last_name: get(cols, "last_name") || get(cols, "last name"),
+          email: get(cols, "email") || null,
+          phone: get(cols, "phone") || null,
+          date_of_birth: toISODate(get(cols, "date_of_birth") || get(cols, "dob")) as any,
+          gender: get(cols, "gender") || null,
+          address: get(cols, "address") || null,
+          risk_level: (get(cols, "risk_level") || 'low') as any,
+          insurance_info: (() => {
+            const provider = get(cols, "insurance_provider") || get(cols, "insurance");
+            return provider ? { provider } : null;
+          })(),
+          tenant_id: currentTenant.id,
+        }));
+
+      if (payload.length === 0) {
+        toast({ title: "Nothing to import", description: "No valid rows detected.", variant: "destructive" });
+        return;
+      }
+
+      const { data, error } = await supabase.from('patients').insert(payload).select();
+      if (error) throw error;
+
+      toast({ title: "Import complete", description: `Imported ${data?.length ?? payload.length} patients.` });
+      await fetchPatients();
+    } catch (err: any) {
+      console.error('Import error:', err);
+      toast({ title: "Import failed", description: err?.message || "Could not import patients.", variant: "destructive" });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   if (loading) {
     return (
@@ -442,8 +567,9 @@ export default function Patients() {
                </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="hover:bg-primary/5">Export</Button>
-              <Button variant="ghost" size="sm" className="hover:bg-primary/5">Import</Button>
+              <Button variant="ghost" size="sm" className="hover:bg-primary/5" onClick={handleExport}>Export</Button>
+              <Button variant="ghost" size="sm" className="hover:bg-primary/5" onClick={handleImportClick}>Import</Button>
+              <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} className="hidden" />
             </div>
           </div>
         </CardHeader>
@@ -456,7 +582,7 @@ export default function Patients() {
             >
               <div className="flex items-center gap-6">
                 <Avatar className="h-16 w-16 ring-2 ring-background shadow-lg group-hover:ring-primary/30 transition-all duration-300">
-                  <AvatarImage src="" />
+                  <AvatarImage src="" alt={`${patient.first_name} ${patient.last_name} profile image`} />
                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-lg">
                     {(patient.first_name?.[0] || '') + (patient.last_name?.[0] || '')}
                   </AvatarFallback>
