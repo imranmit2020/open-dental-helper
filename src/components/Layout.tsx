@@ -25,6 +25,21 @@ const Layout = () => {
   const { t } = useLanguage();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const hoverTimeout = React.useRef<number | null>(null);
+  const openWithDelay = React.useCallback(() => {
+    if (hoverTimeout.current) window.clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = window.setTimeout(() => setMenuOpen(true), 80);
+  }, []);
+  const closeWithDelay = React.useCallback(() => {
+    if (hoverTimeout.current) window.clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = window.setTimeout(() => setMenuOpen(false), 120);
+  }, []);
+  React.useEffect(() => {
+    return () => {
+      if (hoverTimeout.current) window.clearTimeout(hoverTimeout.current);
+    };
+  }, []);
   const { isPatient } = useRoleAccess();
 
   const getBreadcrumbItems = (path: string) => {
@@ -111,12 +126,12 @@ const Layout = () => {
             <LanguageSelector variant="minimal" />
             <CurrencySelector variant="minimal" showRefreshButton={false} />
 
-            <DropdownMenu>
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="professional" size="sm" className="gap-2 hover-scale">
+                      <Button variant="professional" size="sm" className="gap-2 hover-scale" onMouseEnter={openWithDelay} onMouseLeave={closeWithDelay}>
                         <Avatar className="h-6 w-6 ring-1 ring-border">
                           <AvatarImage src={(user as any)?.user_metadata?.avatar_url} alt="User avatar" />
                           <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
@@ -129,7 +144,7 @@ const Layout = () => {
                 </Tooltip>
               </TooltipProvider>
 
-                <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuContent align="end" className="w-64 z-50 bg-popover text-popover-foreground border border-border shadow-elegant" onMouseEnter={openWithDelay} onMouseLeave={closeWithDelay}>
                   <DropdownMenuLabel className="space-y-1">
                     <div className="text-sm font-medium">Signed in</div>
                     <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
