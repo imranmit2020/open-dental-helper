@@ -180,6 +180,15 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.6);
   }
+  /* High-contrast text selection */
+  ::selection {
+    background: hsl(var(--primary) / 0.8);
+    color: hsl(var(--primary-foreground));
+  }
+  ::-moz-selection {
+    background: hsl(var(--primary) / 0.8);
+    color: hsl(var(--primary-foreground));
+  }
 }
 
 @layer components {
