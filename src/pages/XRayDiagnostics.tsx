@@ -104,10 +104,16 @@ export default function XRayDiagnostics() {
             confidence: f.confidence,
             severity: f.severity,
             rect: {
-              x: Math.max(0, f.coordinates.x / w),
-              y: Math.max(0, f.coordinates.y / h),
-              width: Math.max(0, f.coordinates.width / w),
-              height: Math.max(0, f.coordinates.height / h),
+              x: Math.min(1, Math.max(0, f.coordinates.x / w)),
+              y: Math.min(1, Math.max(0, f.coordinates.y / h)),
+              width: Math.min(
+                1 - Math.min(1, Math.max(0, f.coordinates.x / w)),
+                Math.max(0, f.coordinates.width / w)
+              ),
+              height: Math.min(
+                1 - Math.min(1, Math.max(0, f.coordinates.y / h)),
+                Math.max(0, f.coordinates.height / h)
+              ),
             },
           });
         }
