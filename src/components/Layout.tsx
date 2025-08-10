@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Outlet, useLocation, Link } from "react-router-dom";
-import { LogOut, Home, Loader2 } from "lucide-react";
+import { LogOut, Home, Loader2, User, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 const Layout = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const Layout = () => {
   const { t } = useLanguage();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
+  const { isPatient } = useRoleAccess();
 
   const getBreadcrumbItems = (path: string) => {
     const segments = path.split('/').filter(Boolean)
@@ -127,23 +129,36 @@ const Layout = () => {
                 </Tooltip>
               </TooltipProvider>
 
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel className="space-y-1">
-                  <div className="text-sm font-medium">Signed in</div>
-                  <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setConfirmOpen(true);
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel className="space-y-1">
+                    <div className="text-sm font-medium">Signed in</div>
+                    <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to={isPatient ? "/patient-dashboard" : "/settings"} className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setConfirmOpen(true);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
             </DropdownMenu>
 
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
