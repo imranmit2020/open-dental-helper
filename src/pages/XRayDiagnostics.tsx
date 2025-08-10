@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useErrorLogger } from "@/hooks/useErrorLogger";
 import { removeBackground, loadImage } from "@/services/BackgroundRemovalService";
-
+import { supabase } from "@/integrations/supabase/client";
 interface XRayFinding {
   id: string;
   type: 'cavity' | 'fracture' | 'root_infection' | 'bone_density' | 'oral_cancer' | 'periodontal_disease';
@@ -50,11 +50,13 @@ export default function XRayDiagnostics() {
   const [analysis, setAnalysis] = useState<XRayAnalysis | null>(null);
   const [analysisType, setAnalysisType] = useState<string>("comprehensive");
   const [activeTab, setActiveTab] = useState("findings");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamText, setStreamText] = useState("");
+  const [uploadedPublicUrl, setUploadedPublicUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
-
   // Advanced AI-powered analysis generator
   const generateComprehensiveAnalysis = (imageData: string, type: string): XRayAnalysis => {
     const analysisTypes = {
@@ -196,6 +198,107 @@ export default function XRayDiagnostics() {
     }
   };
 
+  // Uploads image to Supabase storage and returns a public URL for analysis
+  const uploadImageIfNeeded = async (): Promise<string> => {
+    if (uploadedPublicUrl) return uploadedPublicUrl;
+    if (!selectedFile) throw new Error("No file selected");
+
+    const fileExt = selectedFile.name.split('.').pop() || 'png';
+    const path = `xray/${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+    const { data, error } = await supabase.storage.from('analyses').upload(path, selectedFile, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: selectedFile.type || 'image/png',
+    });
+    if (error) throw error;
+
+    const { data: pub } = supabase.storage.from('analyses').getPublicUrl(data.path);
+    setUploadedPublicUrl(pub.publicUrl);
+    return pub.publicUrl;
+  };
+
+  const analyzeImageRealtime = async () => {
+    if (!selectedFile && !uploadedPublicUrl) {
+      toast.error("Please upload an X-ray image first");
+      return;
+    }
+
+    try {
+      setIsStreaming(true);
+      setStreamText("");
+      const publicUrl = await uploadImageIfNeeded();
+
+      logAction({
+        action: 'xray_ai_realtime_started',
+        resource_type: 'image_analyses',
+        details: { analysis_type: analysisType }
+      });
+
+      const resp = await fetch(
+        `https://nqrwtihwuvyfucmbcsem.functions.supabase.co/functions/v1/xray-stream`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: publicUrl, analysisType }),
+        }
+      );
+
+      if (!resp.ok || !resp.body) {
+        throw new Error('Failed to start streaming analysis');
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // Parse SSE lines
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const payload = trimmed.replace(/^data:\s*/, '');
+          if (payload === "[DONE]") {
+            setIsStreaming(false);
+            toast.success('Real-time analysis completed');
+            logAction({ action: 'xray_ai_realtime_completed', resource_type: 'image_analyses' });
+            break;
+          }
+          try {
+            const json = JSON.parse(payload);
+            const choice = json.choices?.[0];
+            const delta = choice?.delta;
+            // Handle both string content and content array shapes
+            if (typeof delta?.content === 'string') {
+              setStreamText(prev => prev + delta.content);
+            } else if (Array.isArray(delta?.content)) {
+              for (const part of delta.content) {
+                if (typeof part === 'string') {
+                  setStreamText(prev => prev + part);
+                } else if (part?.type === 'text' && part?.text) {
+                  setStreamText(prev => prev + part.text);
+                }
+              }
+            }
+          } catch (e) {
+            // Non-JSON keep-alive or other line; ignore
+          }
+        }
+      }
+
+      setIsStreaming(false);
+    } catch (error) {
+      setIsStreaming(false);
+      logError(error instanceof Error ? error : new Error(String(error)), {
+        context: 'X-ray realtime analysis failed'
+      });
+      toast.error('Realtime analysis failed');
+    }
+  };
+
   const analyzeImage = async () => {
     if (!selectedImage) {
       toast.error("Please upload an X-ray image first");
@@ -249,7 +352,6 @@ export default function XRayDiagnostics() {
       toast.error("Analysis failed. Please try again.");
     }
   };
-
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'bg-red-600 text-white';
@@ -391,7 +493,7 @@ export default function XRayDiagnostics() {
 
             <Button 
               onClick={analyzeImage} 
-              disabled={!selectedImage || isAnalyzing || isProcessingImage}
+              disabled={!selectedImage || isAnalyzing || isProcessingImage || isStreaming}
               className="w-full"
             >
               {isAnalyzing ? (
@@ -403,6 +505,25 @@ export default function XRayDiagnostics() {
                 <>
                   <Brain className="w-4 h-4 mr-2" />
                   Start AI Analysis
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={analyzeImageRealtime}
+              disabled={!selectedImage || isProcessingImage || isStreaming}
+              variant="secondary"
+              className="w-full"
+            >
+              {isStreaming ? (
+                <>
+                  <Brain className="w-4 h-4 mr-2 animate-spin" />
+                  Real-time AI (streaming)...
+                </>
+              ) : (
+                <>
+                  <Brain className="w-4 h-4 mr-2" />
+                  Real-time AI (Stream)
                 </>
               )}
             </Button>
@@ -439,36 +560,51 @@ export default function XRayDiagnostics() {
           </CardHeader>
           <CardContent>
             {!analysis ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Brain className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Upload an X-ray image and start AI analysis to detect:</p>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              streamText || isStreaming ? (
+                <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    Cavities & Decay
+                    <Brain className="w-5 h-5" />
+                    <span className="font-medium">Live analysis stream</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full" />
-                    Fractures
+                  <div className="rounded-md border p-4 text-left h-48 overflow-auto bg-muted/30">
+                    <pre className="whitespace-pre-wrap text-sm leading-relaxed">{streamText}</pre>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    Root Infections
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                    Bone Density
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                    Oral Cancer
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                    Gum Disease
+                  {isStreaming && (
+                    <p className="text-xs text-muted-foreground">Streaming... you can keep browsing.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Brain className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>Upload an X-ray image and start AI analysis to detect:</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                      Cavities & Decay
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                      Fractures
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      Root Infections
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                      Bone Density
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                      Oral Cancer
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                      Gum Disease
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             ) : (
               <div className="space-y-6">
                 {/* Health Score Dashboard */}

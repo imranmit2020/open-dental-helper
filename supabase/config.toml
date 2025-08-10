@@ -10,3 +10,6 @@ verify_jwt = false
 # Requires caller to be authenticated; role checked inside function
 verify_jwt = true
 
+[functions.xray-stream]
+# Public streaming endpoint for AI X-ray analysis
+verify_jwt = false
