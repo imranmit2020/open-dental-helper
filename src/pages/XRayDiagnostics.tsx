@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,8 @@ export default function XRayDiagnostics() {
   const [slices, setSlices] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const vizImgRef = useRef<HTMLImageElement>(null);
+  const [vizSize, setVizSize] = useState<{w:number;h:number}>({w:0,h:0});
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
 
@@ -75,6 +77,31 @@ export default function XRayDiagnostics() {
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
+
+  const overlayBoxes = useMemo(() => {
+    const out: DetectionBox[] = [...boxes];
+    if (analysis) {
+      const w = imgSize.w || 1;
+      const h = imgSize.h || 1;
+      for (const f of analysis.findings) {
+        if (f.coordinates) {
+          out.push({
+            id: `analysis-${f.id}`,
+            label: f.type.replace('_', ' '),
+            confidence: f.confidence,
+            severity: f.severity,
+            rect: {
+              x: Math.max(0, f.coordinates.x / w),
+              y: Math.max(0, f.coordinates.y / h),
+              width: Math.max(0, f.coordinates.width / w),
+              height: Math.max(0, f.coordinates.height / h),
+            },
+          });
+        }
+      }
+    }
+    return out;
+  }, [boxes, analysis, imgSize.w, imgSize.h]);
   // Advanced AI-powered analysis generator
   const generateComprehensiveAnalysis = (imageData: string, type: string): XRayAnalysis => {
     const analysisTypes = {
@@ -834,29 +861,43 @@ export default function XRayDiagnostics() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium mb-3">Original X-ray</h4>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Original dental X-ray image</p>
+                <h4 className="font-medium mb-3">X-ray with color-coded overlay</h4>
+                <div className="relative max-w-full h-72 mx-auto rounded overflow-hidden bg-background">
+                  <img
+                    ref={vizImgRef}
+                    src={selectedImage || analysis.imageUrl}
+                    alt="Dental X-ray with AI overlay highlighting findings"
+                    className="absolute inset-0 w-full h-full object-contain"
+                    onLoad={() => {
+                      const el = vizImgRef.current; if (el) setVizSize({ w: el.clientWidth, h: el.clientHeight });
+                    }}
+                  />
+                  {overlayBoxes.length > 0 && (
+                    <XRayOverlay boxes={overlayBoxes} width={vizSize.w} height={vizSize.h} />
+                  )}
+                </div>
+                <div className="mt-3 flex justify-center gap-4">
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500" /><span className="text-xs">High/Critical</span></div>
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500" /><span className="text-xs">Medium</span></div>
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-500" /><span className="text-xs">Low</span></div>
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-3">AI Analysis Overlay</h4>
-                <div className="bg-gray-100 rounded-lg p-4 text-center relative">
-                  <p className="text-sm text-muted-foreground">X-ray with color-coded problem areas</p>
-                  <div className="mt-4 flex justify-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
-                      <span className="text-xs">High Risk</span>
+                <h4 className="font-medium mb-3">What this means</h4>
+                <div className="space-y-3">
+                  {analysis.findings.map((f) => (
+                    <div key={f.id} className="border-l-4 pl-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium capitalize">{f.type.replace('_', ' ')}</span>
+                        <Badge variant="outline">{f.confidence}%</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{f.patientExplanation}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge className={getSeverityColor(f.severity)}>{f.severity}</Badge>
+                        <span className={`text-xs px-2 py-1 rounded border ${getUrgencyColor(f.urgency)}`}>Urgency: {f.urgency}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                      <span className="text-xs">Medium Risk</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
-                      <span className="text-xs">Low Risk</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
