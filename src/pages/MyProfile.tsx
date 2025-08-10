@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -25,6 +25,7 @@ const profileSchema = z.object({
 export default function MyProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [editing, setEditing] = useState(false);
 
   const defaults = useMemo(() => ({
     displayName: (user as any)?.user_metadata?.name || "",
@@ -46,7 +47,7 @@ export default function MyProfile() {
     document.title = "My Profile | DentalAI Pro";
     const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     metaDesc.setAttribute('name', 'description');
-    metaDesc.setAttribute('content', 'Update your profile, avatar, email, and password in DentalAI Pro.');
+    metaDesc.setAttribute('content', 'View and update your profile and password in DentalAI Pro.');
     document.head.appendChild(metaDesc);
 
     const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
@@ -74,12 +75,6 @@ export default function MyProfile() {
       });
       if (metaErr) throw metaErr;
 
-      // Update email if changed
-      if (values.email && values.email !== user.email) {
-        const { error: emailErr } = await supabase.auth.updateUser({ email: values.email });
-        if (emailErr) throw emailErr;
-        toast({ title: "Email update sent", description: "Check your inbox to confirm the new email." });
-      }
 
       // Update password if provided
       if (values.newPassword) {
@@ -88,6 +83,7 @@ export default function MyProfile() {
         toast({ title: "Password updated", description: "Your password has been changed." });
       }
 
+      setEditing(false);
       toast({ title: "Profile saved", description: "Your profile details were updated." });
     } catch (e: any) {
       toast({ title: "Update failed", description: e?.message || "Please try again.", variant: "destructive" });
@@ -105,7 +101,7 @@ export default function MyProfile() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Profile</CardTitle>
-            <CardDescription>Update your name, avatar, and email</CardDescription>
+            <CardDescription>View and edit your name and avatar</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -118,7 +114,7 @@ export default function MyProfile() {
                       <FormItem>
                         <FormLabel>Display name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your name" {...field} />
+                          <Input placeholder="Your name" disabled={!editing} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -132,9 +128,9 @@ export default function MyProfile() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="you@example.com" {...field} />
+                          <Input type="email" placeholder="you@example.com" readOnly disabled {...field} />
                         </FormControl>
-                        <FormDescription>Changing email requires confirmation via link.</FormDescription>
+                        <FormDescription>Email changes are not allowed.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -147,7 +143,7 @@ export default function MyProfile() {
                       <FormItem className="md:col-span-2">
                         <FormLabel>Avatar URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://..." {...field} />
+                          <Input placeholder="https://..." disabled={!editing} {...field} />
                         </FormControl>
                         <FormDescription>Provide a public image URL for your avatar.</FormDescription>
                         <FormMessage />
@@ -165,8 +161,14 @@ export default function MyProfile() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit">Save changes</Button>
-                  <Button type="button" variant="secondary" onClick={() => form.reset(defaults)}>Reset</Button>
+                  {!editing ? (
+                    <Button type="button" onClick={() => setEditing(true)}>Edit</Button>
+                  ) : (
+                    <>
+                      <Button type="submit">Save</Button>
+                      <Button type="button" variant="secondary" onClick={() => { form.reset(defaults); setEditing(false); }}>Cancel</Button>
+                    </>
+                  )}
                 </div>
               </form>
             </Form>
