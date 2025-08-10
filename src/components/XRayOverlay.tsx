@@ -28,70 +28,155 @@ const severityStyles: Record<NonNullable<DetectionBox['severity']>, { stroke: st
   critical: { stroke: 'hsl(var(--destructive))', fill: 'hsl(var(--destructive) / 0.12)' },
 };
 
+// Map medical finding labels to semantic colors
+const getStylesFor = (
+  label: string | undefined,
+  sev: NonNullable<DetectionBox['severity']>
+): { stroke: string; fill: string } => {
+  const l = (label || '').toLowerCase();
+  const isCavity = /\b(cavity|caries)\b/.test(l);
+  const isRootInfection = /(root infection|periapical|apical|abscess|endodont|periradicular)/.test(l);
+
+  if (isCavity) {
+    return { stroke: 'hsl(var(--warning))', fill: 'hsl(var(--warning) / 0.12)' };
+  }
+  if (isRootInfection) {
+    return { stroke: 'hsl(var(--destructive))', fill: 'hsl(var(--destructive) / 0.12)' };
+  }
+  return severityStyles[sev] || severityStyles.medium;
+};
+
 export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height, offsetX = 0, offsetY = 0, opacity = 0.6, highlightedId }) => {
-  const shapes = useMemo(() => {
-    return boxes.map((b) => {
-      const label = b.label;
-      const conf = (b.confidence > 1 ? b.confidence : b.confidence * 100).toFixed(0) + '%';
-      const sev: NonNullable<DetectionBox['severity']> = (b.severity ?? 'medium') as any;
+const shapes = useMemo(() => {
+    return boxes
+      .map((b) => {
+        const label = b.label;
+        const l = (label || '').toLowerCase();
+        const isCavity = /\b(cavity|caries)\b/.test(l);
+        const isRootInfection = /(root infection|periapical|apical|abscess|endodont|periradicular)/.test(l);
+        const conf = (b.confidence > 1 ? b.confidence : b.confidence * 100).toFixed(0) + '%';
+        const sev: NonNullable<DetectionBox['severity']> = (b.severity ?? 'medium') as any;
 
-      if (b.poly && b.poly.length >= 3) {
-        const pts = b.poly
-          .map((p) => `${p.x * width},${p.y * height}`)
-          .join(' ');
-        // centroid for label
-        const cx = b.poly.reduce((s, p) => s + p.x, 0) / b.poly.length;
-        const cy = b.poly.reduce((s, p) => s + p.y, 0) / b.poly.length;
-        return {
-          id: b.id,
-          type: 'poly' as const,
-          sev,
-          pts,
-          label,
-          conf,
-          lx: cx * width,
-          ly: cy * height - 8,
-        };
-      }
+        if (b.poly && b.poly.length >= 3) {
+          // centroid for label
+          const cxN = b.poly.reduce((s, p) => s + p.x, 0) / b.poly.length;
+          const cyN = b.poly.reduce((s, p) => s + p.y, 0) / b.poly.length;
 
-      if (b.rect) {
-        const left = b.rect.x * width;
-        const top = b.rect.y * height;
-        const w = b.rect.width * width;
-        const h = b.rect.height * height;
-        return {
-          id: b.id,
-          type: 'rect' as const,
-          sev,
-          left, top, w, h,
-          label, conf,
-        };
-      }
+          if (isCavity) {
+            // Render cavity as a circle using polygon's bounding box
+            const xs = b.poly.map((p) => p.x);
+            const ys = b.poly.map((p) => p.y);
+            const minX = Math.min(...xs), maxX = Math.max(...xs);
+            const minY = Math.min(...ys), maxY = Math.max(...ys);
+            const rPx = (Math.max(maxX - minX, maxY - minY) * Math.max(width, height)) * 0.5;
+            return {
+              id: b.id,
+              type: 'circle' as const,
+              sev,
+              cx: cxN * width,
+              cy: cyN * height,
+              r: Math.max(4, rPx),
+              label,
+              conf,
+              lx: cxN * width,
+              ly: cyN * height - (Math.max(4, rPx) + 8),
+            };
+          }
 
-      return null;
-    }).filter(Boolean);
+          const pts = b.poly.map((p) => `${p.x * width},${p.y * height}`).join(' ');
+          return {
+            id: b.id,
+            type: 'poly' as const,
+            sev,
+            pts,
+            label,
+            conf,
+            lx: cxN * width,
+            ly: cyN * height - 8,
+          };
+        }
+
+        if (b.rect) {
+          const left = b.rect.x * width;
+          const top = b.rect.y * height;
+          const w = b.rect.width * width;
+          const h = b.rect.height * height;
+
+          if (isCavity) {
+            const cx = left + w / 2;
+            const cy = top + h / 2;
+            const r = Math.max(w, h) / 2;
+            return {
+              id: b.id,
+              type: 'circle' as const,
+              sev,
+              cx,
+              cy,
+              r: Math.max(4, r),
+              label,
+              conf,
+              lx: cx,
+              ly: cy - (Math.max(4, r) + 8),
+            };
+          }
+
+          return {
+            id: b.id,
+            type: 'rect' as const,
+            sev,
+            left,
+            top,
+            w,
+            h,
+            label,
+            conf,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
   }, [boxes, width, height]);
 
   return (
     <div className="absolute pointer-events-none" style={{ left: offsetX ?? 0, top: offsetY ?? 0, width, height }}>
       <svg className="absolute inset-0 w-full h-full" width={width} height={height}>
         {(shapes as any[]).map((s) => {
-          const styles = severityStyles[s.sev as keyof typeof severityStyles] || severityStyles.medium;
+          const styles = getStylesFor(s.label, s.sev as keyof typeof severityStyles);
           const isHi = highlightedId && s.id === highlightedId;
           const strokeWidth = isHi ? 3 : 2;
           const strokeOpacity = Math.min(1, (opacity ?? 0.6) + (isHi ? 0.2 : 0));
           const fillOpacity = Math.max(0, (opacity ?? 0.6) - 0.35);
-          return s.type === 'poly' ? (
-            <g key={s.id}>
-              <polygon points={s.pts} style={{ stroke: styles.stroke, fill: styles.fill, strokeWidth, strokeOpacity, fillOpacity }} />
-              <g transform={`translate(${s.lx},${s.ly})`}>
-                <rect x={-2} y={-12} width={Math.max(50, s.label.length * 6 + 30)} height={16} rx={3} className="fill-background/80" />
-                <text x={4} y={0} className="text-[11px] fill-foreground">
-                  {s.label} {s.conf}
-                </text>
+
+          if (s.type === 'poly') {
+            return (
+              <g key={s.id}>
+                <polygon points={s.pts} style={{ stroke: styles.stroke, fill: styles.fill, strokeWidth, strokeOpacity, fillOpacity }} />
+                <g transform={`translate(${s.lx},${s.ly})`}>
+                  <rect x={-2} y={-12} width={Math.max(50, s.label.length * 6 + 30)} height={16} rx={3} className="fill-background/80" />
+                  <text x={4} y={0} className="text-[11px] fill-foreground">
+                    {s.label} {s.conf}
+                  </text>
+                </g>
               </g>
-            </g>
-          ) : (
+            );
+          }
+
+          if (s.type === 'circle') {
+            return (
+              <g key={s.id}>
+                <circle cx={s.cx} cy={s.cy} r={s.r} style={{ stroke: styles.stroke, fill: styles.fill, strokeWidth, strokeOpacity, fillOpacity }} />
+                <g transform={`translate(${s.lx},${s.ly})`}>
+                  <rect x={-2} y={-12} width={Math.max(50, s.label.length * 6 + 30)} height={16} rx={3} className="fill-background/80" />
+                  <text x={4} y={0} className="text-[11px] fill-foreground">
+                    {s.label} {s.conf}
+                  </text>
+                </g>
+              </g>
+            );
+          }
+
+          return (
             <g key={s.id}>
               <rect x={s.left} y={s.top} width={s.w} height={s.h} style={{ stroke: styles.stroke, fill: styles.fill, strokeWidth, strokeOpacity, fillOpacity }} />
               <g transform={`translate(${s.left},${s.top - 6})`}>
