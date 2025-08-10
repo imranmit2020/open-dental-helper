@@ -1,6 +1,7 @@
-import React, { Suspense, useMemo, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useMemo, useState, useEffect } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
 import { Slider } from '@/components/ui/slider';
 
 interface CBCTViewerProps {
@@ -9,17 +10,28 @@ interface CBCTViewerProps {
 }
 
 const SlicePlane: React.FC<{ url: string }> = ({ url }) => {
-  // Simple textured plane for a single slice
-  const texture = useMemo(() => {
-    const tex = new Image();
-    tex.src = url;
-    return url;
-  }, [url]);
+  const texture = useLoader(THREE.TextureLoader, url);
+
+  useEffect(() => {
+    if (!texture) return;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.needsUpdate = true;
+  }, [texture]);
+
+  const aspect = (texture as any)?.image?.width && (texture as any)?.image?.height
+    ? (texture as any).image.width / (texture as any).image.height
+    : 1;
+  const width = 2;
+  const height = 2 / aspect;
+
   return (
     <mesh>
-      <planeGeometry args={[2, 2]} />
-      {/* We keep a neutral material until we wire a proper texture loader (MVP placeholder) */}
-      <meshBasicMaterial color="#cccccc" />
+      <planeGeometry args={[width, height]} />
+      <meshBasicMaterial map={texture} toneMapped={false} />
     </mesh>
   );
 };
@@ -31,7 +43,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   return (
     <div className="space-y-3">
       <div className="w-full rounded border bg-muted/30 overflow-hidden" style={{ height }}>
-        <Canvas camera={{ position: [0, 0, 3] }}>
+        <Canvas camera={{ position: [0, 0, 3] }} dpr={[1, 1.5]} gl={{ antialias: true }}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[3, 3, 3]} intensity={0.5} />
           <Suspense fallback={null}>
