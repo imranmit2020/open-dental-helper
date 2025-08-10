@@ -37,7 +37,7 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height, 
 
       if (b.poly && b.poly.length >= 3) {
         const pts = b.poly
-          .map((p) => `${Math.round(p.x * width)},${Math.round(p.y * height)}`)
+          .map((p) => `${p.x * width},${p.y * height}`)
           .join(' ');
         // centroid for label
         const cx = b.poly.reduce((s, p) => s + p.x, 0) / b.poly.length;
@@ -49,16 +49,16 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height, 
           pts,
           label,
           conf,
-          lx: Math.round(cx * width),
-          ly: Math.round(cy * height) - 8,
+          lx: cx * width,
+          ly: cy * height - 8,
         };
       }
 
       if (b.rect) {
-        const left = Math.round(b.rect.x * width);
-        const top = Math.round(b.rect.y * height);
-        const w = Math.round(b.rect.width * width);
-        const h = Math.round(b.rect.height * height);
+        const left = b.rect.x * width;
+        const top = b.rect.y * height;
+        const w = b.rect.width * width;
+        const h = b.rect.height * height;
         return {
           id: b.id,
           type: 'rect' as const,

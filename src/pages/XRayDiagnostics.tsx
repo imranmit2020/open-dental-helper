@@ -105,6 +105,41 @@ const { logError } = useErrorLogger();
     return { x, y, width, height };
   }, []);
 
+  const normalizeIncomingDet = useCallback((det: any): DetectionBox | null => {
+    if (!det) return null;
+    const id = String(det.id ?? `det_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    const label = String(det.label ?? det.type ?? 'finding');
+    const confidence = typeof det.confidence === 'number' ? det.confidence : 0;
+    const severity = det.severity as DetectionBox['severity'];
+
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+    if (det.rect) {
+      let { x, y, width, height } = det.rect as { x: number; y: number; width: number; height: number };
+      const isNorm = x <= 1 && y <= 1 && width <= 1 && height <= 1;
+      if (!isNorm) {
+        const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
+        x = x / iw; y = y / ih; width = width / iw; height = height / ih;
+      }
+      x = clamp01(x); y = clamp01(y);
+      width = Math.min(1 - x, Math.max(0, width));
+      height = Math.min(1 - y, Math.max(0, height));
+      return { id, label, confidence, severity, rect: { x, y, width, height } };
+    }
+
+    if (Array.isArray(det.poly) && det.poly.length >= 3) {
+      const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
+      const poly = det.poly.map((p: any) => {
+        let px = Number(p.x), py = Number(p.y);
+        if (px > 1 || py > 1) { px = px / iw; py = py / ih; }
+        return { x: clamp01(px), y: clamp01(py) };
+      });
+      return { id, label, confidence, severity, poly };
+    }
+
+    return null;
+  }, [naturalSize]);
+
 const makeOverlayBoxes = useCallback(() => {
   const out: DetectionBox[] = [...boxes];
   if (analysis) {
@@ -371,10 +406,11 @@ const vizOverlayBoxes = useMemo(() => makeOverlayBoxes(), [makeOverlayBoxes]);
                   try {
                     const jsonStr = line.replace(/^DETECTION:\s*/, '');
                     const det = JSON.parse(jsonStr);
-                    if (det && (det.rect || det.poly)) {
+                    const norm = normalizeIncomingDet(det);
+                    if (norm) {
                       setBoxes(prev => {
-                        const exists = prev.some(p => p.id === det.id);
-                        const next = exists ? prev.map(p => p.id === det.id ? det : p) : [...prev, det];
+                        const exists = prev.some(p => p.id === norm.id);
+                        const next = exists ? prev.map(p => p.id === norm.id ? norm : p) : [...prev, norm];
                         return next;
                       });
                     }
@@ -383,10 +419,11 @@ const vizOverlayBoxes = useMemo(() => makeOverlayBoxes(), [makeOverlayBoxes]);
                   try {
                     const jsonStr = line.replace(/^DETECTION_POLY:\s*/, '');
                     const det = JSON.parse(jsonStr);
-                    if (det && det.poly) {
+                    const norm = normalizeIncomingDet(det);
+                    if (norm) {
                       setBoxes(prev => {
-                        const exists = prev.some(p => p.id === det.id);
-                        const next = exists ? prev.map(p => p.id === det.id ? det : p) : [...prev, det];
+                        const exists = prev.some(p => p.id === norm.id);
+                        const next = exists ? prev.map(p => p.id === norm.id ? norm : p) : [...prev, norm];
                         return next;
                       });
                     }
