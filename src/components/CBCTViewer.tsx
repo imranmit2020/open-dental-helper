@@ -17,6 +17,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
 
   const current = Math.min(Math.max(index[0], 0), Math.max(slices.length - 1, 0));
   const src = slices.length > 0 ? slices[current] : undefined;
+  const canScrub = slices.length > 1;
 
   useEffect(() => {
     // Reset view when switching slice
@@ -56,6 +57,9 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
     setRotation(0);
   };
 
+  const prevSlice = () => setIndex(([i]) => [Math.max(0, i - 1)]);
+  const nextSlice = () => setIndex(([i]) => [Math.min(slices.length - 1, i + 1)]);
+
   return (
     <div className="space-y-3">
       <div
@@ -68,6 +72,11 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
         onDoubleClick={reset}
         role="figure"
         aria-label="CBCT slice viewer"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') prevSlice();
+          if (e.key === 'ArrowRight') nextSlice();
+        }}
       >
         {src ? (
           <img
@@ -112,10 +121,39 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          className="text-xs px-2 py-1 rounded border bg-background"
+          onClick={prevSlice}
+          disabled={!canScrub}
+          aria-label="Previous slice"
+        >
+          Prev
+        </button>
         <span className="text-xs text-muted-foreground">Slice</span>
-        <Slider value={index} onValueChange={setIndex} min={0} max={Math.max(slices.length - 1, 0)} step={1} className="flex-1" />
+        <Slider
+          value={index}
+          onValueChange={setIndex}
+          min={0}
+          max={Math.max(slices.length - 1, 0)}
+          step={1}
+          className="flex-1"
+          disabled={!canScrub}
+        />
         <span className="text-xs text-muted-foreground w-10 text-right">{current}</span>
+        <button
+          type="button"
+          className="text-xs px-2 py-1 rounded border bg-background"
+          onClick={nextSlice}
+          disabled={!canScrub}
+          aria-label="Next slice"
+        >
+          Next
+        </button>
       </div>
+      {!canScrub && (
+        <p className="text-xs text-muted-foreground">Load multiple slices to enable scrubbing.</p>
+      )}
     </div>
   );
 };
