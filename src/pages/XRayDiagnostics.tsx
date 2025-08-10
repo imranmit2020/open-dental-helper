@@ -792,11 +792,12 @@ export default function XRayDiagnostics() {
                     </div>
                     <CBCTViewer slices={selectedImage ? [selectedImage] : []} />
                   </TabsContent>
-              )}
+                </Tabs>
+              </div>
+)
+            }
             </CardContent>
           </Card>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Color-coded Overlay Demo */}
