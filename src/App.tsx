@@ -69,6 +69,7 @@ const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManageme
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
+const MyProfile = lazy(() => import("./pages/MyProfile"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -155,6 +156,7 @@ function App() {
             <Route path="reports" element={<Suspense fallback={<PageLoader />}><PracticeAnalytics /></Suspense>} />
             <Route path="patient-insights" element={<Suspense fallback={<PageLoader />}><PracticeAnalytics /></Suspense>} />
             <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
+            <Route path="my-profile" element={<Suspense fallback={<PageLoader />}><MyProfile /></Suspense>} />
             <Route path="xray-diagnostics" element={<Suspense fallback={<PageLoader />}><XRayDiagnostics /></Suspense>} />
             <Route path="treatment-plans" element={<Suspense fallback={<PageLoader />}><TreatmentPlanGenerator /></Suspense>} />
             <Route path="voice-to-chart" element={<Suspense fallback={<PageLoader />}><VoiceToChart /></Suspense>} />

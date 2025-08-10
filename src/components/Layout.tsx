@@ -128,7 +128,7 @@ const Layout = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={isPatient ? "/patient-dashboard" : "/settings"} className="flex items-center">
+                    <Link to="/my-profile" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </Link>
