@@ -15,6 +15,33 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const mode = useRef<'pan' | 'rotate'>('pan');
+  const spinRAF = useRef<number | null>(null);
+  const spinStart = useRef<number>(0);
+  const spinFrom = useRef<number>(0);
+  const stopSpin = () => {
+    if (spinRAF.current) {
+      cancelAnimationFrame(spinRAF.current);
+      spinRAF.current = null;
+    }
+  };
+  const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const rotateFull360 = (duration = 1200) => {
+    stopSpin();
+    spinStart.current = performance.now();
+    spinFrom.current = rotation;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - spinStart.current) / duration);
+      const angle = spinFrom.current + 360 * easeInOutCubic(t);
+      setRotation(angle);
+      if (t < 1) {
+        spinRAF.current = requestAnimationFrame(step);
+      } else {
+        setRotation((prev) => ((prev % 360) + 360) % 360);
+        spinRAF.current = null;
+      }
+    };
+    spinRAF.current = requestAnimationFrame(step);
+  };
 
   const current = Math.min(Math.max(index[0], 0), Math.max(slices.length - 1, 0));
   const src = slices.length > 0 ? slices[current] : undefined;
@@ -36,6 +63,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
     const target = e.target as HTMLElement;
     if (target && (target.closest('button') || target.closest('[data-controls]'))) return;
+    stopSpin();
     dragging.current = true;
     last.current = { x: e.clientX, y: e.clientY };
     mode.current = (e.shiftKey || e.button === 2 || (e.buttons & 2) === 2) ? 'rotate' : 'pan';
@@ -112,20 +140,31 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
         <div className="absolute left-2 top-2 text-xs px-2 py-1 rounded bg-background/80 border">
           Pan: left-drag • Rotate: right-drag or Shift-drag • Zoom: wheel • Reset: double click
         </div>
-        <div className="absolute right-2 top-2 flex gap-2">
+        <div className="absolute right-2 top-2 flex gap-2" data-controls>
           <button
             type="button"
             className="text-xs px-2 py-1 rounded border bg-background/80"
             onClick={() => setRotation((r) => (r + 90) % 360)}
             aria-label="Rotate 90 degrees"
+            title="Rotate 90°"
           >
             Rotate 90°
           </button>
           <button
             type="button"
             className="text-xs px-2 py-1 rounded border bg-background/80"
+            onClick={() => rotateFull360()}
+            aria-label="Rotate 360 degrees"
+            title="Rotate 360° (animated)"
+          >
+            Rotate 360°
+          </button>
+          <button
+            type="button"
+            className="text-xs px-2 py-1 rounded border bg-background/80"
             onClick={reset}
             aria-label="Reset view"
+            title="Reset (double click, or press R/0)"
           >
             Reset
           </button>
