@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import NewPatientForm from "@/components/NewPatientForm";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useToast } from "@/hooks/use-toast";
@@ -234,6 +235,15 @@ export default function Patients() {
 
     return matchesSearch && matchesStatus && matchesRisk && matchesAge && matchesInsurance;
   });
+
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredPatients.length / pageSize) || 1;
+  const paginatedPatients = filteredPatients.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filters, patients.length]);
 
   // Export current filtered patients to CSV
   const handleExport = () => {
@@ -574,7 +584,7 @@ export default function Patients() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {filteredPatients.map((patient, index) => (
+          {paginatedPatients.map((patient, index) => (
             <div
               key={patient.id}
               className="group flex items-center justify-between p-6 border border-border/50 rounded-2xl hover:bg-gradient-to-r hover:from-muted/30 hover:to-accent/5 hover:border-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer animate-fade-in"
@@ -652,6 +662,27 @@ export default function Patients() {
               </div>
             </div>
           ))}
+          {totalPages > 1 && (
+            <div className="pt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)); }} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                    <PaginationItem key={pNum}>
+                      <PaginationLink href="#" isActive={pNum === page} onClick={(e) => { e.preventDefault(); setPage(pNum); }}>
+                        {pNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.min(totalPages, p + 1)); }} />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
