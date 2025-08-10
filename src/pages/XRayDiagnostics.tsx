@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,9 @@ import { useErrorLogger } from "@/hooks/useErrorLogger";
 import { removeBackground, loadImage } from "@/services/BackgroundRemovalService";
 import { supabase } from "@/integrations/supabase/client";
 import XRayOverlay, { DetectionBox } from "@/components/XRayOverlay";
-import CBCTViewer from "@/components/CBCTViewer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+const LazyCBCTViewer = lazy(() => import("@/components/CBCTViewer"));
 interface XRayFinding {
   id: string;
   type: 'cavity' | 'fracture' | 'root_infection' | 'bone_density' | 'oral_cancer' | 'periodontal_disease';
@@ -809,7 +811,11 @@ export default function XRayDiagnostics() {
                       <h4 className="font-medium">CBCT 3D Viewer (MVP)</h4>
                       <p className="text-sm text-muted-foreground">Interact with the scene and scrub slices. DICOM stack support coming next.</p>
                     </div>
-                    <CBCTViewer slices={slices.length ? slices : (selectedImage ? [selectedImage] : [])} />
+                    <ErrorBoundary fallback={<div className="h-[380px] w-full rounded border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">3D viewer failed to load. Please reload.</div>}>
+                      <Suspense fallback={<div className="h-[380px] w-full rounded border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">Loading 3D viewer…</div>}>
+                        <LazyCBCTViewer slices={slices.length ? slices : (selectedImage ? [selectedImage] : [])} />
+                      </Suspense>
+                    </ErrorBoundary>
                   </TabsContent>
                 </Tabs>
               </div>
