@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,10 @@ export default function XRayDiagnostics() {
   const imgRef = useRef<HTMLImageElement>(null);
   const vizImgRef = useRef<HTMLImageElement>(null);
   const [vizSize, setVizSize] = useState<{w:number;h:number}>({w:0,h:0});
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const vizContainerRef = useRef<HTMLDivElement>(null);
+  const [previewRect, setPreviewRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
+  const [vizRect, setVizRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
 
@@ -78,11 +82,20 @@ export default function XRayDiagnostics() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  const overlayBoxes = useMemo(() => {
+  const calcContainRect = useCallback((cw: number, ch: number, iw: number, ih: number) => {
+    const scale = Math.min(cw / iw, ch / ih);
+    const width = Math.round(iw * scale);
+    const height = Math.round(ih * scale);
+    const x = Math.round((cw - width) / 2);
+    const y = Math.round((ch - height) / 2);
+    return { x, y, width, height };
+  }, []);
+
+  const makeOverlayBoxes = useCallback((dimW: number, dimH: number) => {
     const out: DetectionBox[] = [...boxes];
     if (analysis) {
-      const w = imgSize.w || 1;
-      const h = imgSize.h || 1;
+      const w = dimW || 1;
+      const h = dimH || 1;
       for (const f of analysis.findings) {
         if (f.coordinates) {
           out.push({
@@ -101,7 +114,19 @@ export default function XRayDiagnostics() {
       }
     }
     return out;
-  }, [boxes, analysis, imgSize.w, imgSize.h]);
+  }, [boxes, analysis]);
+
+  const previewOverlayBoxes = useMemo(() => (
+    previewRect.width && previewRect.height
+      ? makeOverlayBoxes(previewRect.width, previewRect.height)
+      : boxes
+  ), [boxes, makeOverlayBoxes, previewRect.width, previewRect.height]);
+
+  const vizOverlayBoxes = useMemo(() => (
+    vizRect.width && vizRect.height
+      ? makeOverlayBoxes(vizRect.width, vizRect.height)
+      : boxes
+  ), [boxes, makeOverlayBoxes, vizRect.width, vizRect.height]);
   // Advanced AI-powered analysis generator
   const generateComprehensiveAnalysis = (imageData: string, type: string): XRayAnalysis => {
     const analysisTypes = {
@@ -529,18 +554,23 @@ export default function XRayDiagnostics() {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               {selectedImage ? (
                 <div className="space-y-4">
-                  <div className="relative max-w-full h-64 mx-auto rounded overflow-hidden bg-background">
+                  <div ref={previewContainerRef} className="relative max-w-full h-64 mx-auto rounded overflow-hidden bg-background">
                     <img 
                       ref={imgRef}
                       src={selectedImage} 
                       alt="X-ray" 
                       className="absolute inset-0 w-full h-full object-contain"
                       onLoad={() => {
-                        const el = imgRef.current; if (el) setImgSize({ w: el.clientWidth, h: el.clientHeight });
+                        const el = imgRef.current; const cont = previewContainerRef.current;
+                        if (el && cont) {
+                          setImgSize({ w: el.clientWidth, h: el.clientHeight });
+                          const r = calcContainRect(cont.clientWidth, cont.clientHeight, el.naturalWidth, el.naturalHeight);
+                          setPreviewRect(r);
+                        }
                       }}
                     />
-                    {boxes.length > 0 && (
-                      <XRayOverlay boxes={boxes} width={imgSize.w} height={imgSize.h} />
+                    {previewOverlayBoxes.length > 0 && (
+                      <XRayOverlay boxes={previewOverlayBoxes} width={previewRect.width} height={previewRect.height} offsetX={previewRect.x} offsetY={previewRect.y} />
                     )}
                   </div>
                   <div className="space-y-2">
@@ -862,18 +892,23 @@ export default function XRayDiagnostics() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium mb-3">X-ray with color-coded overlay</h4>
-                <div className="relative max-w-full h-72 mx-auto rounded overflow-hidden bg-background">
+                <div ref={vizContainerRef} className="relative max-w-full h-72 mx-auto rounded overflow-hidden bg-background">
                   <img
                     ref={vizImgRef}
                     src={selectedImage || analysis.imageUrl}
                     alt="Dental X-ray with AI overlay highlighting findings"
                     className="absolute inset-0 w-full h-full object-contain"
                     onLoad={() => {
-                      const el = vizImgRef.current; if (el) setVizSize({ w: el.clientWidth, h: el.clientHeight });
+                      const el = vizImgRef.current; const cont = vizContainerRef.current;
+                      if (el && cont) {
+                        setVizSize({ w: el.clientWidth, h: el.clientHeight });
+                        const r = calcContainRect(cont.clientWidth, cont.clientHeight, el.naturalWidth, el.naturalHeight);
+                        setVizRect(r);
+                      }
                     }}
                   />
-                  {overlayBoxes.length > 0 && (
-                    <XRayOverlay boxes={overlayBoxes} width={vizSize.w} height={vizSize.h} />
+                  {vizOverlayBoxes.length > 0 && (
+                    <XRayOverlay boxes={vizOverlayBoxes} width={vizRect.width} height={vizRect.height} offsetX={vizRect.x} offsetY={vizRect.y} />
                   )}
                 </div>
                 <div className="mt-3 flex justify-center gap-4">

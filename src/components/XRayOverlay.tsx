@@ -15,6 +15,8 @@ interface XRayOverlayProps {
   boxes: DetectionBox[];
   width: number; // rendered image width in px
   height: number; // rendered image height in px
+  offsetX?: number; // left offset within container when using object-contain
+  offsetY?: number; // top offset within container when using object-contain
 }
 
 const severityColor: Record<NonNullable<DetectionBox['severity']>, string> = {
@@ -24,7 +26,7 @@ const severityColor: Record<NonNullable<DetectionBox['severity']>, string> = {
   critical: 'stroke-red-500 fill-red-300/10',
 };
 
-export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height }) => {
+export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height, offsetX = 0, offsetY = 0 }) => {
   const shapes = useMemo(() => {
     return boxes.map((b) => {
       const label = b.label;
@@ -69,7 +71,7 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height }
   }, [boxes, width, height]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute pointer-events-none" style={{ left: offsetX ?? 0, top: offsetY ?? 0, width, height }}>
       <svg className="absolute inset-0 w-full h-full" width={width} height={height}>
         {(shapes as any[]).map((s) => (
           s.type === 'poly' ? (
