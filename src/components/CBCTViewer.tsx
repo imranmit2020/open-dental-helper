@@ -25,7 +25,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
     }
   };
   const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-  const rotateFull360 = (duration = 1200) => {
+  const rotateFull360 = (duration = 3000) => {
     stopSpin();
     spinStart.current = performance.now();
     spinFrom.current = rotation;
