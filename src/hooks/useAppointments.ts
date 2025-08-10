@@ -153,6 +153,25 @@ export function useAppointments(date?: Date) {
         prev.map(apt => apt.id === id ? data : apt)
       );
 
+      // If appointment is completed, capture last visit on patient
+      try {
+        if (updates.status === 'completed') {
+          const apptDate = data?.appointment_date ? new Date(data.appointment_date) : new Date();
+          const lastVisit = apptDate.toISOString().split('T')[0];
+          if (data?.patient_id) {
+            const { error: lvErr } = await supabase
+              .from('patients')
+              .update({ last_visit: lastVisit })
+              .eq('id', data.patient_id);
+            if (lvErr) {
+              console.error('Failed to update patient last_visit:', lvErr);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error setting last_visit:', e);
+      }
+
       toast({
         title: "Success",
         description: "Appointment updated successfully",
