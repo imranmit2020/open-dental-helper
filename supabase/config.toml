@@ -13,3 +13,7 @@ verify_jwt = true
 [functions.xray-stream]
 # Public streaming endpoint for AI X-ray analysis
 verify_jwt = false
+
+[functions.xray-analyze]
+# Make analysis function callable from the client without auth issues
+verify_jwt = false
