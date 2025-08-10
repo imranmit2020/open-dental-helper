@@ -71,6 +71,16 @@ export default function XRayDiagnostics() {
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
 
+  // Normalize incoming scores to a 0–10 scale and format with one decimal
+  const formatTenScale = useCallback((val: number | null | undefined) => {
+    let v = Number(val ?? 0);
+    if (!Number.isFinite(v)) v = 0;
+    if (v <= 1) v = v * 10;           // 0..1 -> 0..10
+    else if (v > 10 && v <= 100) v = v / 10; // 0..100 -> 0..10
+    // else assumed already 0..10
+    return `${v.toFixed(1)}/10`;
+  }, []);
+
   useEffect(() => {
     const updateSize = () => {
       const el = imgRef.current;
@@ -796,11 +806,11 @@ export default function XRayDiagnostics() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                     <p className="text-sm text-muted-foreground">Overall Risk</p>
-                    <p className="text-2xl font-bold text-blue-700">{analysis.overallRiskScore}/10</p>
+                    <p className="text-2xl font-bold text-blue-700">{formatTenScale(analysis.overallRiskScore)}</p>
                   </div>
                   <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
                     <p className="text-sm text-muted-foreground">Bone Density</p>
-                    <p className="text-2xl font-bold text-green-700">{analysis.boneDensityScore}/10</p>
+                    <p className="text-2xl font-bold text-green-700">{formatTenScale(analysis.boneDensityScore)}</p>
                   </div>
                   <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg border border-purple-100">
                     <p className="text-sm text-muted-foreground">Oral Health</p>
