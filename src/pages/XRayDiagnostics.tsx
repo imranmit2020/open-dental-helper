@@ -459,32 +459,61 @@ export default function XRayDiagnostics() {
         }
       });
 
-      // Simulate advanced AI analysis with realistic processing time
-      setTimeout(() => {
-        const analysisResult = generateComprehensiveAnalysis(selectedImage, analysisType);
-        const processingTime = (Date.now() - startTime) / 1000;
-        
-        setAnalysis({
-          ...analysisResult,
-          processingTime
-        });
-        setIsAnalyzing(false);
-        setActiveTab("findings");
+      const publicUrl = await uploadImageIfNeeded();
+      const { data, error } = await supabase.functions.invoke('xray-analyze', {
+        body: { imageUrl: publicUrl, analysisType }
+      });
+      if (error) throw error;
 
-        logAction({
-          action: 'xray_ai_analysis_completed',
-          resource_type: 'image_analyses',
-          details: {
-            analysis_type: analysisType,
-            findings_count: analysisResult.findings.length,
-            risk_score: analysisResult.overallRiskScore,
-            second_opinion_required: analysisResult.secondOpinionRequired,
-            processing_time: processingTime
-          }
-        });
+      const processingTime = (Date.now() - startTime) / 1000;
 
-        toast.success(`AI analysis completed in ${processingTime.toFixed(1)}s`);
-      }, 3500);
+      const result = data as any;
+      const analysisResult: XRayAnalysis = {
+        id: result.id || `analysis_${Date.now()}`,
+        imageUrl: result.imageUrl || publicUrl,
+        processedImageUrl: result.processedImageUrl,
+        findings: (result.findings || []).map((f: any) => ({
+          id: f.id,
+          type: f.type,
+          confidence: f.confidence <= 1 ? Math.round(f.confidence * 100) : Math.round(f.confidence),
+          severity: f.severity,
+          location: f.location,
+          description: f.description,
+          coordinates: f.coordinates,
+          treatmentSuggestion: f.treatmentSuggestion,
+          urgency: f.urgency,
+          patientExplanation: f.patientExplanation,
+          followUpNeeded: !!f.followUpNeeded,
+        })),
+        overallRiskScore: result.overallRiskScore ?? 0,
+        boneDensityScore: result.boneDensityScore ?? 0,
+        oralHealthGrade: result.oralHealthGrade ?? '',
+        recommendations: result.recommendations ?? [],
+        treatmentPlan: result.treatmentPlan ?? [],
+        patientSummary: result.patientSummary ?? '',
+        secondOpinionRequired: !!result.secondOpinionRequired,
+        analysisTimestamp: new Date(),
+        aiModel: result.aiModel || 'gpt-4.1-2025-04-14',
+        processingTime
+      };
+
+      setAnalysis(analysisResult);
+      setIsAnalyzing(false);
+      setActiveTab('findings');
+
+      logAction({
+        action: 'xray_ai_analysis_completed',
+        resource_type: 'image_analyses',
+        details: {
+          analysis_type: analysisType,
+          findings_count: analysisResult.findings.length,
+          risk_score: analysisResult.overallRiskScore,
+          second_opinion_required: analysisResult.secondOpinionRequired,
+          processing_time: processingTime
+        }
+      });
+
+      toast.success(`AI analysis completed in ${processingTime.toFixed(1)}s`);
     } catch (error) {
       logError(error instanceof Error ? error : new Error(String(error)), {
         context: 'X-ray AI analysis failed'
