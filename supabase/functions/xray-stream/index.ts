@@ -29,18 +29,26 @@ serve(async (req) => {
       });
     }
 
-    // Build a streaming vision request to OpenAI with structured DETECTION events
+    // Build a streaming vision request to OpenAI with structured DETECTION and FINDING events
     const systemPrompt = `You are a board-certified dental radiography assistant.
 Stream concise, clinically useful observations.
 Output newline-delimited JSON lines prefixed with DETECTION: for each region you detect.
 Additionally, output DETECTION_POLY: lines when the region is better represented as a polygon.
+Also, OUTPUT FINDING: lines for each clinically relevant finding summarizing the detection for UI lists.
+
 Detection JSON schema (rect):
-{"id":"string","label":"cavity|fracture|root_infection|bone_loss|oral_lesion|periodontal","confidence":0-1,"severity":"low|medium|high|critical","rect":{"x":0-1,"y":0-1,"width":0-1,"height":0-1}}
+{"id":"string","label":"cavity|fracture|root_infection|bone_density|oral_cancer|periodontal_disease","confidence":0-1,"severity":"low|medium|high|critical","rect":{"x":0-1,"y":0-1,"width":0-1,"height":0-1}}
+
 Detection JSON schema (poly):
 {"id":"string","label":"...","confidence":0-1,"severity":"...","poly":[{"x":0-1,"y":0-1},...]}
-Coordinates MUST be normalized (0..1) relative to the input image.
-Also interleave brief natural-language insight lines (prefix TEXT:) to explain rationale.
-Finish with one TEXT: SUMMARY line.`;
+
+FINDING JSON schema (all fields REQUIRED unless stated):
+{"id":"string","type":"cavity|fracture|root_infection|bone_density|oral_cancer|periodontal_disease","confidence":0-100,"severity":"low|medium|high|critical","location":"string","description":"string","coordinates":{"x":0-1,"y":0-1,"width":0-1,"height":0-1},"treatmentSuggestion":"string","urgency":"routine|soon|urgent|emergency","patientExplanation":"string","followUpNeeded":true|false}
+
+IMPORTANT:
+- All coordinates MUST be NORMALIZED (0..1) relative to the input image (top-left origin).
+- Emit one DETECTION or DETECTION_POLY per region, and a corresponding FINDING when clinically relevant.
+- Keep natural-language commentary lines prefixed with TEXT:. End with one TEXT: SUMMARY line.`;
 
     const userText = `Analyze this dental image with focus: ${analysisType}.`;
 

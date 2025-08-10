@@ -103,18 +103,19 @@ export default function XRayDiagnostics() {
             label: f.type.replace('_', ' '),
             confidence: f.confidence,
             severity: f.severity,
-            rect: {
-              x: Math.min(1, Math.max(0, f.coordinates.x / w)),
-              y: Math.min(1, Math.max(0, f.coordinates.y / h)),
-              width: Math.min(
-                1 - Math.min(1, Math.max(0, f.coordinates.x / w)),
-                Math.max(0, f.coordinates.width / w)
-              ),
-              height: Math.min(
-                1 - Math.min(1, Math.max(0, f.coordinates.y / h)),
-                Math.max(0, f.coordinates.height / h)
-              ),
-            },
+            rect: (() => {
+              const c = f.coordinates!;
+              const isNorm = c.width <= 1 && c.height <= 1 && c.x <= 1 && c.y <= 1;
+              const nx = isNorm ? c.x : c.x / w;
+              const ny = isNorm ? c.y : c.y / h;
+              const nw = isNorm ? c.width : c.width / w;
+              const nh = isNorm ? c.height : c.height / h;
+              const x = Math.min(1, Math.max(0, nx));
+              const y = Math.min(1, Math.max(0, ny));
+              const width = Math.min(1 - x, Math.max(0, nw));
+              const height = Math.min(1 - y, Math.max(0, nh));
+              return { x, y, width, height };
+            })(),
           });
         }
       }
