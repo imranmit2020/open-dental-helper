@@ -217,6 +217,11 @@ export function AppSidebar() {
     };
   }, [canAccessAdminApprovals, isStaffMember]);
 
+  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path);
+  const getNavCls = ({ isActive }: { isActive: boolean }) =>
+    isActive 
+      ? "data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary data-[active=true]:to-secondary data-[active=true]:text-white bg-gradient-to-r from-primary to-secondary text-white font-semibold" 
+      : "";
 
   // Filter navigation items based on user permissions
   const visiblePatientMenuItems = filterNavigationItems(patientMenuItems);
@@ -265,14 +270,12 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePatientMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <NavLink to={item.url} end>
-                      {({ isActive }) => (
-                        <SidebarMenuButton isActive={isActive}>
-                          <item.icon className="h-4 w-4 text-current" />
-                          {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                        </SidebarMenuButton>
-                      )}
-                    </NavLink>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -290,14 +293,12 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePracticeDashboards.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <NavLink to={item.url} end>
-                      {({ isActive }) => (
-                        <SidebarMenuButton isActive={isActive}>
-                          <item.icon className="h-4 w-4 text-current" />
-                          {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                        </SidebarMenuButton>
-                      )}
-                    </NavLink>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -315,14 +316,12 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePatientItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <NavLink to={item.url} end>
-                      {({ isActive }) => (
-                        <SidebarMenuButton isActive={isActive}>
-                          <item.icon className="h-4 w-4 text-current" />
-                          {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                        </SidebarMenuButton>
-                      )}
-                    </NavLink>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -343,28 +342,26 @@ export function AppSidebar() {
                   <SidebarMenu>
                      {visibleSchedulingItems.map((item) => (
                        <SidebarMenuItem key={item.title}>
-                         <NavLink to={item.url} end>
-                           {({ isActive }) => (
-                             <SidebarMenuButton isActive={isActive}>
-                               <item.icon className="h-4 w-4 text-current" />
-                               {!isCollapsed && (
-                                 <div className="flex items-center justify-between w-full">
-                                   <span className="font-medium">{item.title}</span>
-                                   {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                                     <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-1 text-xs">
-                                       {upcomingAppointments}
-                                     </Badge>
-                                   )}
-                                 </div>
-                               )}
-                               {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                                   {upcomingAppointments}
-                                 </span>
-                               )}
-                             </SidebarMenuButton>
-                           )}
-                         </NavLink>
+                         <SidebarMenuButton asChild>
+                           <NavLink to={item.url} className={getNavCls}>
+                             <item.icon className="h-4 w-4 text-current" />
+                             {!isCollapsed && (
+                               <div className="flex items-center justify-between w-full">
+                                 <span className="font-medium">{item.title}</span>
+                                 {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                                   <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-1 text-xs">
+                                     {upcomingAppointments}
+                                   </Badge>
+                                 )}
+                               </div>
+                             )}
+                             {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                               <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                                 {upcomingAppointments}
+                               </span>
+                             )}
+                           </NavLink>
+                         </SidebarMenuButton>
                        </SidebarMenuItem>
                      ))}
                   </SidebarMenu>
@@ -381,16 +378,14 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleClinicalItems.map((item) => (
-                     <SidebarMenuItem key={item.title}>
-                       <NavLink to={item.url} end>
-                         {({ isActive }) => (
-                           <SidebarMenuButton isActive={isActive}>
-                             <item.icon className="h-4 w-4 text-current" />
-                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                           </SidebarMenuButton>
-                         )}
-                       </NavLink>
-                     </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -406,16 +401,14 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleAiItems.map((item) => (
-                       <SidebarMenuItem key={item.title}>
-                         <NavLink to={item.url} end>
-                           {({ isActive }) => (
-                             <SidebarMenuButton isActive={isActive}>
-                               <item.icon className="h-4 w-4 text-current" />
-                               {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                             </SidebarMenuButton>
-                           )}
-                         </NavLink>
-                       </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -431,16 +424,14 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleReportsItems.map((item) => (
-                     <SidebarMenuItem key={item.title}>
-                       <NavLink to={item.url} end>
-                         {({ isActive }) => (
-                           <SidebarMenuButton isActive={isActive}>
-                             <item.icon className="h-4 w-4 text-current" />
-                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                           </SidebarMenuButton>
-                         )}
-                       </NavLink>
-                     </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -456,16 +447,14 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleEnterpriseItems.map((item) => (
-                     <SidebarMenuItem key={item.title}>
-                       <NavLink to={item.url} end>
-                         {({ isActive }) => (
-                           <SidebarMenuButton isActive={isActive}>
-                             <item.icon className="h-4 w-4 text-current" />
-                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                           </SidebarMenuButton>
-                         )}
-                       </NavLink>
-                     </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -481,16 +470,14 @@ export function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleComplianceItems.map((item) => (
-                     <SidebarMenuItem key={item.title}>
-                       <NavLink to={item.url} end>
-                         {({ isActive }) => (
-                           <SidebarMenuButton isActive={isActive}>
-                             <item.icon className="h-4 w-4 text-current" />
-                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                           </SidebarMenuButton>
-                         )}
-                       </NavLink>
-                     </SidebarMenuItem>
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} className={getNavCls}>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
@@ -508,78 +495,66 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/user-approvals" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <UserPlus className="h-4 w-4 text-current" />
-                        {!isCollapsed && (
-                          <div className="flex items-center justify-between w-full">
-                            <span className="font-medium">User Approvals</span>
-                            {pendingApprovalsCount > 0 && (
-                              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                                {pendingApprovalsCount}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {isCollapsed && pendingApprovalsCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                            {pendingApprovalsCount}
-                          </span>
-                        )}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/user-approvals" className={getNavCls}>
+                      <UserPlus className="h-4 w-4 text-current" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">User Approvals</span>
+                          {pendingApprovalsCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                              {pendingApprovalsCount}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {isCollapsed && pendingApprovalsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                          {pendingApprovalsCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/employees" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <Users className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">Employees</span>}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/employees" className={getNavCls}>
+                      <Users className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Employees</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/roles" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <User className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">Role Assignment</span>}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/roles" className={getNavCls}>
+                      <User className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Role Assignment</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/employee-flow" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <ClipboardList className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">Employee & Staff Access</span>}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/employee-flow" className={getNavCls}>
+                      <ClipboardList className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Employee & Staff Access</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/passwords" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <Lock className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">Password Management</span>}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/passwords" className={getNavCls}>
+                      <Lock className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Password Management</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <NavLink to="/admin/employees/new" end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive}>
-                        <UserPlus className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">Add Employee</span>}
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/admin/employees/new" className={getNavCls}>
+                      <UserPlus className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Add Employee</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -591,14 +566,12 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <NavLink to="/settings" end>
-                  {({ isActive }) => (
-                    <SidebarMenuButton isActive={isActive}>
-                      <Settings className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Settings</span>}
-                    </SidebarMenuButton>
-                  )}
-                </NavLink>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/settings" className={getNavCls}>
+                    <Settings className="h-4 w-4 text-current" />
+                    {!isCollapsed && <span className="font-medium">Settings</span>}
+                  </NavLink>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
