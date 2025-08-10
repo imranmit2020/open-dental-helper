@@ -14,6 +14,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  const mode = useRef<'pan' | 'rotate'>('pan');
 
   const current = Math.min(Math.max(index[0], 0), Math.max(slices.length - 1, 0));
   const src = slices.length > 0 ? slices[current] : undefined;
@@ -35,6 +36,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
     dragging.current = true;
     last.current = { x: e.clientX, y: e.clientY };
+    mode.current = (e.shiftKey || e.button === 2 || (e.buttons & 2) === 2) ? 'rotate' : 'pan';
     (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
   };
 
@@ -43,11 +45,16 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
     const dx = e.clientX - last.current.x;
     const dy = e.clientY - last.current.y;
     last.current = { x: e.clientX, y: e.clientY };
-    setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+    if (mode.current === 'rotate') {
+      setRotation((r) => (r + dx * 0.3) % 360);
+    } else {
+      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+    }
   };
 
   const onPointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
     dragging.current = false;
+    mode.current = 'pan';
     (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId);
   };
 
@@ -69,13 +76,16 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerLeave={() => { dragging.current = false; mode.current = 'pan'; }}
         onDoubleClick={reset}
+        onContextMenu={(e) => e.preventDefault()}
         role="figure"
         aria-label="CBCT slice viewer"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') prevSlice();
           if (e.key === 'ArrowRight') nextSlice();
+          if (e.key.toLowerCase() === 'r' || e.key === '0') reset();
         }}
       >
         {src ? (
@@ -98,7 +108,7 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
 
         {/* HUD */}
         <div className="absolute left-2 top-2 text-xs px-2 py-1 rounded bg-background/80 border">
-          Pan: drag • Zoom: wheel • Reset: double click
+          Pan: left-drag • Rotate: right-drag or Shift-drag • Zoom: wheel • Reset: double click
         </div>
         <div className="absolute right-2 top-2 flex gap-2">
           <button
