@@ -98,10 +98,10 @@ const { logError } = useErrorLogger();
 
   const calcContainRect = useCallback((cw: number, ch: number, iw: number, ih: number) => {
     const scale = Math.min(cw / iw, ch / ih);
-    const width = Math.round(iw * scale);
-    const height = Math.round(ih * scale);
-    const x = Math.round((cw - width) / 2);
-    const y = Math.round((ch - height) / 2);
+    const width = iw * scale;
+    const height = ih * scale;
+    const x = (cw - width) / 2;
+    const y = (ch - height) / 2;
     return { x, y, width, height };
   }, []);
 
@@ -116,8 +116,14 @@ const { logError } = useErrorLogger();
 
     if (det.rect) {
       let { x, y, width, height } = det.rect as { x: number; y: number; width: number; height: number };
-      const isNorm = x <= 1 && y <= 1 && width <= 1 && height <= 1;
-      if (!isNorm) {
+      const m = Math.max(x, y, width, height);
+      if (m <= 1) {
+        // already unit 0..1
+      } else if (m <= 100) {
+        // percentage 0..100
+        x /= 100; y /= 100; width /= 100; height /= 100;
+      } else {
+        // pixels
         const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
         x = x / iw; y = y / ih; width = width / iw; height = height / ih;
       }
@@ -131,7 +137,14 @@ const { logError } = useErrorLogger();
       const iw = naturalSize.w || 1; const ih = naturalSize.h || 1;
       const poly = det.poly.map((p: any) => {
         let px = Number(p.x), py = Number(p.y);
-        if (px > 1 || py > 1) { px = px / iw; py = py / ih; }
+        const m = Math.max(px, py);
+        if (m <= 1) {
+          // already 0..1
+        } else if (m <= 100) {
+          px = px / 100; py = py / 100;
+        } else {
+          px = px / iw; py = py / ih;
+        }
         return { x: clamp01(px), y: clamp01(py) };
       });
       return { id, label, confidence, severity, poly };
@@ -139,6 +152,24 @@ const { logError } = useErrorLogger();
 
     return null;
   }, [naturalSize]);
+
+  useEffect(() => {
+    const recalc = () => {
+      const cont = previewContainerRef.current;
+      if (cont && naturalSize.w && naturalSize.h) {
+        const r = calcContainRect(cont.clientWidth, cont.clientHeight, naturalSize.w, naturalSize.h);
+        setPreviewRect(r);
+      }
+      const cont2 = vizContainerRef.current;
+      if (cont2 && naturalSize.w && naturalSize.h) {
+        const r2 = calcContainRect(cont2.clientWidth, cont2.clientHeight, naturalSize.w, naturalSize.h);
+        setVizRect(r2);
+      }
+    };
+    recalc();
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
+  }, [naturalSize, selectedImage, analysis, calcContainRect]);
 
 const makeOverlayBoxes = useCallback(() => {
   const out: DetectionBox[] = [...boxes];
