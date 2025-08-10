@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { User as UserIcon, Image as ImageIcon, Mail, Lock } from "lucide-react";
 
 const profileSchema = z.object({
   displayName: z.string().min(1, "Name is required").max(80),
@@ -98,10 +99,17 @@ export default function MyProfile() {
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>View and edit your name and avatar</CardDescription>
+        <Card className="lg:col-span-2 shadow-elegant">
+          <CardHeader className="relative">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
+                <UserIcon className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <CardTitle className="leading-none">Profile</CardTitle>
+                <CardDescription>View and edit your name and avatar</CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {!editing ? (
@@ -138,7 +146,10 @@ export default function MyProfile() {
                         <FormItem>
                           <FormLabel>Display name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your name" {...field} />
+                            <div className="relative">
+                              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                              <Input className="pl-9" placeholder="Your name" {...field} />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -147,7 +158,10 @@ export default function MyProfile() {
 
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <div className="text-sm text-muted-foreground">{user?.email}</div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" aria-hidden="true" />
+                        <span>{user?.email}</span>
+                      </div>
                       <FormDescription>Email changes are not allowed.</FormDescription>
                     </FormItem>
 
@@ -158,7 +172,10 @@ export default function MyProfile() {
                         <FormItem className="md:col-span-2">
                           <FormLabel>Avatar URL</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://..." {...field} />
+                            <div className="relative">
+                              <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                              <Input className="pl-9" placeholder="https://..." {...field} />
+                            </div>
                           </FormControl>
                           <FormDescription>Provide a public image URL for your avatar.</FormDescription>
                           <FormMessage />
@@ -185,10 +202,17 @@ export default function MyProfile() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-            <CardDescription>Set a new password</CardDescription>
+        <Card className="shadow-elegant">
+          <CardHeader className="relative">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
+                <Lock className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <CardTitle className="leading-none">Password</CardTitle>
+                <CardDescription>Set a new password</CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -200,7 +224,10 @@ export default function MyProfile() {
                     <FormItem>
                       <FormLabel>New password</FormLabel>
                       <FormControl>
-                        <Input type="password" autoComplete="new-password" {...field} />
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                          <Input className="pl-9" type="password" autoComplete="new-password" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,7 +240,10 @@ export default function MyProfile() {
                     <FormItem>
                       <FormLabel>Confirm new password</FormLabel>
                       <FormControl>
-                        <Input type="password" autoComplete="new-password" {...field} />
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                          <Input className="pl-9" type="password" autoComplete="new-password" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
