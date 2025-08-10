@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { useAuditLog } from "@/hooks/useAuditLog";
 import { useErrorLogger } from "@/hooks/useErrorLogger";
 import { removeBackground, loadImage } from "@/services/BackgroundRemovalService";
 import { supabase } from "@/integrations/supabase/client";
+import XRayOverlay, { DetectionBox } from "@/components/XRayOverlay";
+import CBCTViewer from "@/components/CBCTViewer";
 interface XRayFinding {
   id: string;
   type: 'cavity' | 'fracture' | 'root_infection' | 'bone_density' | 'oral_cancer' | 'periodontal_disease';
@@ -53,10 +55,24 @@ export default function XRayDiagnostics() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [uploadedPublicUrl, setUploadedPublicUrl] = useState<string | null>(null);
+  const [boxes, setBoxes] = useState<DetectionBox[]>([]);
+  const [imgSize, setImgSize] = useState<{w:number;h:number}>({w:0,h:0});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
+
+  useEffect(() => {
+    const updateSize = () => {
+      const el = imgRef.current;
+      if (!el) return;
+      setImgSize({ w: el.clientWidth, h: el.clientHeight });
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
   // Advanced AI-powered analysis generator
   const generateComprehensiveAnalysis = (imageData: string, type: string): XRayAnalysis => {
     const analysisTypes = {
@@ -273,7 +289,25 @@ export default function XRayDiagnostics() {
             const delta = choice?.delta;
             // Handle both string content and content array shapes
             if (typeof delta?.content === 'string') {
-              setStreamText(prev => prev + delta.content);
+              // Parse for prefixed lines
+              const text = delta.content;
+              setStreamText(prev => prev + text);
+              for (const rawLine of text.split('\n')) {
+                const line = rawLine.trim();
+                if (line.startsWith('DETECTION:')) {
+                  try {
+                    const jsonStr = line.replace(/^DETECTION:\s*/, '');
+                    const det = JSON.parse(jsonStr);
+                    if (det && det.rect) {
+                      setBoxes(prev => {
+                        const exists = prev.some(p => p.id === det.id);
+                        const next = exists ? prev.map(p => p.id === det.id ? det : p) : [...prev, det];
+                        return next;
+                      });
+                    }
+                  } catch {}
+                }
+              }
             } else if (Array.isArray(delta?.content)) {
               for (const part of delta.content) {
                 if (typeof part === 'string') {
@@ -448,11 +482,20 @@ export default function XRayDiagnostics() {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
               {selectedImage ? (
                 <div className="space-y-4">
-                  <img 
-                    src={selectedImage} 
-                    alt="X-ray" 
-                    className="max-w-full h-64 object-contain mx-auto rounded"
-                  />
+                  <div className="relative max-w-full h-64 mx-auto rounded overflow-hidden bg-background">
+                    <img 
+                      ref={imgRef}
+                      src={selectedImage} 
+                      alt="X-ray" 
+                      className="absolute inset-0 w-full h-full object-contain"
+                      onLoad={() => {
+                        const el = imgRef.current; if (el) setImgSize({ w: el.clientWidth, h: el.clientHeight });
+                      }}
+                    />
+                    {boxes.length > 0 && (
+                      <XRayOverlay boxes={boxes} width={imgSize.w} height={imgSize.h} />
+                    )}
+                  </div>
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">X-ray image uploaded successfully</p>
                     {isProcessingImage && (
@@ -625,11 +668,12 @@ export default function XRayDiagnostics() {
 
                 {/* Analysis Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-4 w-full">
+                  <TabsList className="grid grid-cols-5 w-full">
                     <TabsTrigger value="findings">Findings</TabsTrigger>
                     <TabsTrigger value="treatment">Treatment</TabsTrigger>
                     <TabsTrigger value="patient">Patient View</TabsTrigger>
                     <TabsTrigger value="technical">Technical</TabsTrigger>
+                    <TabsTrigger value="viewer3d">3D Viewer</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="findings" className="mt-4 space-y-4">
@@ -740,9 +784,17 @@ export default function XRayDiagnostics() {
                       </div>
                     </div>
                   </TabsContent>
-                </Tabs>
-              </div>
-            )}
+
+                  <TabsContent value="viewer3d" className="mt-4 space-y-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium">CBCT 3D Viewer (MVP)</h4>
+                      <p className="text-sm text-muted-foreground">Interact with the scene and scrub slices. DICOM stack support coming next.</p>
+                    </div>
+                    <CBCTViewer slices={selectedImage ? [selectedImage] : []} />
+                  </TabsContent>
+              )}
+            </CardContent>
+          </Card>
           </CardContent>
         </Card>
       </div>

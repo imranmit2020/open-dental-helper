@@ -29,15 +29,17 @@ serve(async (req) => {
       });
     }
 
-    // Build a streaming vision request to OpenAI
+    // Build a streaming vision request to OpenAI with structured DETECTION events
     const systemPrompt = `You are a board-certified dental radiography assistant.
-Stream concise, clinically useful observations as you analyze.
-Use bullet-like phrases, avoid hallucinations, and mention confidence.
-Call out potential: cavities, fractures, root infections, bone loss, oral lesions, periodontal status.
-If unsure, say so. Finish with a short summary.`;
+Stream concise, clinically useful observations.
+Output newline-delimited JSON lines prefixed with DETECTION: for each region you detect.
+Detection JSON schema:
+{"id":"string","label":"cavity|fracture|root_infection|bone_loss|oral_lesion|periodontal","confidence":0-1,"severity":"low|medium|high|critical","rect":{"x":0-1,"y":0-1,"width":0-1,"height":0-1}}
+Coordinates MUST be normalized (0..1) relative to the input image.
+Also interleave brief natural-language insight lines (prefix TEXT:) to explain rationale.
+Finish with one TEXT: SUMMARY line.`;
 
-    const userText = `Analyze this dental image with focus: ${analysisType}.
-Stream findings and rationale progressively as you detect them.`;
+    const userText = `Analyze this dental image with focus: ${analysisType}.`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
