@@ -57,9 +57,9 @@ export default function XRayDiagnostics() {
   const [uploadedPublicUrl, setUploadedPublicUrl] = useState<string | null>(null);
   const [boxes, setBoxes] = useState<DetectionBox[]>([]);
   const [imgSize, setImgSize] = useState<{w:number;h:number}>({w:0,h:0});
+  const [slices, setSlices] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  
   const { logAction } = useAuditLog();
   const { logError } = useErrorLogger();
 
@@ -166,31 +166,37 @@ export default function XRayDiagnostics() {
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
       try {
+        const first = files[0];
+        const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+
         logAction({
           action: 'xray_image_uploaded',
           resource_type: 'image_analyses',
           details: {
-            file_name: file.name,
-            file_size: file.size,
-            file_type: file.type
+            files_count: files.length,
+            file_name: first.name,
+            file_size: first.size,
+            file_type: first.type
           }
         });
 
-        const imageUrl = URL.createObjectURL(file);
+        setSlices(urls);
+        const imageUrl = urls[0];
         setSelectedImage(imageUrl);
-        setSelectedFile(file);
+        setSelectedFile(first);
         setAnalysis(null);
+        setBoxes([]);
+        setStreamText("");
 
-        // Auto-process image for better analysis
+        // Auto-process only the first image for better analysis
         setIsProcessingImage(true);
         try {
-          const img = await loadImage(file);
+          const img = await loadImage(first);
           const processedBlob = await removeBackground(img);
-          const processedUrl = URL.createObjectURL(processedBlob);
-          
+          // const processedUrl = URL.createObjectURL(processedBlob); // reserved for future use
           toast.success("Image processed and enhanced for analysis");
           logAction({
             action: 'xray_image_processed',
@@ -298,7 +304,19 @@ export default function XRayDiagnostics() {
                   try {
                     const jsonStr = line.replace(/^DETECTION:\s*/, '');
                     const det = JSON.parse(jsonStr);
-                    if (det && det.rect) {
+                    if (det && (det.rect || det.poly)) {
+                      setBoxes(prev => {
+                        const exists = prev.some(p => p.id === det.id);
+                        const next = exists ? prev.map(p => p.id === det.id ? det : p) : [...prev, det];
+                        return next;
+                      });
+                    }
+                  } catch {}
+                } else if (line.startsWith('DETECTION_POLY:')) {
+                  try {
+                    const jsonStr = line.replace(/^DETECTION_POLY:\s*/, '');
+                    const det = JSON.parse(jsonStr);
+                    if (det && det.poly) {
                       setBoxes(prev => {
                         const exists = prev.some(p => p.id === det.id);
                         const next = exists ? prev.map(p => p.id === det.id ? det : p) : [...prev, det];
@@ -521,6 +539,7 @@ export default function XRayDiagnostics() {
               ref={fileInputRef}
               type="file"
               accept="image/*,.dcm"
+              multiple
               onChange={handleImageUpload}
               className="hidden"
               id="xray-upload"
@@ -790,7 +809,7 @@ export default function XRayDiagnostics() {
                       <h4 className="font-medium">CBCT 3D Viewer (MVP)</h4>
                       <p className="text-sm text-muted-foreground">Interact with the scene and scrub slices. DICOM stack support coming next.</p>
                     </div>
-                    <CBCTViewer slices={selectedImage ? [selectedImage] : []} />
+                    <CBCTViewer slices={slices.length ? slices : (selectedImage ? [selectedImage] : [])} />
                   </TabsContent>
                 </Tabs>
               </div>

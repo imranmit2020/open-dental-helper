@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
+
+export interface DetectionPoint { x: number; y: number } // normalized 0..1
 
 export interface DetectionBox {
   id: string;
   label: string;
   confidence: number; // 0..1 or 0..100
   severity?: 'low' | 'medium' | 'high' | 'critical';
-  rect: { x: number; y: number; width: number; height: number }; // normalized 0..1
+  rect?: { x: number; y: number; width: number; height: number }; // normalized 0..1
+  poly?: DetectionPoint[]; // optional polygon in normalized coords
 }
 
 interface XRayOverlayProps {
@@ -15,43 +18,83 @@ interface XRayOverlayProps {
 }
 
 const severityColor: Record<NonNullable<DetectionBox['severity']>, string> = {
-  low: 'border-green-500/80 text-green-700 bg-green-50/60',
-  medium: 'border-yellow-500/80 text-yellow-700 bg-yellow-50/60',
-  high: 'border-orange-500/80 text-orange-700 bg-orange-50/60',
-  critical: 'border-red-500/80 text-red-700 bg-red-50/60',
+  low: 'stroke-green-500 fill-green-300/10',
+  medium: 'stroke-yellow-500 fill-yellow-300/10',
+  high: 'stroke-orange-500 fill-orange-300/10',
+  critical: 'stroke-red-500 fill-red-300/10',
 };
 
 export const XRayOverlay: React.FC<XRayOverlayProps> = ({ boxes, width, height }) => {
-  const pixelBoxes = useMemo(() => {
-    return boxes.map((b) => ({
-      ...b,
-      px: {
-        left: Math.round(b.rect.x * width),
-        top: Math.round(b.rect.y * height),
-        w: Math.round(b.rect.width * width),
-        h: Math.round(b.rect.height * height),
-      },
-    }));
-  }, [boxes, width, height]);
+  const shapes = useMemo(() => {
+    return boxes.map((b) => {
+      const label = b.label;
+      const conf = (b.confidence > 1 ? b.confidence : b.confidence * 100).toFixed(0) + '%';
+      const color = b.severity ? severityColor[b.severity] : 'stroke-primary fill-primary/10';
 
-  useEffect(() => {
-    // No-op: placeholder for future animation hooks
-  }, [pixelBoxes]);
+      if (b.poly && b.poly.length >= 3) {
+        const pts = b.poly
+          .map((p) => `${Math.round(p.x * width)},${Math.round(p.y * height)}`)
+          .join(' ');
+        // centroid for label
+        const cx = b.poly.reduce((s, p) => s + p.x, 0) / b.poly.length;
+        const cy = b.poly.reduce((s, p) => s + p.y, 0) / b.poly.length;
+        return {
+          id: b.id,
+          type: 'poly' as const,
+          color,
+          pts,
+          label,
+          conf,
+          lx: Math.round(cx * width),
+          ly: Math.round(cy * height) - 8,
+        };
+      }
+
+      if (b.rect) {
+        const left = Math.round(b.rect.x * width);
+        const top = Math.round(b.rect.y * height);
+        const w = Math.round(b.rect.width * width);
+        const h = Math.round(b.rect.height * height);
+        return {
+          id: b.id,
+          type: 'rect' as const,
+          color,
+          left, top, w, h,
+          label, conf,
+        };
+      }
+
+      return null;
+    }).filter(Boolean);
+  }, [boxes, width, height]);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {pixelBoxes.map((b) => (
-        <div
-          key={b.id}
-          className={`absolute rounded-sm border backdrop-blur-[1px] ${b.severity ? severityColor[b.severity] : 'border-primary/70 bg-background/40'}`}
-          style={{ left: b.px.left, top: b.px.top, width: b.px.w, height: b.px.h }}
-        >
-          <div className="absolute -top-6 left-0 px-2 py-0.5 rounded text-[11px] leading-4 border bg-background/80 text-foreground shadow-sm">
-            <span className="font-medium mr-1">{b.label}</span>
-            <span className="opacity-70">{(b.confidence > 1 ? b.confidence : b.confidence * 100).toFixed(0)}%</span>
-          </div>
-        </div>
-      ))}
+      <svg className="absolute inset-0 w-full h-full" width={width} height={height}>
+        {(shapes as any[]).map((s) => (
+          s.type === 'poly' ? (
+            <g key={s.id}>
+              <polygon points={s.pts} className={`${s.color}`} strokeWidth={2} />
+              <g transform={`translate(${s.lx},${s.ly})`}>
+                <rect x={-2} y={-12} width={Math.max(50, s.label.length * 6 + 30)} height={16} rx={3} className="fill-background/80" />
+                <text x={4} y={0} className="text-[11px] fill-foreground">
+                  {s.label} {s.conf}
+                </text>
+              </g>
+            </g>
+          ) : (
+            <g key={s.id}>
+              <rect x={s.left} y={s.top} width={s.w} height={s.h} className={`${s.color}`} strokeWidth={2} />
+              <g transform={`translate(${s.left},${s.top - 6})`}>
+                <rect x={0} y={-12} width={Math.max(50, s.label.length * 6 + 30)} height={16} rx={3} className="fill-background/80" />
+                <text x={4} y={0} className="text-[11px] fill-foreground">
+                  {s.label} {s.conf}
+                </text>
+              </g>
+            </g>
+          )
+        ))}
+      </svg>
     </div>
   );
 };

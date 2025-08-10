@@ -33,8 +33,11 @@ serve(async (req) => {
     const systemPrompt = `You are a board-certified dental radiography assistant.
 Stream concise, clinically useful observations.
 Output newline-delimited JSON lines prefixed with DETECTION: for each region you detect.
-Detection JSON schema:
+Additionally, output DETECTION_POLY: lines when the region is better represented as a polygon.
+Detection JSON schema (rect):
 {"id":"string","label":"cavity|fracture|root_infection|bone_loss|oral_lesion|periodontal","confidence":0-1,"severity":"low|medium|high|critical","rect":{"x":0-1,"y":0-1,"width":0-1,"height":0-1}}
+Detection JSON schema (poly):
+{"id":"string","label":"...","confidence":0-1,"severity":"...","poly":[{"x":0-1,"y":0-1},...]}
 Coordinates MUST be normalized (0..1) relative to the input image.
 Also interleave brief natural-language insight lines (prefix TEXT:) to explain rationale.
 Finish with one TEXT: SUMMARY line.`;
