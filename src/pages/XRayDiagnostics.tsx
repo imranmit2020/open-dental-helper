@@ -13,6 +13,7 @@ import { removeBackground, loadImage } from "@/services/BackgroundRemovalService
 import { supabase } from "@/integrations/supabase/client";
 import XRayOverlay, { DetectionBox } from "@/components/XRayOverlay";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Slider } from "@/components/ui/slider";
 
 const LazyCBCTViewer = lazy(() => import("@/components/CBCTViewer"));
 interface XRayFinding {
@@ -65,11 +66,14 @@ export default function XRayDiagnostics() {
   const vizImgRef = useRef<HTMLImageElement>(null);
   const [vizSize, setVizSize] = useState<{w:number;h:number}>({w:0,h:0});
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const vizContainerRef = useRef<HTMLDivElement>(null);
-  const [previewRect, setPreviewRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
-  const [vizRect, setVizRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
-  const { logAction } = useAuditLog();
-  const { logError } = useErrorLogger();
+const vizContainerRef = useRef<HTMLDivElement>(null);
+const [previewRect, setPreviewRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
+const [vizRect, setVizRect] = useState<{x:number;y:number;width:number;height:number}>({ x: 0, y: 0, width: 0, height: 0 });
+const [naturalSize, setNaturalSize] = useState<{w:number;h:number}>({ w: 0, h: 0 });
+const [overlayOpacity, setOverlayOpacity] = useState<number>(0.6);
+const [highlightedId, setHighlightedId] = useState<string | null>(null);
+const { logAction } = useAuditLog();
+const { logError } = useErrorLogger();
 
   // Normalize incoming scores to a 0–10 scale and format with one decimal
   const formatTenScale = useCallback((val: number | null | undefined) => {
@@ -101,49 +105,41 @@ export default function XRayDiagnostics() {
     return { x, y, width, height };
   }, []);
 
-  const makeOverlayBoxes = useCallback((dimW: number, dimH: number) => {
-    const out: DetectionBox[] = [...boxes];
-    if (analysis) {
-      const w = dimW || 1;
-      const h = dimH || 1;
-      for (const f of analysis.findings) {
-        if (f.coordinates) {
-          out.push({
-            id: `analysis-${f.id}`,
-            label: f.type.replace('_', ' '),
-            confidence: f.confidence,
-            severity: f.severity,
-            rect: (() => {
-              const c = f.coordinates!;
-              const isNorm = c.width <= 1 && c.height <= 1 && c.x <= 1 && c.y <= 1;
-              const nx = isNorm ? c.x : c.x / w;
-              const ny = isNorm ? c.y : c.y / h;
-              const nw = isNorm ? c.width : c.width / w;
-              const nh = isNorm ? c.height : c.height / h;
-              const x = Math.min(1, Math.max(0, nx));
-              const y = Math.min(1, Math.max(0, ny));
-              const width = Math.min(1 - x, Math.max(0, nw));
-              const height = Math.min(1 - y, Math.max(0, nh));
-              return { x, y, width, height };
-            })(),
-          });
-        }
+const makeOverlayBoxes = useCallback(() => {
+  const out: DetectionBox[] = [...boxes];
+  if (analysis) {
+    const iw = naturalSize.w || 1;
+    const ih = naturalSize.h || 1;
+    for (const f of analysis.findings) {
+      if (f.coordinates) {
+        out.push({
+          id: `analysis-${f.id}`,
+          label: f.type.replace('_', ' '),
+          confidence: f.confidence,
+          severity: f.severity,
+          rect: (() => {
+            const c = f.coordinates!;
+            const isNorm = c.width <= 1 && c.height <= 1 && c.x <= 1 && c.y <= 1;
+            const nx = isNorm ? c.x : c.x / iw;
+            const ny = isNorm ? c.y : c.y / ih;
+            const nw = isNorm ? c.width : c.width / iw;
+            const nh = isNorm ? c.height : c.height / ih;
+            const x = Math.min(1, Math.max(0, nx));
+            const y = Math.min(1, Math.max(0, ny));
+            const width = Math.min(1 - x, Math.max(0, nw));
+            const height = Math.min(1 - y, Math.max(0, nh));
+            return { x, y, width, height };
+          })(),
+        });
       }
     }
-    return out;
-  }, [boxes, analysis]);
+  }
+  return out;
+}, [boxes, analysis, naturalSize]);
 
-  const previewOverlayBoxes = useMemo(() => (
-    previewRect.width && previewRect.height
-      ? makeOverlayBoxes(previewRect.width, previewRect.height)
-      : boxes
-  ), [boxes, makeOverlayBoxes, previewRect.width, previewRect.height]);
+const previewOverlayBoxes = useMemo(() => makeOverlayBoxes(), [makeOverlayBoxes]);
 
-  const vizOverlayBoxes = useMemo(() => (
-    vizRect.width && vizRect.height
-      ? makeOverlayBoxes(vizRect.width, vizRect.height)
-      : boxes
-  ), [boxes, makeOverlayBoxes, vizRect.width, vizRect.height]);
+const vizOverlayBoxes = useMemo(() => makeOverlayBoxes(), [makeOverlayBoxes]);
   // Advanced AI-powered analysis generator
   const generateComprehensiveAnalysis = (imageData: string, type: string): XRayAnalysis => {
     const analysisTypes = {
@@ -638,13 +634,14 @@ export default function XRayDiagnostics() {
                         const el = imgRef.current; const cont = previewContainerRef.current;
                         if (el && cont) {
                           setImgSize({ w: el.clientWidth, h: el.clientHeight });
+                          setNaturalSize({ w: el.naturalWidth, h: el.naturalHeight });
                           const r = calcContainRect(cont.clientWidth, cont.clientHeight, el.naturalWidth, el.naturalHeight);
                           setPreviewRect(r);
                         }
                       }}
                     />
                     {previewOverlayBoxes.length > 0 && (
-                      <XRayOverlay boxes={previewOverlayBoxes} width={previewRect.width} height={previewRect.height} offsetX={previewRect.x} offsetY={previewRect.y} />
+                      <XRayOverlay boxes={previewOverlayBoxes} width={previewRect.width} height={previewRect.height} offsetX={previewRect.x} offsetY={previewRect.y} opacity={overlayOpacity} highlightedId={highlightedId ?? undefined} />
                     )}
                   </div>
                   <div className="space-y-2">
@@ -830,7 +827,7 @@ export default function XRayDiagnostics() {
 
                   <TabsContent value="findings" className="mt-4 space-y-4">
                     {analysis.findings.map((finding) => (
-                      <div key={finding.id} className="border rounded-lg p-4">
+                      <div key={finding.id} className="border rounded-lg p-4" onMouseEnter={() => setHighlightedId(`analysis-${finding.id}`)} onMouseLeave={() => setHighlightedId(null)}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             {getTypeIcon(finding.type)}
@@ -976,26 +973,36 @@ export default function XRayDiagnostics() {
                       const el = vizImgRef.current; const cont = vizContainerRef.current;
                       if (el && cont) {
                         setVizSize({ w: el.clientWidth, h: el.clientHeight });
+                        setNaturalSize({ w: el.naturalWidth, h: el.naturalHeight });
                         const r = calcContainRect(cont.clientWidth, cont.clientHeight, el.naturalWidth, el.naturalHeight);
                         setVizRect(r);
                       }
                     }}
                   />
                   {vizOverlayBoxes.length > 0 && (
-                    <XRayOverlay boxes={vizOverlayBoxes} width={vizRect.width} height={vizRect.height} offsetX={vizRect.x} offsetY={vizRect.y} />
+                    <XRayOverlay boxes={vizOverlayBoxes} width={vizRect.width} height={vizRect.height} offsetX={vizRect.x} offsetY={vizRect.y} opacity={overlayOpacity} highlightedId={highlightedId ?? undefined} />
                   )}
                 </div>
-                <div className="mt-3 flex justify-center gap-4">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500" /><span className="text-xs">High/Critical</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500" /><span className="text-xs">Medium</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-500" /><span className="text-xs">Low</span></div>
+                <div className="mt-3 flex flex-col items-center gap-3">
+                  <div className="flex justify-center gap-4">
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'hsl(var(--destructive))' }}></span><span className="text-xs">Critical</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'hsl(var(--ring))' }}></span><span className="text-xs">High</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'hsl(var(--primary))' }}></span><span className="text-xs">Medium</span></div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'hsl(var(--accent))' }}></span><span className="text-xs">Low</span></div>
+                  </div>
+                  <div className="w-full flex items-center justify-center gap-2">
+                    <span className="text-xs text-muted-foreground">Overlay opacity</span>
+                    <div className="w-56">
+                      <Slider value={[Math.round(overlayOpacity*100)]} onValueChange={(v) => setOverlayOpacity(((v?.[0] ?? 60) as number) / 100)} />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div>
                 <h4 className="font-medium mb-3">What this means</h4>
                 <div className="space-y-3">
                   {analysis.findings.map((f) => (
-                    <div key={f.id} className="border-l-4 pl-3 py-2">
+                    <div key={f.id} className="border-l-4 pl-3 py-2" onMouseEnter={() => setHighlightedId(`analysis-${f.id}`)} onMouseLeave={() => setHighlightedId(null)}>
                       <div className="flex items-center justify-between">
                         <span className="font-medium capitalize">{f.type.replace('_', ' ')}</span>
                         <Badge variant="outline">{f.confidence}%</Badge>
