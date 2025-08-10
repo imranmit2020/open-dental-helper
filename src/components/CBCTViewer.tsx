@@ -34,6 +34,8 @@ export const CBCTViewer: React.FC<CBCTViewerProps> = ({ slices = [], height = 38
   };
 
   const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const target = e.target as HTMLElement;
+    if (target && (target.closest('button') || target.closest('[data-controls]'))) return;
     dragging.current = true;
     last.current = { x: e.clientX, y: e.clientY };
     mode.current = (e.shiftKey || e.button === 2 || (e.buttons & 2) === 2) ? 'rotate' : 'pan';
