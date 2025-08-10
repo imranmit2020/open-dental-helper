@@ -384,6 +384,34 @@ export default function XRayDiagnostics() {
                       });
                     }
                   } catch {}
+                } else if (line.startsWith('FINDING:')) {
+                  try {
+                    const jsonStr = line.replace(/^FINDING:\s*/, '');
+                    const f = JSON.parse(jsonStr);
+                    setAnalysis(prev => {
+                      const base = prev ?? {
+                        id: `stream_${Date.now()}`,
+                        imageUrl: selectedImage || uploadedPublicUrl || '',
+                        processedImageUrl: undefined,
+                        findings: [],
+                        overallRiskScore: 0,
+                        boneDensityScore: 0,
+                        oralHealthGrade: '',
+                        recommendations: [],
+                        treatmentPlan: [],
+                        patientSummary: '',
+                        secondOpinionRequired: false,
+                        analysisTimestamp: new Date(),
+                        aiModel: 'streaming-xray',
+                        processingTime: 0,
+                      } as XRayAnalysis;
+                      const exists = base.findings.some(x => x.id === f.id);
+                      const nextFindings = exists
+                        ? base.findings.map(x => x.id === f.id ? { ...x, ...f } : x)
+                        : [...base.findings, f];
+                      return { ...base, findings: nextFindings } as XRayAnalysis;
+                    });
+                  } catch {}
                 }
               }
             } else if (Array.isArray(delta?.content)) {
