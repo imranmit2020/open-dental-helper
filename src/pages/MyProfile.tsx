@@ -104,74 +104,84 @@ export default function MyProfile() {
             <CardDescription>View and edit your name and avatar</CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="displayName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Display name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your name" disabled={!editing} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="you@example.com" readOnly disabled {...field} />
-                        </FormControl>
-                        <FormDescription>Email changes are not allowed.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="avatarUrl"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Avatar URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://..." disabled={!editing} {...field} />
-                        </FormControl>
-                        <FormDescription>Provide a public image URL for your avatar.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 ring-1 ring-border">
-                    <AvatarImage src={form.watch("avatarUrl") || (user as any)?.user_metadata?.avatar_url} alt="Profile avatar preview" />
+            {!editing ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14 ring-1 ring-border">
+                    <AvatarImage src={(user as any)?.user_metadata?.avatar_url || ""} alt="Profile avatar" />
                     <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
                   </Avatar>
-                  <div className="text-sm text-muted-foreground">Preview</div>
+                  <div>
+                    <div className="text-base font-medium">{(user as any)?.user_metadata?.name || "—"}</div>
+                    <div className="text-sm text-muted-foreground">{user?.email}</div>
+                  </div>
                 </div>
 
+                {(user as any)?.user_metadata?.avatar_url && (
+                  <div className="text-sm text-muted-foreground break-all">
+                    Avatar URL: {(user as any)?.user_metadata?.avatar_url}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
-                  {!editing ? (
-                    <Button type="button" onClick={() => setEditing(true)}>Edit</Button>
-                  ) : (
-                    <>
-                      <Button type="submit">Save</Button>
-                      <Button type="button" variant="secondary" onClick={() => { form.reset(defaults); setEditing(false); }}>Cancel</Button>
-                    </>
-                  )}
+                  <Button type="button" onClick={() => setEditing(true)}>Edit</Button>
                 </div>
-              </form>
-            </Form>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="displayName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Display name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Your name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <div className="text-sm text-muted-foreground">{user?.email}</div>
+                      <FormDescription>Email changes are not allowed.</FormDescription>
+                    </FormItem>
+
+                    <FormField
+                      control={form.control}
+                      name="avatarUrl"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Avatar URL</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://..." {...field} />
+                          </FormControl>
+                          <FormDescription>Provide a public image URL for your avatar.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 ring-1 ring-border">
+                      <AvatarImage src={form.watch("avatarUrl") || (user as any)?.user_metadata?.avatar_url} alt="Profile avatar preview" />
+                      <AvatarFallback>{user?.email?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-sm text-muted-foreground">Preview</div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button type="submit">Save</Button>
+                    <Button type="button" variant="secondary" onClick={() => { form.reset(defaults); setEditing(false); }}>Cancel</Button>
+                  </div>
+                </form>
+              </Form>
+            )}
           </CardContent>
         </Card>
 
