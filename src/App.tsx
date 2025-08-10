@@ -15,6 +15,7 @@ import PatientSignIn from "./pages/PatientSignIn";
 import PatientSignUp from "./pages/PatientSignUp";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import Settings from "./pages/Settings";
 
 // Lazy load heavy pages for better initial load performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -47,7 +48,7 @@ const MyAppointments = lazy(() => import("./pages/MyAppointments"));
 const MyMedicalRecords = lazy(() => import("./pages/MyMedicalRecords"));
 const MyTreatmentPlans = lazy(() => import("./pages/MyTreatmentPlans"));
 const MyConsentForms = lazy(() => import("./pages/MyConsentForms"));
-const Settings = lazy(() => import("./pages/Settings"));
+// Settings statically imported to avoid dynamic import issue
 const XRayDiagnostics = lazy(() => import("./pages/XRayDiagnostics"));
 const TreatmentPlanGenerator = lazy(() => import("./pages/TreatmentPlanGenerator"));
 const VoiceToChart = lazy(() => import("./pages/VoiceToChart"));
