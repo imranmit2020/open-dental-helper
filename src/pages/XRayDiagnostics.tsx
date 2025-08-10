@@ -930,7 +930,7 @@ export default function XRayDiagnostics() {
                   <TabsContent value="viewer3d" className="mt-4 space-y-4">
                     <div className="space-y-2">
                       <h4 className="font-medium">CBCT 3D Viewer (MVP)</h4>
-                      <p className="text-sm text-muted-foreground">Interact with the scene and scrub slices. DICOM stack support coming next.</p>
+                      <p className="text-sm text-muted-foreground">Use mouse to rotate/zoom. Drag the slice slider to browse images. DICOM stack import coming soon.</p>
                     </div>
                     <ErrorBoundary fallback={<div className="h-[380px] w-full rounded border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">3D viewer failed to load. Please reload.</div>}>
                       <Suspense fallback={<div className="h-[380px] w-full rounded border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">Loading 3D viewer…</div>}>
