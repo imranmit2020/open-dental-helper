@@ -558,6 +558,14 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="QA Checklist">
+                    <NavLink to="/qa-checklist" className={getNavCls}>
+                      <ClipboardList className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">QA Checklist</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

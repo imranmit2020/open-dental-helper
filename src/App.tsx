@@ -70,6 +70,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
 const MyProfile = lazy(() => import("./pages/MyProfile"));
+const QAChecklist = lazy(() => import("./pages/QAChecklist"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -207,6 +208,11 @@ function App() {
             <Route path="admin/navigation-permissions" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminNavigationPermissions /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="qa-checklist" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><QAChecklist /></Suspense>
               </ProtectedRoute>
             } />
           </Route>
