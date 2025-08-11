@@ -1,0 +1,4 @@
+id,tenant_id,patient_id,dentist_id,title,description,appointment_date,duration,status,treatment_type,created_at,updated_at
+77777777-7777-7777-7777-777777777777,22222222-2222-2222-2222-222222222222,44444444-4444-4444-4444-444444444444,ffffffff-ffff-ffff-ffff-ffffffffffff,Exam,Comprehensive oral evaluation,2025-08-12T14:00:00Z,60,scheduled,exam,2025-07-20T12:00:00Z,2025-07-20T12:00:00Z
+88888888-8888-8888-8888-888888888888,22222222-2222-2222-2222-222222222222,44444444-4444-4444-4444-444444444444,ffffffff-ffff-ffff-ffff-ffffffffffff,Cleaning,Adult prophylaxis,2025-08-12T14:30:00Z,60,scheduled,cleaning,2025-07-20T12:00:00Z,2025-07-20T12:00:00Z
+abababab-abab-abab-abab-abababababab,22222222-2222-2222-2222-222222222222,44444444-4444-4444-4444-444444444444,ffffffff-ffff-ffff-ffff-ffffffffffff,Filling,MO composite #14,2025-07-01T10:00:00Z,45,completed,filling,2025-06-25T12:00:00Z,2025-07-01T11:00:00Z

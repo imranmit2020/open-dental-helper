@@ -1,0 +1,3 @@
+id,patient_id,treatment_type,status,form_data,signature,submitted_at,expires_at,created_at,updated_at
+16161616-1616-1616-1616-161616161616,44444444-4444-4444-4444-444444444444,Cleaning Consent,pending,"{""version"":""v1.0"",""fields"":{""agree"":false}}",,,2025-09-01T00:00:00Z,2025-07-01T09:00:00Z,2025-07-01T09:00:00Z
+17171717-1717-1717-1717-171717171717,44444444-4444-4444-4444-444444444444,Filling Consent,submitted,"{""version"":""v1.0"",""fields"":{""agree"":true}}","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",2025-07-01T09:45:00Z,,2025-07-01T09:30:00Z,2025-07-01T09:45:00Z

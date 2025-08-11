@@ -240,14 +240,19 @@ export default function QAChecklist() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-medium">Test fixtures</h2>
-              <p className="text-xs text-muted-foreground">Download realistic synthetic data JSON files.</p>
+              <p className="text-xs text-muted-foreground">Download realistic synthetic data JSON & CSV files.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/patients.json" target="_blank" rel="noreferrer">patients.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/patients.csv" target="_blank" rel="noreferrer">patients.csv</a>
               <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/appointments.json" target="_blank" rel="noreferrer">appointments.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/appointments.csv" target="_blank" rel="noreferrer">appointments.csv</a>
               <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/invoices.json" target="_blank" rel="noreferrer">invoices.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/invoices.csv" target="_blank" rel="noreferrer">invoices.csv</a>
               <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/consent_forms.json" target="_blank" rel="noreferrer">consent_forms.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/consent_forms.csv" target="_blank" rel="noreferrer">consent_forms.csv</a>
               <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/image_analyses.json" target="_blank" rel="noreferrer">image_analyses.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/image_analyses.csv" target="_blank" rel="noreferrer">image_analyses.csv</a>
             </div>
           </div>
         </div>

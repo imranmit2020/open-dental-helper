@@ -1,0 +1,3 @@
+id,patient_id,analysis_type,image_url,status,confidence_score,findings,recommendations,ai_results,created_at,updated_at
+1c1c1c1c-1c1c-1c1c-1c1c-1c1c1c1c1c1c,44444444-4444-4444-4444-444444444444,bitewing,https://images.unsplash.com/photo-1615937691193-51b07a0d6515,pending,,[],[],,2025-07-05T12:00:00Z,2025-07-05T12:00:00Z
+1d1d1d1d-1d1d-1d1d-1d1d-1d1d1d1d1d1d,44444444-4444-4444-4444-444444444444,periapical,https://images.unsplash.com/photo-1550581190-9c1c48d21d6c,complete,0.92,"[""Interproximal caries #19""]","[""Fluoride varnish"",""Recall 6m""]","{""model"":""xray-v1"",""overlays"":[{""tooth"":19,""type"":""caries"",""bbox"": [0.12,0.35,0.22,0.45]}]}",2025-07-06T12:00:00Z,2025-07-06T12:30:00Z
