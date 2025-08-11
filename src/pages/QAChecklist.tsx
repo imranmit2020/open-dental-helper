@@ -235,6 +235,23 @@ export default function QAChecklist() {
           </Button>
         </div>
       </header>
+      <aside className="max-w-6xl mx-auto mb-6">
+        <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-medium">Test fixtures</h2>
+              <p className="text-xs text-muted-foreground">Download realistic synthetic data JSON files.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/patients.json" target="_blank" rel="noreferrer">patients.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/appointments.json" target="_blank" rel="noreferrer">appointments.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/invoices.json" target="_blank" rel="noreferrer">invoices.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/consent_forms.json" target="_blank" rel="noreferrer">consent_forms.json</a>
+              <a className="text-xs underline underline-offset-2 hover:text-primary" href="/seed/image_analyses.json" target="_blank" rel="noreferrer">image_analyses.json</a>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-2 gap-6">
         {sections.map((section) => {
