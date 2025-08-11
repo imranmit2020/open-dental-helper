@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { 
   Phone, 
   Mail, 
@@ -46,6 +47,12 @@ export default function PatientProfile() {
   const [allergies, setAllergies] = useState<any[]>([]);
   const [medicalConditions, setMedicalConditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [treatmentPage, setTreatmentPage] = useState(1);
+  const PAGE_SIZE = 10;
+  const [treatmentTotal, setTreatmentTotal] = useState(0);
+  const [pagedTreatments, setPagedTreatments] = useState<any[]>([]);
+  const [treatmentsLoading, setTreatmentsLoading] = useState(false);
+  const [invoiceTotalsByDate, setInvoiceTotalsByDate] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (id && user) {
@@ -129,10 +136,57 @@ export default function PatientProfile() {
 
       setMedicalConditions(conditionsData || []);
 
+      // Initialize invoices map and first page of treatments
+      await fetchInvoiceTotals();
+      await fetchTreatmentPage(1);
+
     } catch (error) {
       console.error('Error fetching patient data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInvoiceTotals = async () => {
+    try {
+      const { data: invoices, error } = await supabase
+        .from('invoices')
+        .select('issued_at,total')
+        .eq('patient_id', id);
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      (invoices || []).forEach((inv: any) => {
+        if (!inv.issued_at) return;
+        const dateKey = new Date(inv.issued_at).toISOString().slice(0,10);
+        const amt = Number(inv.total || 0);
+        map[dateKey] = (map[dateKey] || 0) + amt;
+      });
+      setInvoiceTotalsByDate(map);
+    } catch (err) {
+      console.error('Error fetching invoice totals:', err);
+    }
+  };
+
+  const fetchTreatmentPage = async (page: number) => {
+    if (!id) return;
+    try {
+      setTreatmentsLoading(true);
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase
+        .from('medical_records')
+        .select('*', { count: 'exact' })
+        .eq('patient_id', id)
+        .order('visit_date', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      setPagedTreatments(data || []);
+      if (typeof count === 'number') setTreatmentTotal(count);
+      setTreatmentPage(page);
+    } catch (err) {
+      console.error('Error fetching treatment page:', err);
+    } finally {
+      setTreatmentsLoading(false);
     }
   };
 
@@ -312,8 +366,9 @@ export default function PatientProfile() {
 
       {/* Tabs Section */}
       <Tabs defaultValue="overview" className="animate-fade-in">
-        <TabsList className="grid grid-cols-4 w-full max-w-2xl bg-muted/30 p-1">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-muted/30 p-1">
           <TabsTrigger value="overview" className="data-[state=active]:bg-background">Overview</TabsTrigger>
+          <TabsTrigger value="treatments" className="data-[state=active]:bg-background">Treatments</TabsTrigger>
           <TabsTrigger value="insurance" className="data-[state=active]:bg-background">Insurance & Billing</TabsTrigger>
           <TabsTrigger value="ai-suggestions" className="data-[state=active]:bg-background">AI Suggestions</TabsTrigger>
           <TabsTrigger value="communication" className="data-[state=active]:bg-background">Communication</TabsTrigger>
@@ -390,6 +445,62 @@ export default function PatientProfile() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Treatments Tab */}
+        <TabsContent value="treatments" className="space-y-6 mt-6">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5 text-primary" />
+                  Treatment History
+                </CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Page {treatmentPage} of {Math.max(1, Math.ceil(treatmentTotal / PAGE_SIZE))}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {treatmentsLoading ? (
+                <div className="py-10 text-center text-muted-foreground">Loading...</div>
+              ) : pagedTreatments.length > 0 ? (
+                <div className="space-y-3">
+                  {pagedTreatments.map((rec: any) => {
+                    const dateKey = (rec.visit_date ? new Date(rec.visit_date) : new Date(rec.created_at)).toISOString().slice(0,10);
+                    const billed = invoiceTotalsByDate[dateKey] || 0;
+                    return (
+                      <div key={rec.id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                        <div className="space-y-1">
+                          <p className="font-semibold">{rec.title || rec.record_type}</p>
+                          <p className="text-sm text-muted-foreground">{new Date(rec.visit_date || rec.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className={getStatusColor(rec.status)}>
+                            {rec.status || 'completed'}
+                          </Badge>
+                          <CurrencyDisplay amount={billed} className="text-primary" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-6">No treatments found</p>
+              )}
+              <div className="flex items-center justify-between mt-6">
+                <Button variant="outline" disabled={treatmentPage <= 1 || treatmentsLoading} onClick={() => fetchTreatmentPage(treatmentPage - 1)}>
+                  Previous
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Showing {(treatmentPage - 1) * PAGE_SIZE + 1} - {Math.min(treatmentPage * PAGE_SIZE, treatmentTotal)} of {treatmentTotal}
+                </div>
+                <Button variant="outline" disabled={treatmentPage >= Math.ceil(treatmentTotal / PAGE_SIZE) || treatmentsLoading} onClick={() => fetchTreatmentPage(treatmentPage + 1)}>
+                  Next
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Insurance & Billing Tab */}
