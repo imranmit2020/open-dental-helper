@@ -219,10 +219,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale",
+      "rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale text-sidebar-foreground",
       isActive
         ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm"
-        : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        : "hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -272,7 +272,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePatientMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="h-4 w-4 text-current" />
                         {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -295,7 +295,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePracticeDashboards.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="h-4 w-4 text-current" />
                         {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -318,7 +318,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {visiblePatientItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="h-4 w-4 text-current" />
                         {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -344,7 +344,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                      {visibleSchedulingItems.map((item) => (
                        <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                            <NavLink to={item.url} className={getNavCls}>
                              <item.icon className="h-4 w-4 text-current" />
                              {!isCollapsed && (
@@ -381,7 +381,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {visibleClinicalItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
                             <item.icon className="h-4 w-4 text-current" />
                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -404,7 +404,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {visibleAiItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
                             <item.icon className="h-4 w-4 text-current" />
                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -427,7 +427,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {visibleReportsItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
                             <item.icon className="h-4 w-4 text-current" />
                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -450,7 +450,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {visibleEnterpriseItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
                             <item.icon className="h-4 w-4 text-current" />
                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -473,7 +473,7 @@ export function AppSidebar() {
                   <SidebarMenu>
                     {visibleComplianceItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
+                         <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
                             <item.icon className="h-4 w-4 text-current" />
                             {!isCollapsed && <span className="font-medium">{item.title}</span>}
@@ -497,7 +497,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="User Approvals">
                     <NavLink to="/admin/user-approvals" className={getNavCls}>
                       <UserPlus className="h-4 w-4 text-current" />
                       {!isCollapsed && (
@@ -519,7 +519,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="Employees">
                     <NavLink to="/admin/employees" className={getNavCls}>
                       <Users className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Employees</span>}
@@ -527,7 +527,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="Role Assignment">
                     <NavLink to="/admin/roles" className={getNavCls}>
                       <User className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Role Assignment</span>}
@@ -535,7 +535,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="Employee & Staff Access">
                     <NavLink to="/admin/employee-flow" className={getNavCls}>
                       <ClipboardList className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Employee & Staff Access</span>}
@@ -543,7 +543,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="Password Management">
                     <NavLink to="/admin/passwords" className={getNavCls}>
                       <Lock className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Password Management</span>}
@@ -551,7 +551,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip="Add Employee">
                     <NavLink to="/admin/employees/new" className={getNavCls}>
                       <UserPlus className="h-4 w-4 text-current" />
                       {!isCollapsed && <span className="font-medium">Add Employee</span>}
@@ -568,7 +568,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild tooltip="Settings">
                   <NavLink to="/settings" className={getNavCls}>
                     <Settings className="h-4 w-4 text-current" />
                     {!isCollapsed && <span className="font-medium">Settings</span>}
