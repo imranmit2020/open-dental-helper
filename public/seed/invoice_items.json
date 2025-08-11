@@ -1,0 +1,18 @@
+[
+  {
+    "id": "19191919-1919-1919-1919-191919191919",
+    "invoice_id": "18181818-1818-1818-1818-181818181818",
+    "description": "Prophy (D1110)",
+    "quantity": 1,
+    "unit_price": 100,
+    "total": 100
+  },
+  {
+    "id": "1b1b1b1b-1b1b-1b1b-1b1b-1b1b1b1b1b1b",
+    "invoice_id": "1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a1a",
+    "description": "Composite Filling (D2392)",
+    "quantity": 1,
+    "unit_price": 200,
+    "total": 200
+  }
+]

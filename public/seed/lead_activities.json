@@ -1,0 +1,13 @@
+[
+  {
+    "id": "22222221-2222-2222-2222-222222222221",
+    "lead_id": "20202020-2020-2020-2020-202020202020",
+    "activity_type": "call",
+    "description": "Left voicemail",
+    "scheduled_for": "2025-07-05T15:00:00Z",
+    "completed_at": null,
+    "next_action": "Follow-up email",
+    "created_by": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "created_at": "2025-07-04T12:00:00Z"
+  }
+]

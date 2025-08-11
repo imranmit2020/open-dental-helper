@@ -1,0 +1,12 @@
+[
+  {
+    "id": "14141414-1414-1414-1414-141414141414",
+    "patient_id": "44444444-4444-4444-4444-444444444444",
+    "allergen": "Penicillin",
+    "severity": "severe",
+    "reaction": "Anaphylaxis",
+    "notes": "Carry epinephrine pen",
+    "created_at": "2025-06-15T12:00:00Z",
+    "updated_at": "2025-07-01T12:00:00Z"
+  }
+]

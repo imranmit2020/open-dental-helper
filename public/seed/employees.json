@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+    "tenant_id": "22222222-2222-2222-2222-222222222222",
+    "user_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "first_name": "John",
+    "last_name": "Smith",
+    "email": "dr.smith@demo.dental",
+    "role": "dentist",
+    "employee_id": "ADG-0001",
+    "status": "active",
+    "employment_type": "full_time",
+    "hire_date": "2023-02-01",
+    "created_at": "2025-06-05T12:00:00Z",
+    "updated_at": "2025-07-05T12:00:00Z"
+  },
+  {
+    "id": "99999999-9999-9999-9999-999999999999",
+    "tenant_id": "22222222-2222-2222-2222-222222222222",
+    "user_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "first_name": "Sara",
+    "last_name": "Lee",
+    "email": "staff@demo.dental",
+    "role": "staff",
+    "employee_id": "ADG-0002",
+    "status": "active",
+    "employment_type": "full_time",
+    "hire_date": "2024-09-15",
+    "created_at": "2025-06-05T12:00:00Z",
+    "updated_at": "2025-07-05T12:00:00Z"
+  }
+]

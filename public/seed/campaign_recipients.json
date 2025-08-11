@@ -1,0 +1,15 @@
+[
+  {
+    "id": "24242424-2424-2424-2424-242424242424",
+    "campaign_id": "23232323-2323-2323-2323-232323232323",
+    "patient_id": "44444444-4444-4444-4444-444444444444",
+    "channel": "email",
+    "status": "delivered",
+    "sent_at": "2025-07-10T12:00:00Z",
+    "opened_at": "2025-07-10T12:05:00Z",
+    "clicked_at": null,
+    "converted_at": null,
+    "ai_personalization": { "subject": "Jane, ready for a brighter smile?" },
+    "created_at": "2025-07-10T12:00:00Z"
+  }
+]

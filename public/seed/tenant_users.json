@@ -1,0 +1,6 @@
+[
+  { "tenant_id": "22222222-2222-2222-2222-222222222222", "user_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "admin" },
+  { "tenant_id": "22222222-2222-2222-2222-222222222222", "user_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "dentist" },
+  { "tenant_id": "22222222-2222-2222-2222-222222222222", "user_id": "cccccccc-cccc-cccc-cccc-cccccccccccc", "role": "staff" },
+  { "tenant_id": "33333333-3333-3333-3333-333333333333", "user_id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee", "role": "staff" }
+]

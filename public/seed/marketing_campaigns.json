@@ -1,0 +1,15 @@
+[
+  {
+    "id": "23232323-2323-2323-2323-232323232323",
+    "campaign_name": "Recall July",
+    "campaign_type": "email",
+    "status": "sent",
+    "created_by": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "start_date": "2025-07-01",
+    "end_date": "2025-07-31",
+    "content": "Hi {{first_name}}, it's time to book your recall.",
+    "metrics": { "open_rate": 0.56 },
+    "created_at": "2025-07-01T09:00:00Z",
+    "updated_at": "2025-07-31T23:59:00Z"
+  }
+]

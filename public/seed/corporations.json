@@ -1,0 +1,13 @@
+[
+  {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Apex Dental Group",
+    "corporate_code": "ADG",
+    "website": "https://apexdental.example.com",
+    "email": "contact@apexdental.example.com",
+    "phone": "+1-555-0000",
+    "address": "500 Corporate Way, Suite 200, Metropolis, NY 10001",
+    "created_at": "2025-06-01T12:00:00Z",
+    "updated_at": "2025-07-01T12:00:00Z"
+  }
+]
