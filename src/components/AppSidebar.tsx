@@ -221,7 +221,7 @@ export function AppSidebar() {
     [
       "group relative rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale text-sidebar-foreground font-medium border border-transparent hover:border-sidebar-border hover:shadow-md",
       isActive
-        ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-glow"
+        ? "bg-gradient-to-r from-primary to-secondary text-sidebar-primary-foreground shadow-glow"
         : "hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
     ].join(" ");
 
