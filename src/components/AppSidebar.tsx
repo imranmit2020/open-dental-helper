@@ -218,9 +218,12 @@ export function AppSidebar() {
   }, [canAccessAdminApprovals, isStaffMember]);
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive
-      ? "bg-gradient-to-r from-primary to-secondary text-white font-semibold"
-      : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+    [
+      "rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale",
+      isActive
+        ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm"
+        : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+    ].join(" ");
 
   // Filter navigation items based on user permissions
   const visiblePatientMenuItems = filterNavigationItems(patientMenuItems);
@@ -239,18 +242,18 @@ export function AppSidebar() {
       className={isCollapsed ? "w-16" : "w-64"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-sidebar border-r border-sidebar-border">
+      <SidebarContent className="bg-sidebar border-r border-sidebar-border animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow">
               <Stethoscope className="w-6 h-6 text-white" />
             </div>
             {!isCollapsed && (
               <div>
-                <h1 className="font-bold text-lg text-gray-900 dark:text-gray-100">DentalAI Pro</h1>
+                <h1 className="font-bold text-lg text-sidebar-foreground">DentalAI Pro</h1>
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-sidebar-foreground/70">
                     {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)} {subscribed && '• Premium'}
                   </p>
                 </div>
@@ -262,7 +265,7 @@ export function AppSidebar() {
         {/* Patient Portal - Only show for patients */}
         {isPatient && visiblePatientMenuItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               My Dental Care
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -285,7 +288,7 @@ export function AppSidebar() {
         {/* Practice Management - Only show for staff */}
         {isStaffMember && visiblePracticeDashboards.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Practice Management
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -308,7 +311,7 @@ export function AppSidebar() {
         {/* Patient Management - Only show for staff */}
         {isStaffMember && visiblePatientItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Patient Management
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -334,7 +337,7 @@ export function AppSidebar() {
             {/* Scheduling */}
             {visibleSchedulingItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   Scheduling
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -355,7 +358,7 @@ export function AppSidebar() {
                                </div>
                              )}
                              {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                               <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                               <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
                                  {upcomingAppointments}
                                </span>
                              )}
@@ -371,7 +374,7 @@ export function AppSidebar() {
             {/* Clinical AI Tools */}
             {visibleClinicalItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   Clinical AI
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -394,7 +397,7 @@ export function AppSidebar() {
             {/* AI Features */}
             {visibleAiItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   AI Features
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -417,7 +420,7 @@ export function AppSidebar() {
             {/* Reports */}
             {visibleReportsItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   Analytics
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -440,7 +443,7 @@ export function AppSidebar() {
             {/* Enterprise Features */}
             {visibleEnterpriseItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+                <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   Enterprise & Operations
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -463,7 +466,7 @@ export function AppSidebar() {
             {/* Patient Experience & Compliance */}
             {visibleComplianceItems.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
                   Patient & Compliance
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -488,7 +491,7 @@ export function AppSidebar() {
         {/* Admin Tools - Show for clinic admins and corporate admins */}
         {canAccessAdminApprovals() && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs font-semibold px-3 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/70 uppercase tracking-wider text-xs font-semibold px-3 py-2">
               Administration
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -501,14 +504,14 @@ export function AppSidebar() {
                         <div className="flex items-center justify-between w-full">
                           <span className="font-medium">User Approvals</span>
                           {pendingApprovalsCount > 0 && (
-                            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                            <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
                               {pendingApprovalsCount}
                             </span>
                           )}
                         </div>
                       )}
                       {isCollapsed && pendingApprovalsCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
                           {pendingApprovalsCount}
                         </span>
                       )}
