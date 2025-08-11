@@ -222,7 +222,7 @@ export function AppSidebar() {
       "rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale text-sidebar-foreground",
       isActive
         ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm"
-        : "hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground"
+        : "hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
     ].join(" ");
 
   // Filter navigation items based on user permissions
