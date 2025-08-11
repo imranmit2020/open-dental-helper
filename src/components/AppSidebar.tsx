@@ -219,10 +219,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-md px-3 py-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale font-medium border border-transparent",
+      "group relative rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale font-medium border border-transparent",
       isActive
-        ? "bg-sidebar-primary/12 text-sidebar-primary ring-1 ring-sidebar-primary/20"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        ? "bg-sidebar-accent text-sidebar-primary ring-1 ring-sidebar-primary/30 shadow-elegant before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1.5 before:rounded-r-full before:bg-sidebar-primary"
+        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-elegant"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -242,9 +242,9 @@ export function AppSidebar() {
       className={isCollapsed ? "w-16" : "w-64"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border shadow-lg animate-fade-in">
+      <SidebarContent className="bg-gradient-sidebar backdrop-blur-md border-r border-sidebar-border shadow-lg animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-4 border-b border-transparent bg-sidebar-accent/40 backdrop-blur-sm shadow-elegant">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow">
               <Stethoscope className="w-6 h-6 text-white" />
