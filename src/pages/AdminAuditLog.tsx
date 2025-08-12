@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 export default function AdminAuditLog() {
+  const { logAction } = useAuditLog();
   useEffect(() => {
     // SEO meta tags
     document.title = "Audit Log | Administration";
@@ -26,6 +28,10 @@ export default function AdminAuditLog() {
     }
     canonical.href = canonicalHref;
   }, []);
+
+  useEffect(() => {
+    logAction({ action: 'VIEW_AUDIT_LOG', resource_type: 'audit_logs', details: { timestamp: new Date().toISOString() } });
+  }, [logAction]);
 
   return (
     <main className="container mx-auto py-8">
