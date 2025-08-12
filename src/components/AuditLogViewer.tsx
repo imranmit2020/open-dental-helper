@@ -49,14 +49,7 @@ export function AuditLogViewer() {
     try {
       let query = supabase
         .from('audit_logs')
-        .select(`
-          *,
-          profiles:user_id (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -79,7 +72,26 @@ export function AuditLogViewer() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setLogs((data || []) as unknown as AuditLog[]);
+
+      const rawLogs = (data || []) as unknown as AuditLog[];
+      // Fetch related profile info without relying on FK-based embedding
+      const userIds = Array.from(new Set(rawLogs.map(l => l.user_id).filter(Boolean)));
+      let profilesMap: Record<string, { first_name: string | null; last_name: string | null; email: string | null }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles, error: pErr } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, email')
+          .in('user_id', userIds);
+        if (!pErr && profiles) {
+          profilesMap = profiles.reduce((acc: any, p: any) => {
+            acc[p.user_id] = { first_name: p.first_name, last_name: p.last_name, email: p.email };
+            return acc;
+          }, {} as Record<string, { first_name: string | null; last_name: string | null; email: string | null }>);
+        }
+      }
+
+      const enriched = rawLogs.map(l => ({ ...l, profiles: profilesMap[l.user_id] || null }));
+      setLogs(enriched);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
     } finally {
@@ -197,7 +209,9 @@ export function AuditLogViewer() {
                           <div className="flex items-center space-x-1">
                             <User className="h-4 w-4" />
                             <span>
-                              {log.profiles?.first_name} {log.profiles?.last_name} ({log.profiles?.email})
+                              {log.profiles
+                                ? `${log.profiles.first_name ?? ''} ${log.profiles.last_name ?? ''} (${log.profiles.email ?? 'no email'})`
+                                : `User ${log.user_id?.slice(0,8)}`}
                             </span>
                           </div>
                           
