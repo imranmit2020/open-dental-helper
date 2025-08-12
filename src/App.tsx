@@ -71,7 +71,7 @@ const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
 const MyProfile = lazy(() => import("./pages/MyProfile"));
 const QAChecklist = lazy(() => import("./pages/QAChecklist"));
-
+const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -208,6 +208,11 @@ function App() {
             <Route path="admin/navigation-permissions" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminNavigationPermissions /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/audit-log" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminAuditLog /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="qa-checklist" element={

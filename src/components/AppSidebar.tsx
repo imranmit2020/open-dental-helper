@@ -559,6 +559,14 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Audit Log">
+                    <NavLink to="/admin/audit-log" className={getNavCls}>
+                      <Database className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Audit Log</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="QA Checklist">
                     <NavLink to="/qa-checklist" className={getNavCls}>
                       <ClipboardList className="h-4 w-4 text-current" />
