@@ -39,19 +39,23 @@ export function AuditLogViewer() {
     date_to: '',
   });
   const { user } = useAuth();
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     fetchAuditLogs();
-  }, [filter]);
+  }, [filter, page]);
 
   const fetchAuditLogs = async () => {
     setLoading(true);
     try {
+      const offset = (page - 1) * pageSize;
       let query = supabase
         .from('audit_logs')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(100);
+        .range(offset, offset + pageSize - 1);
 
       if (filter.action && filter.action !== 'all') {
         query = query.eq('action', filter.action);
@@ -69,9 +73,10 @@ export function AuditLogViewer() {
         query = query.lte('created_at', filter.date_to);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
+      setTotal(count || 0);
 
       const rawLogs = (data || []) as unknown as AuditLog[];
       // Fetch related profile info without relying on FK-based embedding
@@ -135,7 +140,7 @@ export function AuditLogViewer() {
             <CardTitle>HIPAA Audit Logs</CardTitle>
           </div>
           <Badge variant="outline" className="ml-auto">
-            {logs.length} entries
+            {total} entries
           </Badge>
         </CardHeader>
         <CardContent>
@@ -249,6 +254,17 @@ export function AuditLogViewer() {
                 </Card>
               ))
             )}
+          </div>
+          <div className="flex items-center justify-between mt-4">
+            <span className="text-sm text-muted-foreground">Page {page} of {Math.max(1, Math.ceil(total / pageSize))}</span>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                Previous
+              </Button>
+              <Button onClick={() => setPage(p => (p * pageSize >= total ? p : p + 1))} disabled={page * pageSize >= total}>
+                Next
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
