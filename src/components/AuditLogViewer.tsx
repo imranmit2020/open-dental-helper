@@ -47,6 +47,11 @@ export function AuditLogViewer() {
     fetchAuditLogs();
   }, [filter, page]);
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filter.action, filter.resource_type, filter.user_id, filter.date_from, filter.date_to]);
+
   const fetchAuditLogs = async () => {
     setLoading(true);
     try {
@@ -67,10 +72,12 @@ export function AuditLogViewer() {
         query = query.eq('user_id', filter.user_id);
       }
       if (filter.date_from) {
-        query = query.gte('created_at', filter.date_from);
+        const startIso = new Date(`${filter.date_from}T00:00:00.000Z`).toISOString();
+        query = query.gte('created_at', startIso);
       }
       if (filter.date_to) {
-        query = query.lte('created_at', filter.date_to);
+        const endIso = new Date(`${filter.date_to}T23:59:59.999Z`).toISOString();
+        query = query.lte('created_at', endIso);
       }
 
       const { data, error, count } = await query;
@@ -127,6 +134,7 @@ export function AuditLogViewer() {
       date_from: '',
       date_to: '',
     });
+    setPage(1);
   };
 
   if (!user) return null;
