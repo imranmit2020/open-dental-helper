@@ -73,57 +73,43 @@ const moduleFlows = {
         id: 'pm-1',
         type: 'module',
         position: { x: 200, y: 50 },
-        data: { icon: '👥', label: 'Patient Management', description: 'Central hub for patient data' },
-        draggable: false,
-        selectable: false
+        data: { icon: '👥', label: 'Patient Management', description: 'Central hub for patient data' }
       },
       {
         id: 'pm-2',
         type: 'process',
         position: { x: 50, y: 150 },
-        data: { label: 'New Patient Registration', details: 'Demographics, insurance, medical history' },
-        draggable: false,
-        selectable: false
+        data: { label: 'New Patient Registration', details: 'Demographics, insurance, medical history' }
       },
       {
         id: 'pm-3',
         type: 'process',
         position: { x: 200, y: 150 },
-        data: { label: 'Profile Management', details: 'Update information, preferences' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Profile Management', details: 'Update information, preferences' }
       },
       {
         id: 'pm-4',
         type: 'process',
         position: { x: 350, y: 150 },
-        data: { label: 'Medical History', details: 'Allergies, conditions, medications' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Medical History', details: 'Allergies, conditions, medications' }
       },
       {
         id: 'pm-5',
         type: 'decision',
         position: { x: 200, y: 250 },
-        data: { label: 'Insurance Valid?' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Insurance Valid?' }
       },
       {
         id: 'pm-6',
         type: 'result',
         position: { x: 100, y: 350 },
-        data: { label: 'Schedule Appointment' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Schedule Appointment' }
       },
       {
         id: 'pm-7',
         type: 'result',
         position: { x: 300, y: 350 },
-        data: { label: 'Update Insurance Info' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Update Insurance Info' }
       }
     ],
     edges: [
@@ -145,65 +131,49 @@ const moduleFlows = {
         id: 'as-1',
         type: 'module',
         position: { x: 200, y: 50 },
-        data: { icon: '📅', label: 'AI Scheduling', description: 'Smart appointment booking system' },
-        draggable: false,
-        selectable: false
+        data: { icon: '📅', label: 'AI Scheduling', description: 'Smart appointment booking system' }
       },
       {
         id: 'as-2',
         type: 'process',
         position: { x: 50, y: 150 },
-        data: { label: 'Check Availability', details: 'Real-time calendar sync' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Check Availability', details: 'Real-time calendar sync' }
       },
       {
         id: 'as-3',
         type: 'process',
         position: { x: 200, y: 150 },
-        data: { label: 'AI Optimization', details: 'Suggest best time slots' },
-        draggable: false,
-        selectable: false
+        data: { label: 'AI Optimization', details: 'Suggest best time slots' }
       },
       {
         id: 'as-4',
         type: 'process',
         position: { x: 350, y: 150 },
-        data: { label: 'Staff Assignment', details: 'Match skills to treatment' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Staff Assignment', details: 'Match skills to treatment' }
       },
       {
         id: 'as-5',
         type: 'decision',
         position: { x: 200, y: 250 },
-        data: { label: 'Conflict?' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Conflict?' }
       },
       {
         id: 'as-6',
         type: 'process',
         position: { x: 100, y: 350 },
-        data: { label: 'Send Confirmation', details: 'Email, SMS notifications' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Send Confirmation', details: 'Email, SMS notifications' }
       },
       {
         id: 'as-7',
         type: 'process',
         position: { x: 300, y: 350 },
-        data: { label: 'Reschedule Options', details: 'Alternative time slots' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Reschedule Options', details: 'Alternative time slots' }
       },
       {
         id: 'as-8',
         type: 'result',
         position: { x: 200, y: 450 },
-        data: { label: 'Appointment Booked' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Appointment Booked' }
       }
     ],
     edges: [
@@ -227,65 +197,49 @@ const moduleFlows = {
         id: 'am-1',
         type: 'module',
         position: { x: 200, y: 50 },
-        data: { icon: '🤖', label: 'AI Marketing', description: 'Intelligent campaign management' },
-        draggable: false,
-        selectable: false
+        data: { icon: '🤖', label: 'AI Marketing', description: 'Intelligent campaign management' }
       },
       {
         id: 'am-2',
         type: 'process',
         position: { x: 50, y: 150 },
-        data: { label: 'Lead Capture', details: 'Website, social media, referrals' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Lead Capture', details: 'Website, social media, referrals' }
       },
       {
         id: 'am-3',
         type: 'process',
         position: { x: 200, y: 150 },
-        data: { label: 'AI Scoring', details: 'Analyze conversion probability' },
-        draggable: false,
-        selectable: false
+        data: { label: 'AI Scoring', details: 'Analyze conversion probability' }
       },
       {
         id: 'am-4',
         type: 'process',
         position: { x: 350, y: 150 },
-        data: { label: 'Personalization', details: 'Tailor messages by profile' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Personalization', details: 'Tailor messages by profile' }
       },
       {
         id: 'am-5',
         type: 'decision',
         position: { x: 200, y: 250 },
-        data: { label: 'High Score?' },
-        draggable: false,
-        selectable: false
+        data: { label: 'High Score?' }
       },
       {
         id: 'am-6',
         type: 'process',
         position: { x: 100, y: 350 },
-        data: { label: 'Priority Follow-up', details: 'Immediate phone call' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Priority Follow-up', details: 'Immediate phone call' }
       },
       {
         id: 'am-7',
         type: 'process',
         position: { x: 300, y: 350 },
-        data: { label: 'Email Nurture', details: 'Automated email sequence' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Email Nurture', details: 'Automated email sequence' }
       },
       {
         id: 'am-8',
         type: 'result',
         position: { x: 200, y: 450 },
-        data: { label: 'Patient Conversion' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Patient Conversion' }
       }
     ],
     edges: [
@@ -309,65 +263,49 @@ const moduleFlows = {
         id: 'ia-1',
         type: 'module',
         position: { x: 200, y: 50 },
-        data: { icon: '🔬', label: 'Image Analysis', description: 'AI dental diagnostics' },
-        draggable: false,
-        selectable: false
+        data: { icon: '🔬', label: 'Image Analysis', description: 'AI dental diagnostics' }
       },
       {
         id: 'ia-2',
         type: 'process',
         position: { x: 50, y: 150 },
-        data: { label: 'Image Upload', details: 'X-rays, photos, CBCT scans' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Image Upload', details: 'X-rays, photos, CBCT scans' }
       },
       {
         id: 'ia-3',
         type: 'process',
         position: { x: 200, y: 150 },
-        data: { label: 'AI Processing', details: 'Computer vision analysis' },
-        draggable: false,
-        selectable: false
+        data: { label: 'AI Processing', details: 'Computer vision analysis' }
       },
       {
         id: 'ia-4',
         type: 'process',
         position: { x: 350, y: 150 },
-        data: { label: 'Quality Check', details: 'Image clarity validation' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Quality Check', details: 'Image clarity validation' }
       },
       {
         id: 'ia-5',
         type: 'decision',
         position: { x: 200, y: 250 },
-        data: { label: 'Findings?' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Findings?' }
       },
       {
         id: 'ia-6',
         type: 'process',
         position: { x: 100, y: 350 },
-        data: { label: 'Generate Report', details: 'Detailed analysis summary' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Generate Report', details: 'Detailed analysis summary' }
       },
       {
         id: 'ia-7',
         type: 'process',
         position: { x: 300, y: 350 },
-        data: { label: 'Flag for Review', details: 'Manual dentist review' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Flag for Review', details: 'Manual dentist review' }
       },
       {
         id: 'ia-8',
         type: 'result',
         position: { x: 200, y: 450 },
-        data: { label: 'Diagnostic Report' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Diagnostic Report' }
       }
     ],
     edges: [
@@ -391,65 +329,49 @@ const moduleFlows = {
         id: 'dm-1',
         type: 'module',
         position: { x: 200, y: 50 },
-        data: { icon: '📊', label: 'Data Migration', description: 'Legacy system integration' },
-        draggable: false,
-        selectable: false
+        data: { icon: '📊', label: 'Data Migration', description: 'Legacy system integration' }
       },
       {
         id: 'dm-2',
         type: 'process',
         position: { x: 50, y: 150 },
-        data: { label: 'File Upload', details: 'CSV, Excel, database exports' },
-        draggable: false,
-        selectable: false
+        data: { label: 'File Upload', details: 'CSV, Excel, database exports' }
       },
       {
         id: 'dm-3',
         type: 'process',
         position: { x: 200, y: 150 },
-        data: { label: 'Field Mapping', details: 'AI-assisted field matching' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Field Mapping', details: 'AI-assisted field matching' }
       },
       {
         id: 'dm-4',
         type: 'process',
         position: { x: 350, y: 150 },
-        data: { label: 'Data Validation', details: 'Quality checks and cleanup' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Data Validation', details: 'Quality checks and cleanup' }
       },
       {
         id: 'dm-5',
         type: 'decision',
         position: { x: 200, y: 250 },
-        data: { label: 'Valid Data?' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Valid Data?' }
       },
       {
         id: 'dm-6',
         type: 'process',
         position: { x: 100, y: 350 },
-        data: { label: 'Import Records', details: 'Batch processing with conflict handling' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Import Records', details: 'Batch processing with conflict handling' }
       },
       {
         id: 'dm-7',
         type: 'process',
         position: { x: 300, y: 350 },
-        data: { label: 'Error Report', details: 'Show validation issues' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Error Report', details: 'Show validation issues' }
       },
       {
         id: 'dm-8',
         type: 'result',
         position: { x: 200, y: 450 },
-        data: { label: 'Migration Complete' },
-        draggable: false,
-        selectable: false
+        data: { label: 'Migration Complete' }
       }
     ],
     edges: [
@@ -518,21 +440,24 @@ export function ModuleFlowChart() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
             nodeTypes={nodeTypes}
             fitView
-            panOnDrag={false}
-            zoomOnScroll={false}
-            zoomOnPinch={false}
-            zoomOnDoubleClick={false}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
             style={{ backgroundColor: 'transparent' }}
             defaultEdgeOptions={{
               style: { strokeWidth: 3, stroke: 'hsl(var(--primary))' },
               markerEnd: { type: MarkerType.ArrowClosed, color: 'hsl(var(--primary))' }
             }}
           >
+            <MiniMap 
+              nodeStrokeColor="hsl(var(--primary))"
+              nodeColor="hsl(var(--secondary))"
+              nodeBorderRadius={8}
+              position="top-right"
+            />
+            <Controls />
             <Background 
               variant={BackgroundVariant.Dots} 
               gap={24} 
