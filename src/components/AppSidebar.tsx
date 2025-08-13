@@ -124,6 +124,8 @@ const adminItems: NavigationItem[] = [
   { title: "Password Management", url: "/admin/passwords", icon: Lock, requiredRoles: ['admin'], moduleKey: 'admin_passwords' },
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_add_employee' },
   { title: "Module Access", url: "/admin/navigation-permissions", icon: Settings, requiredRoles: ['admin'], moduleKey: 'admin_navigation_permissions' },
+  { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
+  { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
 ];
 
 export function AppSidebar() {
@@ -489,91 +491,37 @@ export function AppSidebar() {
         )}
 
         {/* Admin Tools - Show for clinic admins and corporate admins */}
-        {canAccessAdminApprovals() && (
+        {visibleAdminItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               Administration
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="User Approvals">
-                    <NavLink to="/admin/user-approvals" className={getNavCls}>
-                      <UserPlus className="h-4 w-4 text-current" />
-                      {!isCollapsed && (
-                        <div className="flex items-center justify-between w-full">
-                          <span className="font-medium">User Approvals</span>
-                          {pendingApprovalsCount > 0 && (
-                            <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                              {pendingApprovalsCount}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {isCollapsed && pendingApprovalsCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                          {pendingApprovalsCount}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Employees">
-                    <NavLink to="/admin/employees" className={getNavCls}>
-                      <Users className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Employees</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Role Assignment">
-                    <NavLink to="/admin/roles" className={getNavCls}>
-                      <User className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Role Assignment</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Employee & Staff Access">
-                    <NavLink to="/admin/employee-flow" className={getNavCls}>
-                      <ClipboardList className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Employee & Staff Access</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Password Management">
-                    <NavLink to="/admin/passwords" className={getNavCls}>
-                      <Lock className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Password Management</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Add Employee">
-                    <NavLink to="/admin/employees/new" className={getNavCls}>
-                      <UserPlus className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Add Employee</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Audit Log">
-                    <NavLink to="/admin/audit-log" className={getNavCls}>
-                      <Database className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Audit Log</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="QA Checklist">
-                    <NavLink to="/qa-checklist" className={getNavCls}>
-                      <ClipboardList className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">QA Checklist</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {visibleAdminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && (
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-medium">{item.title}</span>
+                            {item.title === "User Approvals" && pendingApprovalsCount > 0 && (
+                              <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                {pendingApprovalsCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isCollapsed && item.title === "User Approvals" && pendingApprovalsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                            {pendingApprovalsCount}
+                          </span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
