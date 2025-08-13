@@ -1783,6 +1783,51 @@ export type Database = {
           },
         ]
       }
+      time_tracking: {
+        Row: {
+          action_type: string
+          biometric_data: Json | null
+          created_at: string
+          device_info: Json | null
+          employee_id: string
+          id: string
+          location_data: Json | null
+          notes: string | null
+          tenant_id: string
+          timestamp: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          action_type: string
+          biometric_data?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          employee_id: string
+          id?: string
+          location_data?: Json | null
+          notes?: string | null
+          tenant_id: string
+          timestamp?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          action_type?: string
+          biometric_data?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          employee_id?: string
+          id?: string
+          location_data?: Json | null
+          notes?: string | null
+          tenant_id?: string
+          timestamp?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           context: string | null
@@ -2058,6 +2103,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      work_sessions: {
+        Row: {
+          ai_insights: Json | null
+          anomalies: Json | null
+          break_duration: number | null
+          clock_in_time: string | null
+          clock_out_time: string | null
+          created_at: string
+          date: string
+          employee_id: string
+          id: string
+          overtime_hours: number | null
+          status: string
+          tenant_id: string
+          total_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          ai_insights?: Json | null
+          anomalies?: Json | null
+          break_duration?: number | null
+          clock_in_time?: string | null
+          clock_out_time?: string | null
+          created_at?: string
+          date: string
+          employee_id: string
+          id?: string
+          overtime_hours?: number | null
+          status?: string
+          tenant_id: string
+          total_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ai_insights?: Json | null
+          anomalies?: Json | null
+          break_duration?: number | null
+          clock_in_time?: string | null
+          clock_out_time?: string | null
+          created_at?: string
+          date?: string
+          employee_id?: string
+          id?: string
+          overtime_hours?: number | null
+          status?: string
+          tenant_id?: string
+          total_hours?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

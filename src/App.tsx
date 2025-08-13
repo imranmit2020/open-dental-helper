@@ -86,6 +86,7 @@ const RealtimeMonitoring = lazy(() => import("./pages/RealtimeMonitoring"));
 const ARTreatmentPreview = lazy(() => import("./pages/ARTreatmentPreview"));
 const MicroscopicAnalysis = lazy(() => import("./pages/MicroscopicAnalysis"));
 const ModuleAnalysisReport = lazy(() => import("./pages/ModuleAnalysisReport"));
+const EmployeeTimeTracking = lazy(() => import("./pages/EmployeeTimeTracking"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -287,6 +288,11 @@ function App() {
             <Route path="module-analysis-report" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><ModuleAnalysisReport /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="employee-time-tracking" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><EmployeeTimeTracking /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="qa-checklist" element={
