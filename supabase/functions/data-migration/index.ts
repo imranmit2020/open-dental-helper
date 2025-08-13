@@ -168,17 +168,39 @@ serve(async (req) => {
         }
       }
 
-      // Insert batch
+      // Insert batch with conflict resolution
       if (batchRecords.length > 0) {
-        const { error: insertError } = await supabaseClient
-          .from(targetTable)
-          .insert(batchRecords);
+        // Try to insert each record individually to handle conflicts gracefully
+        for (const record of batchRecords) {
+          try {
+            const { error: insertError } = await supabaseClient
+              .from(targetTable)
+              .insert(record);
 
-        if (insertError) {
-          console.error('Batch insert error:', insertError);
-          errors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${insertError.message}`);
-        } else {
-          recordsImported += batchRecords.length;
+            if (insertError) {
+              // If it's a unique constraint violation, try to update existing record
+              if (insertError.code === '23505') {
+                const { error: upsertError } = await supabaseClient
+                  .from(targetTable)
+                  .upsert(record, { onConflict: 'first_name,last_name,tenant_id' });
+                
+                if (upsertError) {
+                  console.error('Upsert error:', upsertError);
+                  errors.push(`Record conflict: ${upsertError.message}`);
+                } else {
+                  recordsImported++;
+                }
+              } else {
+                console.error('Insert error:', insertError);
+                errors.push(`Insert error: ${insertError.message}`);
+              }
+            } else {
+              recordsImported++;
+            }
+          } catch (error) {
+            console.error('Processing error:', error);
+            errors.push(`Processing error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
         }
       }
     }
