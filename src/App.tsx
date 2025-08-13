@@ -75,6 +75,16 @@ const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 const DataMigration = lazy(() => import("./pages/DataMigration"));
 const ModuleFlows = lazy(() => import("./pages/ModuleFlows"));
 const PatientCharting = lazy(() => import("./pages/PatientCharting"));
+
+// New AI-powered modules
+const AIPatientAnalytics = lazy(() => import("./pages/AIPatientAnalytics"));
+const SmartDocumentation = lazy(() => import("./pages/SmartDocumentation"));
+const PredictiveTreatment = lazy(() => import("./pages/PredictiveTreatment"));
+const DentalModeling3D = lazy(() => import("./pages/DentalModeling3D"));
+const PatientJourney = lazy(() => import("./pages/PatientJourney"));
+const RealtimeMonitoring = lazy(() => import("./pages/RealtimeMonitoring"));
+const ARTreatmentPreview = lazy(() => import("./pages/ARTreatmentPreview"));
+const MicroscopicAnalysis = lazy(() => import("./pages/MicroscopicAnalysis"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -231,6 +241,46 @@ function App() {
             <Route path="patient-charting" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
                 <Suspense fallback={<PageLoader />}><PatientCharting /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="ai/patient-analytics" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><AIPatientAnalytics /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="smart-documentation" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><SmartDocumentation /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="predictive-treatment" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><PredictiveTreatment /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="3d-dental-modeling" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><DentalModeling3D /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="patient-journey" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><PatientJourney /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="real-time-monitoring" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><RealtimeMonitoring /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="ar-treatment-preview" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><ARTreatmentPreview /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="microscopic-analysis" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><MicroscopicAnalysis /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="qa-checklist" element={
