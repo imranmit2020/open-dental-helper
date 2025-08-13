@@ -152,9 +152,27 @@ export default function DataMigration() {
 
       setAiSuggestions(aiResult);
 
+      // Automatically apply AI suggestions to field mappings for immediate display
+      const newMappings = [...fieldMappings];
+      
+      // Apply AI suggestions
+      aiResult.suggestions.forEach((suggestion: any) => {
+        const mappingIndex = newMappings.findIndex(m => m.targetField === suggestion.targetField);
+        if (mappingIndex !== -1) {
+          newMappings[mappingIndex] = {
+            ...newMappings[mappingIndex],
+            sourceField: suggestion.sourceField,
+            confidence: suggestion.confidence,
+            reason: suggestion.reason
+          };
+        }
+      });
+
+      setFieldMappings(newMappings);
+
       toast({
         title: "AI Analysis Complete",
-        description: `Found ${aiResult.suggestions.length} field mapping suggestions.`
+        description: `Found and applied ${aiResult.suggestions.length} field mapping suggestions.`
       });
     } catch (error) {
       toast({
