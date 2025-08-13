@@ -690,17 +690,22 @@ export default function DataMigration() {
                                       <SelectTrigger className="h-8">
                                         <SelectValue placeholder="Select target field" />
                                       </SelectTrigger>
-                                      <SelectContent className="bg-background z-50">
-                                        <SelectItem value="SKIP_FIELD">-- Skip this field --</SelectItem>
-                                        {fieldMappings
-                                          .filter(fm => !fm.sourceField)
-                                          .map(fm => (
-                                            <SelectItem key={fm.targetField} value={fm.targetField}>
-                                              {fm.targetField}
-                                              {fm.required && <span className="text-red-500 ml-1">*</span>}
-                                            </SelectItem>
-                                          ))
-                                        }
+                                       <SelectContent className="bg-popover border shadow-md z-50">
+                                         <SelectItem value="SKIP_FIELD">-- Skip this field --</SelectItem>
+                                         {fieldMappings
+                                           .filter(fm => !fm.sourceField)
+                                           .map(fm => (
+                                             <SelectItem key={fm.targetField} value={fm.targetField}>
+                                               <div className="flex flex-col">
+                                                 <span>{fm.targetField}</span>
+                                                 <span className="text-xs text-muted-foreground">
+                                                   {selectedTable}.{fm.targetField}
+                                                 </span>
+                                               </div>
+                                               {fm.required && <span className="text-red-500 ml-1">*</span>}
+                                             </SelectItem>
+                                           ))
+                                         }
                                       </SelectContent>
                                     </Select>
                                   </TableCell>
