@@ -8,46 +8,200 @@ import { ArrowRight, Download, Share2 } from 'lucide-react';
 export default function ModuleFlows() {
   const modules = [
     {
+      name: 'Practice Dashboard',
+      icon: '🏥',
+      description: 'Central practice management and overview dashboard',
+      features: ['Analytics Overview', 'Quick Actions', 'Staff Performance', 'Daily Schedule'],
+      color: 'bg-blue-100 text-blue-800 border-blue-200'
+    },
+    {
+      name: 'Dentist Dashboard',
+      icon: '👨‍⚕️',
+      description: 'Personalized dentist workspace and patient management',
+      features: ['Patient Queue', 'Treatment Plans', 'Clinical Notes', 'Diagnostics'],
+      color: 'bg-green-100 text-green-800 border-green-200'
+    },
+    {
       name: 'Patient Management',
       icon: '👥',
       description: 'Complete patient lifecycle from registration to treatment',
       features: ['Registration', 'Profile Management', 'Medical History', 'Insurance Validation'],
-      color: 'bg-blue-100 text-blue-800 border-blue-200'
+      color: 'bg-purple-100 text-purple-800 border-purple-200'
+    },
+    {
+      name: 'Medical History',
+      icon: '📋',
+      description: 'Comprehensive medical records and history tracking',
+      features: ['Medical Records', 'Allergies', 'Medications', 'Conditions'],
+      color: 'bg-orange-100 text-orange-800 border-orange-200'
+    },
+    {
+      name: 'Consent Forms',
+      icon: '📝',
+      description: 'Digital consent management and patient agreements',
+      features: ['Form Creation', 'Digital Signatures', 'Version Control', 'Compliance'],
+      color: 'bg-teal-100 text-teal-800 border-teal-200'
+    },
+    {
+      name: 'Treatment Plans',
+      icon: '🦷',
+      description: 'AI-powered treatment planning and recommendations',
+      features: ['Treatment Design', 'Cost Estimation', 'Timeline Planning', 'Progress Tracking'],
+      color: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    },
+    {
+      name: 'Insurance & Billing',
+      icon: '💳',
+      description: 'Automated insurance claims and billing management',
+      features: ['Claims Processing', 'Eligibility Check', 'Payment Tracking', 'Revenue Reports'],
+      color: 'bg-red-100 text-red-800 border-red-200'
+    },
+    {
+      name: 'Schedule Management',
+      icon: '📅',
+      description: 'Advanced scheduling with staff availability management',
+      features: ['Appointment Booking', 'Staff Scheduling', 'Room Management', 'Wait Lists'],
+      color: 'bg-indigo-100 text-indigo-800 border-indigo-200'
     },
     {
       name: 'AI Scheduling',
-      icon: '📅',
+      icon: '🤖',
       description: 'Intelligent appointment scheduling with conflict resolution',
-      features: ['Availability Check', 'AI Optimization', 'Staff Assignment', 'Notifications'],
-      color: 'bg-green-100 text-green-800 border-green-200'
+      features: ['Availability Check', 'AI Optimization', 'Staff Assignment', 'Smart Notifications'],
+      color: 'bg-pink-100 text-pink-800 border-pink-200'
     },
     {
-      name: 'AI Marketing',
-      icon: '🤖',
-      description: 'Automated lead capture and conversion optimization',
-      features: ['Lead Scoring', 'Personalization', 'Follow-up Automation', 'Campaign Analytics'],
-      color: 'bg-purple-100 text-purple-800 border-purple-200'
+      name: 'Teledentistry',
+      icon: '💻',
+      description: 'Virtual consultations and remote patient care',
+      features: ['Video Consultations', 'Remote Monitoring', 'Digital Prescriptions', 'Follow-ups'],
+      color: 'bg-cyan-100 text-cyan-800 border-cyan-200'
+    },
+    {
+      name: 'Voice Transcription',
+      icon: '🎤',
+      description: 'AI-powered voice notes and clinical documentation',
+      features: ['Voice Recognition', 'Medical Transcription', 'Note Templates', 'Voice Commands'],
+      color: 'bg-lime-100 text-lime-800 border-lime-200'
     },
     {
       name: 'Image Analysis',
       icon: '🔬',
       description: 'AI-powered dental imaging and diagnostic assistance',
-      features: ['Image Processing', 'Pattern Recognition', 'Diagnostic Reports', 'Quality Validation'],
-      color: 'bg-orange-100 text-orange-800 border-orange-200'
+      features: ['X-ray Analysis', 'Pattern Recognition', 'Diagnostic Reports', 'Quality Validation'],
+      color: 'bg-amber-100 text-amber-800 border-amber-200'
     },
     {
-      name: 'Data Migration',
+      name: 'Voice Agent',
+      icon: '🗣️',
+      description: 'AI voice assistant for hands-free practice management',
+      features: ['Voice Commands', 'Patient Interaction', 'Appointment Booking', 'Information Retrieval'],
+      color: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    },
+    {
+      name: 'Translation Services',
+      icon: '🌐',
+      description: 'Multi-language support and real-time translation',
+      features: ['Language Detection', 'Real-time Translation', 'Cultural Adaptation', 'Communication Bridge'],
+      color: 'bg-violet-100 text-violet-800 border-violet-200'
+    },
+    {
+      name: 'Practice Analytics',
       icon: '📊',
-      description: 'Seamless import from legacy dental management systems',
-      features: ['File Processing', 'Field Mapping', 'Data Validation', 'Conflict Resolution'],
-      color: 'bg-teal-100 text-teal-800 border-teal-200'
+      description: 'Comprehensive practice performance and insights',
+      features: ['Performance Metrics', 'Revenue Analytics', 'Patient Trends', 'Predictive Insights'],
+      color: 'bg-rose-100 text-rose-800 border-rose-200'
+    },
+    {
+      name: 'AI Marketing',
+      icon: '📢',
+      description: 'Automated marketing campaigns and lead management',
+      features: ['Lead Scoring', 'Campaign Automation', 'Patient Engagement', 'ROI Tracking'],
+      color: 'bg-sky-100 text-sky-800 border-sky-200'
+    },
+    {
+      name: 'X-Ray Diagnostics',
+      icon: '🩻',
+      description: 'Advanced radiographic analysis and interpretation',
+      features: ['Image Enhancement', 'Diagnostic AI', 'Report Generation', 'Comparison Tools'],
+      color: 'bg-stone-100 text-stone-800 border-stone-200'
+    },
+    {
+      name: 'Voice to Chart',
+      icon: '📈',
+      description: 'Convert voice notes directly into patient charts',
+      features: ['Voice Processing', 'Chart Integration', 'Medical Coding', 'Quality Assurance'],
+      color: 'bg-slate-100 text-slate-800 border-slate-200'
+    },
+    {
+      name: 'Chairside Assistant',
+      icon: '🪑',
+      description: 'Real-time assistance during patient procedures',
+      features: ['Procedure Guidance', 'Tool Tracking', 'Timer Management', 'Quick Notes'],
+      color: 'bg-zinc-100 text-zinc-800 border-zinc-200'
+    },
+    {
+      name: 'Multi-Practice Analytics',
+      icon: '🏢',
+      description: 'Enterprise-level analytics across multiple locations',
+      features: ['Cross-Practice Reports', 'Benchmarking', 'Consolidated Metrics', 'Performance Comparison'],
+      color: 'bg-neutral-100 text-neutral-800 border-neutral-200'
+    },
+    {
+      name: 'Marketing Automation',
+      icon: '⚡',
+      description: 'Automated patient engagement and retention campaigns',
+      features: ['Email Campaigns', 'SMS Marketing', 'Social Media', 'Patient Lifecycle'],
+      color: 'bg-red-100 text-red-800 border-red-200'
+    },
+    {
+      name: 'Smart Operations',
+      icon: '🧠',
+      description: 'AI-driven operational efficiency and optimization',
+      features: ['Resource Optimization', 'Workflow Automation', 'Predictive Maintenance', 'Cost Analysis'],
+      color: 'bg-orange-100 text-orange-800 border-orange-200'
     },
     {
       name: 'Revenue Management',
       icon: '💰',
-      description: 'Financial optimization and billing automation',
-      features: ['Invoice Generation', 'Payment Processing', 'Revenue Analytics', 'Insurance Claims'],
-      color: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      description: 'Financial optimization and revenue cycle management',
+      features: ['Revenue Tracking', 'Payment Processing', 'Financial Forecasting', 'Profit Analysis'],
+      color: 'bg-green-100 text-green-800 border-green-200'
+    },
+    {
+      name: 'Market Intelligence',
+      icon: '🎯',
+      description: 'Competitive analysis and market positioning insights',
+      features: ['Competitor Analysis', 'Market Trends', 'Pricing Strategy', 'Growth Opportunities'],
+      color: 'bg-blue-100 text-blue-800 border-blue-200'
+    },
+    {
+      name: 'Reputation Management',
+      icon: '⭐',
+      description: 'Online reputation monitoring and enhancement',
+      features: ['Review Monitoring', 'Response Management', 'Rating Analytics', 'Brand Protection'],
+      color: 'bg-purple-100 text-purple-800 border-purple-200'
+    },
+    {
+      name: 'Lead Conversion',
+      icon: '🎣',
+      description: 'Convert prospects into patients with AI-driven insights',
+      features: ['Lead Scoring', 'Conversion Tracking', 'Follow-up Automation', 'Success Analytics'],
+      color: 'bg-teal-100 text-teal-800 border-teal-200'
+    },
+    {
+      name: 'Compliance & Security',
+      icon: '🔒',
+      description: 'HIPAA compliance and data security management',
+      features: ['Security Monitoring', 'Compliance Reports', 'Access Control', 'Audit Trails'],
+      color: 'bg-gray-100 text-gray-800 border-gray-200'
+    },
+    {
+      name: 'Patient Concierge',
+      icon: '🤝',
+      description: 'Enhanced patient experience and communication hub',
+      features: ['Appointment Reminders', 'Treatment Education', 'Support Chat', 'Satisfaction Surveys'],
+      color: 'bg-indigo-100 text-indigo-800 border-indigo-200'
     }
   ];
 
