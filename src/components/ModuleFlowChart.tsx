@@ -386,6 +386,72 @@ const moduleFlows = {
       { id: 'dm-e9', source: 'dm-6', target: 'dm-8', type: 'smoothstep' },
       { id: 'dm-e10', source: 'dm-7', target: 'dm-8', type: 'smoothstep' }
     ]
+  },
+  'revenue-management': {
+    name: 'Revenue Management',
+    description: 'Financial optimization and billing automation',
+    nodes: [
+      {
+        id: 'rm-1',
+        type: 'module',
+        position: { x: 200, y: 50 },
+        data: { icon: '💰', label: 'Revenue Management', description: 'Financial optimization platform' }
+      },
+      {
+        id: 'rm-2',
+        type: 'process',
+        position: { x: 50, y: 150 },
+        data: { label: 'Service Tracking', details: 'Record treatments and procedures' }
+      },
+      {
+        id: 'rm-3',
+        type: 'process',
+        position: { x: 200, y: 150 },
+        data: { label: 'Invoice Generation', details: 'Automated billing creation' }
+      },
+      {
+        id: 'rm-4',
+        type: 'process',
+        position: { x: 350, y: 150 },
+        data: { label: 'Insurance Claims', details: 'Submit and track claims' }
+      },
+      {
+        id: 'rm-5',
+        type: 'decision',
+        position: { x: 200, y: 250 },
+        data: { label: 'Payment Method?' }
+      },
+      {
+        id: 'rm-6',
+        type: 'process',
+        position: { x: 100, y: 350 },
+        data: { label: 'Direct Payment', details: 'Credit card, cash processing' }
+      },
+      {
+        id: 'rm-7',
+        type: 'process',
+        position: { x: 300, y: 350 },
+        data: { label: 'Insurance Processing', details: 'Claims verification and payment' }
+      },
+      {
+        id: 'rm-8',
+        type: 'result',
+        position: { x: 200, y: 450 },
+        data: { label: 'Revenue Recorded' }
+      }
+    ],
+    edges: [
+      { id: 'rm-e1', source: 'rm-1', target: 'rm-2', type: 'smoothstep' },
+      { id: 'rm-e2', source: 'rm-1', target: 'rm-3', type: 'smoothstep' },
+      { id: 'rm-e3', source: 'rm-1', target: 'rm-4', type: 'smoothstep' },
+      { id: 'rm-e4', source: 'rm-2', target: 'rm-5', type: 'smoothstep' },
+      { id: 'rm-e5', source: 'rm-3', target: 'rm-5', type: 'smoothstep' },
+      { id: 'rm-e6', source: 'rm-4', target: 'rm-5', type: 'smoothstep' },
+      { id: 'rm-e7', source: 'rm-5', target: 'rm-6', label: 'Direct', type: 'smoothstep' },
+      { id: 'rm-e8', source: 'rm-5', target: 'rm-7', label: 'Insurance', type: 'smoothstep' },
+      { id: 'rm-e9', source: 'rm-6', target: 'rm-8', type: 'smoothstep' },
+      { id: 'rm-e10', source: 'rm-7', target: 'rm-8', type: 'smoothstep' }
+    ]
   }
 };
 
