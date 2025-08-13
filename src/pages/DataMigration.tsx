@@ -566,11 +566,11 @@ export default function DataMigration() {
                               </TableCell>
                               <TableCell>
                                 <Select
-                                  value={mapping.sourceField || ""}
+                                  value={mapping.sourceField || "SKIP_FIELD"}
                                   onValueChange={(value) => {
                                     const newMappings = [...fieldMappings];
-                                    newMappings[index].sourceField = value || undefined;
-                                    if (!value) {
+                                    newMappings[index].sourceField = value === "SKIP_FIELD" ? undefined : value;
+                                    if (value === "SKIP_FIELD") {
                                       newMappings[index].confidence = undefined;
                                       newMappings[index].reason = undefined;
                                     } else if (!newMappings[index].confidence) {
@@ -582,8 +582,8 @@ export default function DataMigration() {
                                   <SelectTrigger className="h-8">
                                     <SelectValue placeholder="Select field" />
                                   </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="">-- Skip field --</SelectItem>
+                                  <SelectContent className="bg-background z-50">
+                                    <SelectItem value="SKIP_FIELD">-- Skip field --</SelectItem>
                                     {sourceFields.map(field => (
                                       <SelectItem key={field} value={field}>{field}</SelectItem>
                                     ))}
