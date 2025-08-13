@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Database, FileText, CheckCircle, AlertTriangle, Download } from "lucide-react";
+import { Upload, Database, FileText, CheckCircle, AlertTriangle, Download, Sparkles, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { AIFieldMappingService } from "@/services/AIFieldMappingService";
 
 interface MigrationStatus {
   status: 'idle' | 'uploading' | 'mapping' | 'validating' | 'migrating' | 'completed' | 'error';
@@ -26,6 +27,8 @@ interface FieldMapping {
   targetField: string;
   required: boolean;
   dataType: string;
+  confidence?: number;
+  reason?: string;
 }
 
 const SUPPORTED_SOFTWARE = [
@@ -51,6 +54,8 @@ export default function DataMigration() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [sourceFields, setSourceFields] = useState<string[]>([]);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
+  const [isApplyingAI, setIsApplyingAI] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<MigrationStatus>({
     status: 'idle',
     progress: 0,
@@ -128,6 +133,62 @@ export default function DataMigration() {
     }));
     
     setFieldMappings(mappings);
+    setAiSuggestions(null);
+  };
+
+  const generateAIMapping = async () => {
+    if (!selectedTable || sourceFields.length === 0) return;
+
+    setIsApplyingAI(true);
+    try {
+      const targetFields = getTargetFields(selectedTable);
+      const aiResult = AIFieldMappingService.suggestFieldMappings(
+        sourceFields,
+        targetFields,
+        selectedTable
+      );
+
+      setAiSuggestions(aiResult);
+
+      toast({
+        title: "AI Analysis Complete",
+        description: `Found ${aiResult.suggestions.length} field mapping suggestions.`
+      });
+    } catch (error) {
+      toast({
+        title: "AI Analysis Failed",
+        description: "Unable to generate field mapping suggestions.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsApplyingAI(false);
+    }
+  };
+
+  const applyAISuggestions = () => {
+    if (!aiSuggestions) return;
+
+    const newMappings = [...fieldMappings];
+    
+    // Apply AI suggestions
+    aiSuggestions.suggestions.forEach((suggestion: any) => {
+      const mappingIndex = newMappings.findIndex(m => m.targetField === suggestion.targetField);
+      if (mappingIndex !== -1) {
+        newMappings[mappingIndex] = {
+          ...newMappings[mappingIndex],
+          sourceField: suggestion.sourceField,
+          confidence: suggestion.confidence,
+          reason: suggestion.reason
+        };
+      }
+    });
+
+    setFieldMappings(newMappings);
+    
+    toast({
+      title: "AI Suggestions Applied",
+      description: `Applied ${aiSuggestions.suggestions.length} field mappings.`
+    });
   };
 
   const getFieldDataType = (field: string): string => {
@@ -337,9 +398,50 @@ export default function DataMigration() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                  <Button
+                    onClick={generateAIMapping}
+                    disabled={sourceFields.length === 0 || isApplyingAI}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {isApplyingAI ? 'Analyzing...' : 'AI Auto-Map'}
+                  </Button>
+                  
+                  {aiSuggestions && (
+                    <Button
+                      onClick={applyAISuggestions}
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-primary-glow"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Apply AI Suggestions ({aiSuggestions.suggestions.length})
+                    </Button>
+                  )}
+                </div>
+
+                {aiSuggestions && (
+                  <Badge variant="outline" className="px-3 py-1">
+                    {aiSuggestions.suggestions.length} AI matches found
+                  </Badge>
+                )}
+              </div>
+
+              {aiSuggestions && aiSuggestions.suggestions.length > 0 && (
+                <Alert className="mb-4">
+                  <Sparkles className="h-4 w-4" />
+                  <AlertDescription>
+                    AI found {aiSuggestions.suggestions.length} field mapping suggestions. 
+                    Review the suggestions below and click "Apply AI Suggestions" to use them automatically.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="grid gap-4">
                 {fieldMappings.map((mapping, index) => (
-                  <div key={mapping.targetField} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border rounded-lg">
+                  <div key={mapping.targetField} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-4 border rounded-lg">
                     <div className="flex items-center gap-2">
                       <Label className={mapping.required ? 'font-semibold' : ''}>{mapping.targetField}</Label>
                       {mapping.required && <Badge variant="destructive">Required</Badge>}
@@ -350,6 +452,8 @@ export default function DataMigration() {
                       onValueChange={(value) => {
                         const newMappings = [...fieldMappings];
                         newMappings[index].sourceField = value;
+                        newMappings[index].confidence = undefined;
+                        newMappings[index].reason = undefined;
                         setFieldMappings(newMappings);
                       }}
                     >
@@ -366,12 +470,45 @@ export default function DataMigration() {
                     
                     <Badge variant="outline">{mapping.dataType}</Badge>
                     
+                    {mapping.confidence && (
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={mapping.confidence > 0.8 ? "default" : mapping.confidence > 0.6 ? "secondary" : "outline"}
+                          className="text-xs"
+                        >
+                          AI: {Math.round(mapping.confidence * 100)}%
+                        </Badge>
+                        <Sparkles className="w-3 h-3 text-primary" />
+                      </div>
+                    )}
+
                     <div className="text-sm text-muted-foreground">
-                      {mapping.required ? 'Required field' : 'Optional field'}
+                      {mapping.reason ? (
+                        <div>
+                          <div className="font-medium">{mapping.required ? 'Required' : 'Optional'}</div>
+                          <div className="text-xs opacity-70">{mapping.reason}</div>
+                        </div>
+                      ) : (
+                        mapping.required ? 'Required field' : 'Optional field'
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
+
+              {aiSuggestions && aiSuggestions.unmatchedSourceFields.length > 0 && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="font-medium mb-2">Unmatched source fields:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {aiSuggestions.unmatchedSourceFields.map((field: string) => (
+                        <Badge key={field} variant="outline" className="text-xs">{field}</Badge>
+                      ))}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
