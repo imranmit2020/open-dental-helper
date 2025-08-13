@@ -117,6 +117,15 @@ const complianceItems: NavigationItem[] = [
   { title: "Patient Concierge", url: "/patient-concierge", icon: MessageSquare, requiredRoles: ['admin', 'staff'], requiredFeature: 'ai_features', moduleKey: 'patient_concierge' },
 ];
 
+const moduleItems: NavigationItem[] = [
+  { title: "Patient Management", url: "/patients", icon: Users, requiredRoles: ['admin', 'dentist', 'staff'], moduleKey: 'patients' },
+  { title: "AI Scheduling", url: "/ai-scheduling", icon: Bot, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'ai_scheduling' },
+  { title: "AI Marketing", url: "/ai-marketing", icon: Target, requiredRoles: ['admin'], requiredFeature: 'ai_features', moduleKey: 'ai_marketing' },
+  { title: "Image Analysis", url: "/ai/image", icon: Camera, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'image_analysis' },
+  { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
+  { title: "Revenue Management", url: "/revenue-management", icon: DollarSign, requiredRoles: ['admin'], requiredFeature: 'analytics', moduleKey: 'revenue_management' },
+];
+
 const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_user_approvals' },
   { title: "Employees", url: "/admin/employees", icon: Users, requiredRoles: ['admin'], moduleKey: 'admin_employees' },
@@ -125,7 +134,6 @@ const adminItems: NavigationItem[] = [
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_add_employee' },
   { title: "Module Access", url: "/admin/navigation-permissions", icon: Settings, requiredRoles: ['admin'], moduleKey: 'admin_navigation_permissions' },
   { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
-  { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
   { title: "Module Flows", url: "/admin/module-flows", icon: TrendIcon, requiredRoles: ['admin'] },
   { title: "QA Checklist", url: "/qa-checklist", icon: ClipboardList, requiredRoles: ['admin', 'dentist', 'staff'] },
 ];
@@ -239,6 +247,7 @@ export function AppSidebar() {
   const visibleReportsItems = filterNavigationItems(reportsItems);
   const visibleEnterpriseItems = filterNavigationItems(enterpriseItems);
   const visibleComplianceItems = filterNavigationItems(complianceItems);
+  const visibleModuleItems = filterNavigationItems(moduleItems);
   const visibleAdminItems = filterNavigationItems(adminItems);
 
   return (
@@ -321,6 +330,29 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {visiblePatientItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Modules Section - Only show for staff */}
+        {isStaffMember && visibleModuleItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
+              System Modules
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleModuleItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
