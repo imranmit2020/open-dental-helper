@@ -400,6 +400,37 @@ export default function DataMigration() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Configuration Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="mapping-table">Target Table</Label>
+                  <Select value={selectedTable} onValueChange={(value) => {
+                    setSelectedTable(value);
+                    initializeFieldMapping();
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select data type to import" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {TARGET_TABLES.map(table => (
+                        <SelectItem key={table.id} value={table.id}>
+                          {table.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Source File</Label>
+                  <div className="p-2 bg-muted rounded text-sm">
+                    {uploadedFile ? (
+                      <span className="text-green-600">✓ {uploadedFile.name}</span>
+                    ) : (
+                      <span className="text-muted-foreground">No file uploaded</span>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                   <Button
