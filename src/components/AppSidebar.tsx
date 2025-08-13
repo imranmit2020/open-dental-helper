@@ -118,12 +118,12 @@ const complianceItems: NavigationItem[] = [
 ];
 
 const moduleItems: NavigationItem[] = [
-  { title: "Patient Management", url: "/patients", icon: Users, requiredRoles: ['admin', 'dentist', 'staff'], moduleKey: 'patients' },
-  { title: "AI Scheduling", url: "/ai-scheduling", icon: Bot, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'ai_scheduling' },
-  { title: "AI Marketing", url: "/ai-marketing", icon: Target, requiredRoles: ['admin'], requiredFeature: 'ai_features', moduleKey: 'ai_marketing' },
-  { title: "Image Analysis", url: "/ai/image", icon: Camera, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'image_analysis' },
+  { title: "Patient Management", url: "/patients", icon: Users, requiredRoles: ['admin', 'dentist', 'staff'] },
+  { title: "AI Scheduling", url: "/ai-scheduling", icon: Bot, requiredRoles: ['admin', 'dentist', 'staff'] },
+  { title: "AI Marketing", url: "/ai-marketing", icon: Target, requiredRoles: ['admin'] },
+  { title: "Image Analysis", url: "/ai/image", icon: Camera, requiredRoles: ['admin', 'dentist'] },
   { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
-  { title: "Revenue Management", url: "/revenue-management", icon: DollarSign, requiredRoles: ['admin'], requiredFeature: 'analytics', moduleKey: 'revenue_management' },
+  { title: "Revenue Management", url: "/revenue-management", icon: DollarSign, requiredRoles: ['admin'] },
 ];
 
 const adminItems: NavigationItem[] = [
