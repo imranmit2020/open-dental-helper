@@ -53,20 +53,20 @@ const chartingModules: ChartingModule[] = [
     requiresPatient: true
   },
   {
-    id: "image-analysis",
-    title: "Image Analysis",
-    description: "AI-powered dental image analysis",
-    icon: Camera,
-    route: "/ai/image",
-    color: "bg-purple-500",
-    requiresPatient: true
-  },
-  {
     id: "xray-diagnostics",
     title: "X-Ray Diagnostics",
     description: "AI-powered X-ray analysis and diagnostics",
     icon: Scan,
     route: "/xray-diagnostics",
+    color: "bg-purple-500",
+    requiresPatient: true
+  },
+  {
+    id: "image-analysis",
+    title: "Image Analysis",
+    description: "AI-powered dental image analysis",
+    icon: Camera,
+    route: "/ai/image",
     color: "bg-orange-500",
     requiresPatient: true
   },
