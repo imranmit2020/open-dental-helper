@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 // Custom Node Components
 const ModuleNode = ({ data }: { data: any }) => (
-  <div className="px-6 py-4 shadow-lg rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-2 border-primary/30 min-w-[220px] backdrop-blur-sm">
+  <div className="px-6 py-4 shadow-lg rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-2 border-primary/30 min-w-[220px] backdrop-blur-sm cursor-move">
     <div className="flex flex-col items-center gap-2">
       <div className="text-2xl font-bold">{data.icon}</div>
       <div className="text-sm font-bold text-center">{data.label}</div>
@@ -34,7 +34,7 @@ const ModuleNode = ({ data }: { data: any }) => (
 );
 
 const ProcessNode = ({ data }: { data: any }) => (
-  <div className="px-4 py-3 shadow-lg rounded-lg bg-card text-card-foreground border-2 border-border min-w-[160px] backdrop-blur-sm">
+  <div className="px-4 py-3 shadow-lg rounded-lg bg-card text-card-foreground border-2 border-border min-w-[160px] backdrop-blur-sm cursor-move">
     <div className="text-sm font-semibold text-center mb-1">{data.label}</div>
     {data.details && (
       <div className="text-xs text-center text-muted-foreground font-medium">{data.details}</div>
@@ -43,7 +43,7 @@ const ProcessNode = ({ data }: { data: any }) => (
 );
 
 const DecisionNode = ({ data }: { data: any }) => (
-  <div className="px-3 py-2 shadow-lg bg-gradient-to-br from-accent to-accent/80 text-accent-foreground border-2 border-accent/30 transform rotate-45 w-28 h-28 backdrop-blur-sm">
+  <div className="px-3 py-2 shadow-lg bg-gradient-to-br from-accent to-accent/80 text-accent-foreground border-2 border-accent/30 transform rotate-45 w-28 h-28 backdrop-blur-sm cursor-move">
     <div className="transform -rotate-45 text-xs font-bold text-center flex items-center justify-center h-full">
       {data.label}
     </div>
@@ -51,7 +51,7 @@ const DecisionNode = ({ data }: { data: any }) => (
 );
 
 const ResultNode = ({ data }: { data: any }) => (
-  <div className="px-4 py-3 shadow-lg rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-2 border-emerald-300 min-w-[140px] backdrop-blur-sm">
+  <div className="px-4 py-3 shadow-lg rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-2 border-emerald-300 min-w-[140px] backdrop-blur-sm cursor-move">
     <div className="text-sm font-semibold text-center">{data.label}</div>
   </div>
 );
@@ -444,6 +444,9 @@ export function ModuleFlowChart() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             nodeTypes={nodeTypes}
+            nodesDraggable={true}
+            nodesConnectable={true}
+            elementsSelectable={true}
             fitView
             style={{ backgroundColor: 'transparent' }}
             defaultEdgeOptions={{
