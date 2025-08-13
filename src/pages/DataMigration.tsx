@@ -152,10 +152,19 @@ export default function DataMigration() {
 
       setAiSuggestions(aiResult);
 
-      // Automatically apply AI suggestions to field mappings for immediate display
-      const newMappings = [...fieldMappings];
+      // Initialize field mappings if not already done
+      let newMappings = [...fieldMappings];
+      if (newMappings.length === 0) {
+        const requiredFields = TARGET_TABLES.find(t => t.id === selectedTable)?.required || [];
+        newMappings = targetFields.map(targetField => ({
+          sourceField: undefined,
+          targetField,
+          required: requiredFields.includes(targetField),
+          dataType: getFieldDataType(targetField)
+        }));
+      }
       
-      // Apply AI suggestions
+      // Apply AI suggestions to the mappings
       aiResult.suggestions.forEach((suggestion: any) => {
         const mappingIndex = newMappings.findIndex(m => m.targetField === suggestion.targetField);
         if (mappingIndex !== -1) {
@@ -169,12 +178,14 @@ export default function DataMigration() {
       });
 
       setFieldMappings(newMappings);
+      console.log('Applied AI mappings:', newMappings); // Debug log
 
       toast({
         title: "AI Analysis Complete",
         description: `Found and applied ${aiResult.suggestions.length} field mapping suggestions.`
       });
     } catch (error) {
+      console.error('AI mapping error:', error);
       toast({
         title: "AI Analysis Failed",
         description: "Unable to generate field mapping suggestions.",
