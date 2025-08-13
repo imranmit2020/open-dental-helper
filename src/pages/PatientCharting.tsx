@@ -35,29 +35,29 @@ interface ChartingModule {
 
 const chartingModules: ChartingModule[] = [
   {
+    id: "appointments",
+    title: "Appointments",
+    description: "Schedule and manage patient appointments",
+    icon: Calendar,
+    route: "/schedule",
+    color: "bg-blue-500",
+    requiresPatient: true
+  },
+  {
     id: "medical-history",
     title: "Medical History",
     description: "View and manage patient medical history records",
     icon: FileText,
     route: "/medical-history",
-    color: "bg-blue-500",
-    requiresPatient: true
-  },
-  {
-    id: "consent-forms",
-    title: "Consent Forms",
-    description: "Manage patient consent forms and documentation",
-    icon: Shield,
-    route: "/consent-forms",
     color: "bg-green-500",
     requiresPatient: true
   },
   {
-    id: "treatment-plans",
-    title: "Treatment Plans",
-    description: "Create and manage patient treatment plans",
-    icon: Stethoscope,
-    route: "/treatment-plans",
+    id: "image-analysis",
+    title: "Image Analysis",
+    description: "AI-powered dental image analysis",
+    icon: Camera,
+    route: "/ai/image",
     color: "bg-purple-500",
     requiresPatient: true
   },
@@ -71,11 +71,29 @@ const chartingModules: ChartingModule[] = [
     requiresPatient: true
   },
   {
-    id: "image-analysis",
-    title: "Image Analysis",
-    description: "AI-powered dental image analysis",
-    icon: Camera,
-    route: "/ai/image",
+    id: "treatment-plans",
+    title: "Treatment Plans",
+    description: "Create and manage patient treatment plans",
+    icon: Stethoscope,
+    route: "/treatment-plans",
+    color: "bg-indigo-500",
+    requiresPatient: true
+  },
+  {
+    id: "consent-forms",
+    title: "Consent Forms",
+    description: "Manage patient consent forms and documentation",
+    icon: Shield,
+    route: "/consent-forms",
+    color: "bg-cyan-500",
+    requiresPatient: true
+  },
+  {
+    id: "chairside-assistant",
+    title: "Chairside Assistant",
+    description: "AI-powered chairside assistance during treatment",
+    icon: ClipboardList,
+    route: "/chairside-assistant",
     color: "bg-pink-500",
     requiresPatient: true
   },
@@ -85,16 +103,7 @@ const chartingModules: ChartingModule[] = [
     description: "Convert voice notes to patient charts",
     icon: MicVocal,
     route: "/voice-to-chart",
-    color: "bg-indigo-500",
-    requiresPatient: true
-  },
-  {
-    id: "chairside-assistant",
-    title: "Chairside Assistant",
-    description: "AI-powered chairside assistance",
-    icon: ClipboardList,
-    route: "/chairside-assistant",
-    color: "bg-cyan-500",
+    color: "bg-teal-500",
     requiresPatient: true
   },
   {
@@ -104,15 +113,6 @@ const chartingModules: ChartingModule[] = [
     icon: CreditCard,
     route: "/insurance-billing",
     color: "bg-yellow-500",
-    requiresPatient: true
-  },
-  {
-    id: "appointments",
-    title: "Appointments",
-    description: "Schedule and manage patient appointments",
-    icon: Calendar,
-    route: "/schedule",
-    color: "bg-red-500",
     requiresPatient: true
   }
 ];
