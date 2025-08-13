@@ -250,8 +250,12 @@ export default function DataMigration() {
     return true;
   };
 
-  const startMigration = async () => {
+const startMigration = async () => {
     if (!validateMappings() || !uploadedFile) return;
+
+    // Switch to migration tab and update status
+    const migrationTab = document.querySelector('[value="migration"]') as HTMLButtonElement;
+    if (migrationTab) migrationTab.click();
 
     setMigrationStatus({
       ...migrationStatus,
@@ -337,7 +341,7 @@ export default function DataMigration() {
           <TabsTrigger value="upload">1. Upload File</TabsTrigger>
           <TabsTrigger value="mapping" disabled={!uploadedFile}>2. Field Mapping</TabsTrigger>
           <TabsTrigger value="validation" disabled={fieldMappings.length === 0}>3. Validation</TabsTrigger>
-          <TabsTrigger value="migration" disabled={migrationStatus.status !== 'mapping'}>4. Migration</TabsTrigger>
+          <TabsTrigger value="migration" disabled={fieldMappings.length === 0}>4. Migration</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">
