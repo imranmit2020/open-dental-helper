@@ -124,75 +124,30 @@ const chartingModules: ChartingModule[] = [
     requiresPatient: true
   },
   {
-    id: "ai-patient-analytics",
-    title: "AI Patient Analytics",
-    description: "Real-time risk assessment and predictive insights",
-    icon: Brain,
-    route: "/ai/patient-analytics",
-    color: "bg-violet-500",
-    requiresPatient: true
-  },
-  {
-    id: "3d-dental-modeling",
-    title: "3D Dental Modeling",
-    description: "Interactive 3D tooth visualization and treatment simulation",
-    icon: Cpu,
-    route: "/3d-dental-modeling",
+    id: "voice-transcription",
+    title: "Voice Transcription",
+    description: "AI-powered voice note transcription",
+    icon: MicVocal,
+    route: "/ai/voice",
     color: "bg-emerald-500",
     requiresPatient: true
   },
   {
-    id: "smart-documentation",
-    title: "Smart Documentation",
-    description: "AI-powered auto-completion and intelligent templating",
-    icon: Zap,
-    route: "/smart-documentation",
-    color: "bg-amber-500",
+    id: "voice-agent",
+    title: "Voice Agent",
+    description: "AI voice assistant for patient interactions",
+    icon: Brain,
+    route: "/ai/agent",
+    color: "bg-violet-500",
     requiresPatient: true
   },
   {
-    id: "patient-journey-tracker",
-    title: "Patient Journey Tracker",
-    description: "Visual timeline with predictive treatment outcomes",
-    icon: TrendingUp,
-    route: "/patient-journey",
+    id: "translation",
+    title: "Translation",
+    description: "Multi-language translation services",
+    icon: Brain,
+    route: "/ai/translation",
     color: "bg-rose-500",
-    requiresPatient: true
-  },
-  {
-    id: "real-time-monitoring",
-    title: "Real-time Monitoring",
-    description: "Live vital signs and procedure monitoring",
-    icon: Activity,
-    route: "/real-time-monitoring",
-    color: "bg-sky-500",
-    requiresPatient: true
-  },
-  {
-    id: "ar-treatment-preview",
-    title: "AR Treatment Preview",
-    description: "Augmented reality treatment visualization",
-    icon: Eye,
-    route: "/ar-treatment-preview",
-    color: "bg-fuchsia-500",
-    requiresPatient: true
-  },
-  {
-    id: "microscopic-analysis",
-    title: "Microscopic Analysis",
-    description: "AI-enhanced microscopic imaging and analysis",
-    icon: Microscope,
-    route: "/microscopic-analysis",
-    color: "bg-slate-500",
-    requiresPatient: true
-  },
-  {
-    id: "predictive-treatment",
-    title: "Predictive Treatment AI",
-    description: "Machine learning treatment outcome predictions",
-    icon: Sparkles,
-    route: "/predictive-treatment",
-    color: "bg-gradient-to-r from-purple-500 to-pink-500",
     requiresPatient: true
   }
 ];
@@ -474,8 +429,8 @@ export default function PatientCharting() {
                               {module.description}
                             </p>
                             
-                            {/* Innovation badges for new modules */}
-                            {["ai-patient-analytics", "3d-dental-modeling", "smart-documentation", "patient-journey-tracker", "real-time-monitoring", "ar-treatment-preview", "microscopic-analysis", "predictive-treatment"].includes(module.id) && (
+                            {/* AI-powered badges for existing modules */}
+                            {["xray-diagnostics", "image-analysis", "chairside-assistant", "voice-to-chart", "voice-transcription", "voice-agent", "translation"].includes(module.id) && (
                               <div className="mt-2">
                                 <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-200">
                                   <Sparkles className="h-3 w-3 mr-1" />
@@ -491,28 +446,28 @@ export default function PatientCharting() {
                 })}
               </div>
               
-              {/* Innovation Showcase */}
+              {/* Available AI Features Showcase */}
               <div className="mt-8 pt-6 border-t">
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-5 w-5 text-purple-500" />
-                  <h4 className="font-semibold text-purple-700">🚀 Innovative AI Features</h4>
+                  <h4 className="font-semibold text-purple-700">🚀 AI-Powered Features Available</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
-                    <h5 className="font-medium text-purple-800 mb-2">🧠 AI Patient Analytics</h5>
-                    <p className="text-purple-600 text-xs">Real-time risk assessment with predictive modeling for early intervention</p>
+                    <h5 className="font-medium text-purple-800 mb-2">🦷 X-Ray Diagnostics</h5>
+                    <p className="text-purple-600 text-xs">AI-powered X-ray analysis with automated anomaly detection</p>
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-200">
-                    <h5 className="font-medium text-blue-800 mb-2">🦷 3D Dental Modeling</h5>
-                    <p className="text-blue-600 text-xs">Interactive 3D visualization for precise treatment planning</p>
+                    <h5 className="font-medium text-blue-800 mb-2">📸 Image Analysis</h5>
+                    <p className="text-blue-600 text-xs">Advanced dental image analysis using machine learning</p>
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                    <h5 className="font-medium text-green-800 mb-2">⚡ Smart Documentation</h5>
-                    <p className="text-green-600 text-xs">AI-powered auto-completion reduces charting time by 70%</p>
+                    <h5 className="font-medium text-green-800 mb-2">🎤 Voice Features</h5>
+                    <p className="text-green-600 text-xs">Voice transcription, voice-to-chart, and AI voice agent</p>
                   </div>
                   <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
-                    <h5 className="font-medium text-orange-800 mb-2">🔮 Predictive Treatment</h5>
-                    <p className="text-orange-600 text-xs">Machine learning predicts treatment outcomes with 95% accuracy</p>
+                    <h5 className="font-medium text-orange-800 mb-2">🤖 Chairside Assistant</h5>
+                    <p className="text-orange-600 text-xs">Real-time AI assistance during dental procedures</p>
                   </div>
                 </div>
               </div>
