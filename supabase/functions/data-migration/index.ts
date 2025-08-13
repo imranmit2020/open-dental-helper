@@ -140,6 +140,14 @@ serve(async (req) => {
               case 'phone':
                 record[mapping.targetField] = value.replace(/\D/g, '');
                 break;
+              case 'uuid':
+                // Don't import existing UUIDs to avoid conflicts
+                if (mapping.targetField === 'id') {
+                  // Skip the id field to let the database generate new UUIDs
+                  continue;
+                }
+                record[mapping.targetField] = value;
+                break;
               default:
                 record[mapping.targetField] = value;
             }
