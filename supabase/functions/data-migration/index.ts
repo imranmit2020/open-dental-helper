@@ -92,6 +92,7 @@ serve(async (req) => {
     const tenantId = tenantData;
     let recordsImported = 0;
     const errors: string[] = [];
+    const migratedRecords: any[] = [];
 
     // Process records in batches
     const batchSize = 100;
@@ -173,22 +174,27 @@ serve(async (req) => {
         // Try to insert each record individually to handle conflicts gracefully
         for (const record of batchRecords) {
           try {
-            const { error: insertError } = await supabaseClient
+            const { data: insertedData, error: insertError } = await supabaseClient
               .from(targetTable)
-              .insert(record);
+              .insert(record)
+              .select();
 
             if (insertError) {
               // If it's a unique constraint violation, try to update existing record
               if (insertError.code === '23505') {
-                const { error: upsertError } = await supabaseClient
+                const { data: upsertedData, error: upsertError } = await supabaseClient
                   .from(targetTable)
-                  .upsert(record, { onConflict: 'first_name,last_name,tenant_id' });
+                  .upsert(record, { onConflict: 'first_name,last_name,tenant_id' })
+                  .select();
                 
                 if (upsertError) {
                   console.error('Upsert error:', upsertError);
                   errors.push(`Record conflict: ${upsertError.message}`);
                 } else {
                   recordsImported++;
+                  if (upsertedData && upsertedData.length > 0) {
+                    migratedRecords.push(upsertedData[0]);
+                  }
                 }
               } else {
                 console.error('Insert error:', insertError);
@@ -196,6 +202,9 @@ serve(async (req) => {
               }
             } else {
               recordsImported++;
+              if (insertedData && insertedData.length > 0) {
+                migratedRecords.push(insertedData[0]);
+              }
             }
           } catch (error) {
             console.error('Processing error:', error);
@@ -213,7 +222,8 @@ serve(async (req) => {
         recordsImported,
         totalRecords: dataRows.length,
         errors: errors.slice(0, 10), // Return only first 10 errors
-        errorCount: errors.length
+        errorCount: errors.length,
+        migratedRecords: migratedRecords
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

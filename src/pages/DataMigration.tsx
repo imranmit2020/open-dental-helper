@@ -21,6 +21,7 @@ interface MigrationStatus {
   errors: string[];
   recordsProcessed: number;
   totalRecords: number;
+  migratedRecords: any[];
 }
 
 interface FieldMapping {
@@ -63,7 +64,8 @@ export default function DataMigration() {
     message: '',
     errors: [],
     recordsProcessed: 0,
-    totalRecords: 0
+    totalRecords: 0,
+    migratedRecords: []
   });
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,7 +280,8 @@ export default function DataMigration() {
         progress: 100,
         message: `Migration completed successfully! Imported ${data.recordsImported} records.`,
         recordsProcessed: data.recordsImported,
-        totalRecords: data.totalRecords
+        totalRecords: data.totalRecords,
+        migratedRecords: data.migratedRecords || []
       });
 
       toast({
@@ -871,6 +874,65 @@ export default function DataMigration() {
                     ))}
                   </div>
                 </div>
+              )}
+
+              {migrationStatus.status === 'completed' && migrationStatus.migratedRecords.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      Migrated Records ({migrationStatus.migratedRecords.length})
+                    </CardTitle>
+                    <CardDescription>
+                      Successfully imported records from your data migration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {selectedTable && getTargetFields(selectedTable).slice(0, 6).map(field => (
+                              <TableHead key={field} className="font-medium">
+                                {field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </TableHead>
+                            ))}
+                            {getTargetFields(selectedTable).length > 6 && (
+                              <TableHead>...</TableHead>
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {migrationStatus.migratedRecords.map((record, index) => (
+                            <TableRow key={record.id || index}>
+                              {selectedTable && getTargetFields(selectedTable).slice(0, 6).map(field => (
+                                <TableCell key={field} className="text-sm">
+                                  {field.includes('date') || field.includes('_at') ? (
+                                    record[field] ? new Date(record[field]).toLocaleDateString() : '-'
+                                  ) : field === 'id' ? (
+                                    <code className="text-xs bg-muted px-1 rounded">
+                                      {record[field]?.substring(0, 8)}...
+                                    </code>
+                                  ) : (
+                                    record[field] || '-'
+                                  )}
+                                </TableCell>
+                              ))}
+                              {getTargetFields(selectedTable).length > 6 && (
+                                <TableCell className="text-muted-foreground">...</TableCell>
+                              )}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {migrationStatus.migratedRecords.length > 10 && (
+                      <div className="mt-4 text-center text-sm text-muted-foreground">
+                        Showing first 10 records. Total: {migrationStatus.migratedRecords.length} records migrated.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </CardContent>
           </Card>
