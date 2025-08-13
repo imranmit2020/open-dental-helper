@@ -508,7 +508,7 @@ export default function DataMigration() {
                 </Alert>
               )}
 
-              {/* Field Mapping Table */}
+              {/* Field Mapping Tabs */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-lg">Field Mapping</h3>
@@ -533,110 +533,187 @@ export default function DataMigration() {
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">Target Field</TableHead>
-                          <TableHead className="w-[200px]">Source Field</TableHead>
-                          <TableHead className="w-[100px]">Type</TableHead>
-                          <TableHead className="w-[100px]">Required</TableHead>
-                          <TableHead className="w-[120px]">AI Confidence</TableHead>
-                          <TableHead className="w-[150px]">Reason</TableHead>
-                          <TableHead className="w-[80px]">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {fieldMappings.map((mapping, index) => {
-                          const isAIMatched = mapping.confidence && mapping.confidence > 0;
-                          const isManualMatched = mapping.sourceField && (!mapping.confidence || mapping.confidence === 0);
-                          const isUnmapped = !mapping.sourceField;
-                          
-                          return (
-                            <TableRow key={mapping.targetField} className={
-                              isAIMatched ? "bg-green-50/50" : 
-                              isManualMatched ? "bg-blue-50/50" : 
-                              mapping.required ? "bg-red-50/50" : "bg-gray-50/30"
-                            }>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  {mapping.targetField}
-                                  {mapping.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Select
-                                  value={mapping.sourceField || "SKIP_FIELD"}
-                                  onValueChange={(value) => {
-                                    const newMappings = [...fieldMappings];
-                                    newMappings[index].sourceField = value === "SKIP_FIELD" ? undefined : value;
-                                    if (value === "SKIP_FIELD") {
-                                      newMappings[index].confidence = undefined;
-                                      newMappings[index].reason = undefined;
-                                    } else if (!newMappings[index].confidence) {
-                                      newMappings[index].reason = 'Manual mapping';
-                                    }
-                                    setFieldMappings(newMappings);
-                                  }}
-                                >
-                                  <SelectTrigger className="h-8">
-                                    <SelectValue placeholder="Select field" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-background z-50">
-                                    <SelectItem value="SKIP_FIELD">-- Skip field --</SelectItem>
-                                    {sourceFields.map(field => (
-                                      <SelectItem key={field} value={field}>{field}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="text-xs">{mapping.dataType}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                {mapping.required ? (
-                                  <Badge variant="destructive" className="text-xs">Yes</Badge>
-                                ) : (
-                                  <Badge variant="secondary" className="text-xs">No</Badge>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {mapping.confidence ? (
-                                  <div className="flex items-center gap-1">
-                                    <Badge 
-                                      variant={mapping.confidence > 0.8 ? "default" : mapping.confidence > 0.6 ? "secondary" : "outline"}
-                                      className="text-xs"
-                                    >
-                                      {Math.round(mapping.confidence * 100)}%
-                                    </Badge>
-                                    <Sparkles className="w-3 h-3 text-primary" />
-                                  </div>
-                                ) : (
-                                  mapping.sourceField ? (
-                                    <Badge variant="outline" className="text-xs">Manual</Badge>
-                                  ) : (
-                                    <span className="text-muted-foreground text-xs">-</span>
-                                  )
-                                )}
-                              </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">
-                                {mapping.reason || (mapping.sourceField ? 'Manual mapping' : 'Not mapped')}
-                              </TableCell>
-                              <TableCell>
-                                {mapping.sourceField ? (
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                ) : mapping.required ? (
-                                  <AlertTriangle className="w-4 h-4 text-red-600" />
-                                ) : (
-                                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                                )}
-                              </TableCell>
+                  <Tabs defaultValue="matched" className="space-y-4">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="matched">
+                        Matched Fields ({fieldMappings.filter(m => m.sourceField).length})
+                      </TabsTrigger>
+                      <TabsTrigger value="unmatched">
+                        Unmatched Fields ({sourceFields.filter(sf => !fieldMappings.some(fm => fm.sourceField === sf)).length})
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="matched" className="space-y-4">
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[200px]">Target Field</TableHead>
+                              <TableHead className="w-[200px]">Source Field</TableHead>
+                              <TableHead className="w-[100px]">Type</TableHead>
+                              <TableHead className="w-[100px]">Required</TableHead>
+                              <TableHead className="w-[120px]">AI Confidence</TableHead>
+                              <TableHead className="w-[150px]">Reason</TableHead>
+                              <TableHead className="w-[80px]">Status</TableHead>
                             </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                          </TableHeader>
+                          <TableBody>
+                            {fieldMappings.map((mapping, index) => {
+                              const isAIMatched = mapping.confidence && mapping.confidence > 0;
+                              const isManualMatched = mapping.sourceField && (!mapping.confidence || mapping.confidence === 0);
+                              
+                              return (
+                                <TableRow key={mapping.targetField} className={
+                                  isAIMatched ? "bg-green-50/50" : 
+                                  isManualMatched ? "bg-blue-50/50" : 
+                                  mapping.required ? "bg-red-50/50" : "bg-gray-50/30"
+                                }>
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      {mapping.targetField}
+                                      {mapping.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={mapping.sourceField || "SKIP_FIELD"}
+                                      onValueChange={(value) => {
+                                        const newMappings = [...fieldMappings];
+                                        newMappings[index].sourceField = value === "SKIP_FIELD" ? undefined : value;
+                                        if (value === "SKIP_FIELD") {
+                                          newMappings[index].confidence = undefined;
+                                          newMappings[index].reason = undefined;
+                                        } else if (!newMappings[index].confidence) {
+                                          newMappings[index].reason = 'Manual mapping';
+                                        }
+                                        setFieldMappings(newMappings);
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-8">
+                                        <SelectValue placeholder="Select field" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-background z-50">
+                                        <SelectItem value="SKIP_FIELD">-- Skip field --</SelectItem>
+                                        {sourceFields.map(field => (
+                                          <SelectItem key={field} value={field}>{field}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="text-xs">{mapping.dataType}</Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    {mapping.required ? (
+                                      <Badge variant="destructive" className="text-xs">Yes</Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="text-xs">No</Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    {mapping.confidence ? (
+                                      <div className="flex items-center gap-1">
+                                        <Badge 
+                                          variant={mapping.confidence > 0.8 ? "default" : mapping.confidence > 0.6 ? "secondary" : "outline"}
+                                          className="text-xs"
+                                        >
+                                          {Math.round(mapping.confidence * 100)}%
+                                        </Badge>
+                                        <Sparkles className="w-3 h-3 text-primary" />
+                                      </div>
+                                    ) : (
+                                      mapping.sourceField ? (
+                                        <Badge variant="outline" className="text-xs">Manual</Badge>
+                                      ) : (
+                                        <span className="text-muted-foreground text-xs">-</span>
+                                      )
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {mapping.reason || (mapping.sourceField ? 'Manual mapping' : 'Not mapped')}
+                                  </TableCell>
+                                  <TableCell>
+                                    {mapping.sourceField ? (
+                                      <CheckCircle className="w-4 h-4 text-green-600" />
+                                    ) : mapping.required ? (
+                                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                                    ) : (
+                                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="unmatched" className="space-y-4">
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Source Field</TableHead>
+                              <TableHead>Map to Target Field</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sourceFields
+                              .filter(sf => !fieldMappings.some(fm => fm.sourceField === sf))
+                              .map((sourceField) => (
+                                <TableRow key={sourceField}>
+                                  <TableCell className="font-medium">
+                                    {sourceField}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value=""
+                                      onValueChange={(targetField) => {
+                                        if (targetField && targetField !== "SKIP_FIELD") {
+                                          const newMappings = [...fieldMappings];
+                                          const mappingIndex = newMappings.findIndex(m => m.targetField === targetField);
+                                          if (mappingIndex !== -1) {
+                                            newMappings[mappingIndex].sourceField = sourceField;
+                                            newMappings[mappingIndex].confidence = undefined;
+                                            newMappings[mappingIndex].reason = "Manual mapping";
+                                            setFieldMappings(newMappings);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger className="h-8">
+                                        <SelectValue placeholder="Select target field" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-background z-50">
+                                        <SelectItem value="SKIP_FIELD">-- Skip this field --</SelectItem>
+                                        {fieldMappings
+                                          .filter(fm => !fm.sourceField)
+                                          .map(fm => (
+                                            <SelectItem key={fm.targetField} value={fm.targetField}>
+                                              {fm.targetField}
+                                              {fm.required && <span className="text-red-500 ml-1">*</span>}
+                                            </SelectItem>
+                                          ))
+                                        }
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            }
+                            {sourceFields.filter(sf => !fieldMappings.some(fm => fm.sourceField === sf)).length === 0 && (
+                              <TableRow>
+                                <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                                  All source fields have been mapped
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 )}
               </div>
 
