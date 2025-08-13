@@ -548,7 +548,7 @@ export default function DataMigration() {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[200px]">Target Field</TableHead>
+                              <TableHead className="w-[200px]">Target Field (Table.Column)</TableHead>
                               <TableHead className="w-[200px]">Source Field</TableHead>
                               <TableHead className="w-[100px]">Type</TableHead>
                               <TableHead className="w-[100px]">Required</TableHead>
@@ -569,9 +569,14 @@ export default function DataMigration() {
                                   mapping.required ? "bg-red-50/50" : "bg-gray-50/30"
                                 }>
                                   <TableCell className="font-medium">
-                                    <div className="flex items-center gap-2">
-                                      {mapping.targetField}
-                                      {mapping.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
+                                    <div className="flex flex-col gap-1">
+                                      <div className="flex items-center gap-2">
+                                        {mapping.targetField}
+                                        {mapping.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        {selectedTable}.{mapping.targetField}
+                                      </span>
                                     </div>
                                   </TableCell>
                                   <TableCell>
