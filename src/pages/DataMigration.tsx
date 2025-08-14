@@ -425,6 +425,135 @@ const startMigration = async () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="smooth-migration" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Smooth Data Migration
+              </CardTitle>
+              <CardDescription>
+                AI-powered migration with smart mapping and conflict resolution
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Migration Templates */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Zap className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">One-Click Templates</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Pre-configured mappings for popular dental software
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Browse Templates
+                  </Button>
+                </Card>
+
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Wand2 className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">AI Field Detection</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Automatically detect and map similar field names
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Auto-Map Fields
+                  </Button>
+                </Card>
+
+                <Card className="p-4 border-dashed">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Batch Processing</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Process large datasets in optimized chunks
+                  </p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    Configure Batches
+                  </Button>
+                </Card>
+              </div>
+
+              {/* Smart Conflict Resolution */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5" />
+                  Smart Conflict Resolution
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Duplicate Handling</Label>
+                    <Select defaultValue="skip">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="skip">Skip duplicates</SelectItem>
+                        <SelectItem value="update">Update existing</SelectItem>
+                        <SelectItem value="merge">Smart merge</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data Quality</Label>
+                    <Select defaultValue="validate">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="validate">Validate & clean</SelectItem>
+                        <SelectItem value="strict">Strict validation</SelectItem>
+                        <SelectItem value="permissive">Permissive import</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Migration Flow */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <ArrowRight className="w-5 h-5" />
+                  Migration Flow
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {[
+                    { step: 1, title: "Upload & Analyze", desc: "File structure analysis" },
+                    { step: 2, title: "AI Mapping", desc: "Smart field detection" },
+                    { step: 3, title: "Validation", desc: "Data quality check" },
+                    { step: 4, title: "Migration", desc: "Seamless import" }
+                  ].map((item) => (
+                    <div key={item.step} className="text-center p-3 rounded-lg bg-muted/30">
+                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center mx-auto mb-2">
+                        {item.step}
+                      </div>
+                      <h4 className="font-medium text-sm">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button className="flex-1" onClick={generateAIMapping}>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Start Smart Migration
+                </Button>
+                <Button variant="outline">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Custom Mapping
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="mapping" className="space-y-6">
           <Card>
             <CardHeader>
