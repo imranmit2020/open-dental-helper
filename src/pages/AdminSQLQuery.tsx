@@ -186,6 +186,131 @@ export default function AdminSQLQuery() {
     });
   };
 
+  const exportSchemaToCSV = () => {
+    if (!tables || tables.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No schema data to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Flatten the schema data for CSV export
+    const schemaData = tables.flatMap(table => 
+      table.columns.map((column: any) => ({
+        table_name: table.table_name,
+        column_name: column.name,
+        data_type: column.type,
+        is_nullable: column.nullable ? 'YES' : 'NO',
+        column_default: column.default || ''
+      }))
+    );
+
+    const columns = ['table_name', 'column_name', 'data_type', 'is_nullable', 'column_default'];
+    const csvContent = [
+      columns.join(','),
+      ...schemaData.map(row => 
+        columns.map(col => {
+          const value = row[col as keyof typeof row];
+          if (value === null || value === undefined) return '';
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `database-schema-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Successful",
+      description: "Schema exported to CSV file",
+      variant: "default"
+    });
+  };
+
+  const exportSchemaToJSON = () => {
+    if (!tables || tables.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No schema data to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(tables, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `database-schema-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Successful",
+      description: "Schema exported to JSON file",
+      variant: "default"
+    });
+  };
+
+  const exportSchemaToExcel = () => {
+    if (!tables || tables.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No schema data to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    
+    // Create a summary sheet with all tables and columns
+    const schemaData = tables.flatMap(table => 
+      table.columns.map((column: any) => ({
+        table_name: table.table_name,
+        column_name: column.name,
+        data_type: column.type,
+        is_nullable: column.nullable ? 'YES' : 'NO',
+        column_default: column.default || ''
+      }))
+    );
+    
+    const summarySheet = XLSX.utils.json_to_sheet(schemaData);
+    XLSX.utils.book_append_sheet(wb, summarySheet, "Database Schema");
+    
+    // Create individual sheets for each table
+    tables.forEach(table => {
+      if (table.columns && table.columns.length > 0) {
+        const tableData = table.columns.map((column: any) => ({
+          column_name: column.name,
+          data_type: column.type,
+          is_nullable: column.nullable ? 'YES' : 'NO',
+          column_default: column.default || ''
+        }));
+        
+        const tableSheet = XLSX.utils.json_to_sheet(tableData);
+        // Sanitize table name for sheet name (Excel has limitations)
+        const sheetName = table.table_name.substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
+        XLSX.utils.book_append_sheet(wb, tableSheet, sheetName);
+      }
+    });
+    
+    XLSX.writeFile(wb, `database-schema-${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    toast({
+      title: "Export Successful",
+      description: "Schema exported to Excel file with multiple sheets",
+      variant: "default"
+    });
+  };
+
   const fetchDatabaseSchema = async () => {
     setLoadingTables(true);
     try {
@@ -477,14 +602,32 @@ export default function AdminSQLQuery() {
                 Explore all tables and their column structures
               </p>
             </div>
-            <Button 
-              onClick={fetchDatabaseSchema} 
-              disabled={loadingTables}
-              variant="outline"
-              size="sm"
-            >
-              {loadingTables ? 'Loading...' : 'Refresh'}
-            </Button>
+            <div className="flex items-center gap-2">
+              {tables && tables.length > 0 && (
+                <div className="flex gap-1 mr-2">
+                  <Button size="sm" variant="outline" onClick={exportSchemaToCSV}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    CSV
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportSchemaToJSON}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    JSON
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={exportSchemaToExcel}>
+                    <FileSpreadsheet className="h-4 w-4 mr-1" />
+                    Excel
+                  </Button>
+                </div>
+              )}
+              <Button 
+                onClick={fetchDatabaseSchema} 
+                disabled={loadingTables}
+                variant="outline"
+                size="sm"
+              >
+                {loadingTables ? 'Loading...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
 
           {loadingTables ? (
