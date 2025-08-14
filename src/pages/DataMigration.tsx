@@ -874,7 +874,7 @@ const startMigration = async () => {
                                 <SelectValue placeholder="Select source field" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">-- None --</SelectItem>
+                                <SelectItem value="SKIP_FIELD">-- None --</SelectItem>
                                 {sourceFields.map(field => (
                                   <SelectItem key={field} value={field}>
                                     {field}
