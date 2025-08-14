@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet, Table as TableIcon, Info } from 'lucide-react';
@@ -21,6 +22,12 @@ export default function AdminSQLQuery() {
   const [tables, setTables] = useState<any[] | null>(null);
   const [loadingTables, setLoadingTables] = useState(false);
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
+  const [selectedTable, setSelectedTable] = useState<string>('');
+  const [generatedQuery, setGeneratedQuery] = useState<string>('');
+  const [tableResults, setTableResults] = useState<any[] | null>(null);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableError, setTableError] = useState<string | null>(null);
+  const [tableExecutionTime, setTableExecutionTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -368,6 +375,135 @@ export default function AdminSQLQuery() {
     }
   };
 
+  const generateQuery = (tableName: string) => {
+    if (!tableName) {
+      setGeneratedQuery('');
+      return;
+    }
+    
+    const query = `SELECT * FROM ${tableName} LIMIT 10;`;
+    setGeneratedQuery(query);
+  };
+
+  const executeTableQuery = async () => {
+    if (!generatedQuery.trim()) {
+      toast({
+        title: "Error",
+        description: "No query to execute",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setTableLoading(true);
+    setTableError(null);
+    setTableResults(null);
+    setTableExecutionTime(null);
+
+    const startTime = Date.now();
+
+    try {
+      const { data, error: queryError } = await supabase.rpc('exec_sql', {
+        sql: generatedQuery.trim()
+      });
+
+      const endTime = Date.now();
+      setTableExecutionTime(endTime - startTime);
+
+      if (queryError) {
+        setTableError(queryError.message);
+        toast({
+          title: "Query Error",
+          description: queryError.message,
+          variant: "destructive"
+        });
+      } else {
+        setTableResults(Array.isArray(data) ? data : []);
+        toast({
+          title: "Query Executed",
+          description: `Query completed successfully in ${endTime - startTime}ms`,
+          variant: "default"
+        });
+      }
+    } catch (err: any) {
+      setTableError(err.message || 'An unexpected error occurred');
+      toast({
+        title: "Execution Error",
+        description: err.message || 'An unexpected error occurred',
+        variant: "destructive"
+      });
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const renderTableResults = () => {
+    if (!tableResults) return null;
+
+    if (tableResults.length === 0) {
+      return (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Query executed successfully but returned no results.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    const columns = Object.keys(tableResults[0]);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-sm text-muted-foreground">
+              {tableResults.length} rows returned
+              {tableExecutionTime && ` in ${tableExecutionTime}ms`}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{columns.length} columns</Badge>
+          </div>
+        </div>
+        
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableHead key={column} className="font-medium">
+                    {column}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tableResults.map((row, index) => (
+                <TableRow key={index}>
+                  {columns.map((column) => (
+                    <TableCell key={column} className="max-w-xs truncate">
+                      {row[column] === null ? (
+                        <span className="text-muted-foreground italic">null</span>
+                      ) : typeof row[column] === 'object' ? (
+                        <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                          {JSON.stringify(row[column])}
+                        </code>
+                      ) : (
+                        String(row[column])
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
   const fetchDatabaseSchema = async () => {
     setLoadingTables(true);
     try {
@@ -534,10 +670,14 @@ export default function AdminSQLQuery() {
       </header>
 
       <Tabs defaultValue="query" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="query" className="flex items-center gap-2">
             <Play className="h-4 w-4" />
             Query Editor
+          </TabsTrigger>
+          <TabsTrigger value="table-explorer" className="flex items-center gap-2" onClick={() => !tables && fetchDatabaseSchema()}>
+            <Database className="h-4 w-4" />
+            Table Explorer
           </TabsTrigger>
           <TabsTrigger value="schema" className="flex items-center gap-2" onClick={() => !tables && fetchDatabaseSchema()}>
             <TableIcon className="h-4 w-4" />
@@ -645,6 +785,166 @@ export default function AdminSQLQuery() {
                   <p>• Query timeout: 30 seconds</p>
                   <p>• Results limited to 1000 rows</p>
                   <p>• Execution time is displayed</p>
+                </CardContent>
+              </Card>
+            </aside>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="table-explorer" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <section className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Table Explorer</CardTitle>
+                  <CardDescription>
+                    Select a table to generate and execute a basic SELECT query.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="table-select" className="text-sm font-medium">
+                      Select Table
+                    </label>
+                    <Select
+                      value={selectedTable}
+                      onValueChange={(value) => {
+                        setSelectedTable(value);
+                        generateQuery(value);
+                        setTableResults(null);
+                        setTableError(null);
+                      }}
+                    >
+                      <SelectTrigger id="table-select">
+                        <SelectValue placeholder="Choose a table..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tables?.map((table) => (
+                          <SelectItem key={table.name} value={table.name}>
+                            {table.name} ({table.columns.length} columns)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {generatedQuery && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Generated Query</label>
+                      <Textarea
+                        value={generatedQuery}
+                        onChange={(e) => setGeneratedQuery(e.target.value)}
+                        className="min-h-20 font-mono text-sm"
+                        disabled={tableLoading}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={executeTableQuery}
+                      disabled={tableLoading || !generatedQuery.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      <Play className="h-4 w-4" />
+                      {tableLoading ? 'Executing...' : 'Run Query'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSelectedTable('');
+                        setGeneratedQuery('');
+                        setTableResults(null);
+                        setTableError(null);
+                      }}
+                      disabled={tableLoading}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {tableError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{tableError}</AlertDescription>
+                </Alert>
+              )}
+
+              {tableResults !== null && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Table Results</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {renderTableResults()}
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+
+            <aside className="space-y-6">
+              {!tables ? (
+                <Card>
+                  <CardContent className="py-8">
+                    <div className="text-center text-muted-foreground">
+                      <Database className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Loading tables...</p>
+                      <Button 
+                        onClick={fetchDatabaseSchema} 
+                        disabled={loadingTables}
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                      >
+                        {loadingTables ? 'Loading...' : 'Load Tables'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available Tables</CardTitle>
+                    <CardDescription>
+                      {tables.length} tables in the database
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {tables.map((table) => (
+                      <Button
+                        key={table.name}
+                        variant={selectedTable === table.name ? "default" : "outline"}
+                        size="sm"
+                        className="w-full justify-between"
+                        onClick={() => {
+                          setSelectedTable(table.name);
+                          generateQuery(table.name);
+                          setTableResults(null);
+                          setTableError(null);
+                        }}
+                        disabled={tableLoading}
+                      >
+                        <span>{table.name}</span>
+                        <Badge variant="secondary" className="ml-2">
+                          {table.columns.length}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>• Select a table to auto-generate a query</p>
+                  <p>• Modify the generated query as needed</p>
+                  <p>• Results are limited to 10 rows by default</p>
+                  <p>• Edit the LIMIT clause to see more data</p>
                 </CardContent>
               </Card>
             </aside>
