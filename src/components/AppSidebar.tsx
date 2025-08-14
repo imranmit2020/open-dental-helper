@@ -139,6 +139,7 @@ const adminItems: NavigationItem[] = [
   { title: "Password Management", url: "/admin/passwords", icon: Lock, requiredRoles: ['admin'], moduleKey: 'admin_passwords' },
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_add_employee' },
   { title: "Module Access", url: "/admin/navigation-permissions", icon: Settings, requiredRoles: ['admin'], moduleKey: 'admin_navigation_permissions' },
+  { title: "Security Settings", url: "/admin/security-settings", icon: Shield, requiredRoles: ['admin'] },
   { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
   { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
   { title: "Module Flows", url: "/admin/module-flows", icon: TrendIcon, requiredRoles: ['admin'] },

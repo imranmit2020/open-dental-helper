@@ -1451,6 +1451,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_settings: {
+        Row: {
+          created_at: string
+          device_remembering_enabled: boolean
+          face_verification_enabled: boolean
+          id: string
+          otp_enabled: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_remembering_enabled?: boolean
+          face_verification_enabled?: boolean
+          id?: string
+          otp_enabled?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_remembering_enabled?: boolean
+          face_verification_enabled?: boolean
+          id?: string
+          otp_enabled?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_revenue: {
         Row: {
           created_at: string
@@ -1986,6 +2016,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trusted_devices: {
+        Row: {
+          created_at: string
+          device_fingerprint: string
+          device_name: string | null
+          id: string
+          trusted_until: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint: string
+          device_name?: string | null
+          id?: string
+          trusted_until?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string
+          device_name?: string | null
+          id?: string
+          trusted_until?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_approval_requests: {
         Row: {
