@@ -30,6 +30,7 @@ export default function AdminSQLQuery() {
   const [tableError, setTableError] = useState<string | null>(null);
   const [tableExecutionTime, setTableExecutionTime] = useState<number | null>(null);
   const [tableFilter, setTableFilter] = useState<string>('');
+  const [schemaFilter, setSchemaFilter] = useState<string>('');
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -612,6 +613,7 @@ export default function AdminSQLQuery() {
     try {
       const schemaQuery = `
         SELECT 
+          t.table_schema,
           t.table_name,
           t.table_type,
           c.column_name,
@@ -620,10 +622,10 @@ export default function AdminSQLQuery() {
           c.column_default,
           c.ordinal_position
         FROM information_schema.tables t
-        LEFT JOIN information_schema.columns c ON t.table_name = c.table_name
-        WHERE t.table_schema = 'public'
+        LEFT JOIN information_schema.columns c ON t.table_name = c.table_name AND t.table_schema = c.table_schema
+        WHERE t.table_schema IN ('public', 'auth', 'storage')
         AND t.table_type = 'BASE TABLE'
-        ORDER BY t.table_name, c.ordinal_position
+        ORDER BY t.table_schema, t.table_name, c.ordinal_position
       `;
 
       const { data, error: schemaError } = await supabase.rpc('exec_sql', {
@@ -641,15 +643,17 @@ export default function AdminSQLQuery() {
         const tablesMap = new Map();
         if (Array.isArray(data)) {
           data.forEach((row: any) => {
-            if (!tablesMap.has(row.table_name)) {
-              tablesMap.set(row.table_name, {
+            const tableKey = `${row.table_schema}.${row.table_name}`;
+            if (!tablesMap.has(tableKey)) {
+              tablesMap.set(tableKey, {
                 name: row.table_name,
+                schema: row.table_schema,
                 type: row.table_type,
                 columns: []
               });
             }
             if (row.column_name) {
-              tablesMap.get(row.table_name).columns.push({
+              tablesMap.get(tableKey).columns.push({
                 name: row.column_name,
                 type: row.data_type,
                 nullable: row.is_nullable === 'YES',
@@ -1015,19 +1019,31 @@ export default function AdminSQLQuery() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter tables..."
-                        value={tableFilter}
-                        onChange={(e) => setTableFilter(e.target.value)}
-                        className="pl-8"
-                      />
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Filter tables..."
+                          value={tableFilter}
+                          onChange={(e) => setTableFilter(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Filter by schema..."
+                          value={schemaFilter}
+                          onChange={(e) => setSchemaFilter(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-2">
                       {tables
                         .filter(table => 
-                          table.name.toLowerCase().includes(tableFilter.toLowerCase())
+                          table.name.toLowerCase().includes(tableFilter.toLowerCase()) &&
+                          (table.schema || '').toLowerCase().includes(schemaFilter.toLowerCase())
                         )
                         .map((table) => (
                         <Button
@@ -1043,7 +1059,12 @@ export default function AdminSQLQuery() {
                           }}
                           disabled={tableLoading}
                         >
-                          <span>{table.name}</span>
+                          <div className="flex flex-col items-start">
+                            <span>{table.name}</span>
+                            {table.schema && (
+                              <span className="text-xs text-muted-foreground">{table.schema}</span>
+                            )}
+                          </div>
                           <Badge variant="secondary" className="ml-2">
                             {table.columns.length}
                           </Badge>
