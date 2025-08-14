@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -2104,6 +2104,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_module_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          module_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_key: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_key?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_notes: {
         Row: {
           ai_analysis: Json | null
@@ -2218,14 +2242,14 @@ export type Database = {
     }
     Functions: {
       can_view_audit_log: {
-        Args: { _viewer: string; _patient_id: string; _log_user_id: string }
+        Args: { _log_user_id: string; _patient_id: string; _viewer: string }
         Returns: boolean
       }
       create_tenant_schema: {
         Args: {
-          tenant_id_param: string
-          schema_name_param: string
           clinic_code_param: string
+          schema_name_param: string
+          tenant_id_param: string
         }
         Returns: undefined
       }
@@ -2238,16 +2262,16 @@ export type Database = {
         Returns: string
       }
       get_corporation_revenue: {
-        Args: { _start: string; _end: string }
+        Args: { _end: string; _start: string }
         Returns: {
-          tenant_id: string
-          tenant_name: string
           clinic_code: string
           corporation_id: string
           invoices_count: number
-          total_revenue: number
-          period_start: string
           period_end: string
+          period_start: string
+          tenant_id: string
+          tenant_name: string
+          total_revenue: number
         }[]
       }
       get_current_tenant_id: {
@@ -2255,13 +2279,13 @@ export type Database = {
         Returns: string
       }
       get_dentist_availability_for_date: {
-        Args: { _dentist_id: string; _tenant_id: string; _date: string }
+        Args: { _date: string; _dentist_id: string; _tenant_id: string }
         Returns: {
+          break_end_time: string
+          break_start_time: string
+          end_time: string
           is_available: boolean
           start_time: string
-          end_time: string
-          break_start_time: string
-          break_end_time: string
         }[]
       }
       get_user_role: {
@@ -2269,7 +2293,7 @@ export type Database = {
         Returns: string
       }
       get_user_tenant_role: {
-        Args: { _user_id: string; _tenant_id: string }
+        Args: { _tenant_id: string; _user_id: string }
         Returns: string
       }
       is_super_admin: {
@@ -2277,11 +2301,11 @@ export type Database = {
         Returns: boolean
       }
       profile_role_unchanged: {
-        Args: { _user_id: string; _new_role: string }
+        Args: { _new_role: string; _user_id: string }
         Returns: boolean
       }
       user_belongs_to_tenant: {
-        Args: { _user_id: string; _tenant_id: string }
+        Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
       user_is_corporate_admin: {

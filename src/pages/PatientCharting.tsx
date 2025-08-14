@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
+import { useModulePermissions, type ModuleKey } from "@/hooks/useModulePermissions";
+import { useModuleFavorites } from "@/hooks/useModuleFavorites";
 import { useNavigate } from "react-router-dom";
 import { 
   Users, 
@@ -28,7 +30,9 @@ import {
   Eye,
   Microscope,
   Activity,
-  Sparkles
+  Sparkles,
+  Star,
+  StarOff
 } from "lucide-react";
 
 interface ChartingModule {
@@ -39,6 +43,7 @@ interface ChartingModule {
   route: string;
   color: string;
   requiresPatient?: boolean;
+  moduleKey?: ModuleKey;
 }
 
 const chartingModules: ChartingModule[] = [
@@ -49,7 +54,8 @@ const chartingModules: ChartingModule[] = [
     icon: Calendar,
     route: "/schedule",
     color: "bg-blue-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "schedule"
   },
   {
     id: "medical-history",
@@ -58,7 +64,8 @@ const chartingModules: ChartingModule[] = [
     icon: FileText,
     route: "/medical-history",
     color: "bg-green-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "medical_history"
   },
   {
     id: "xray-diagnostics",
@@ -67,7 +74,8 @@ const chartingModules: ChartingModule[] = [
     icon: Scan,
     route: "/xray-diagnostics",
     color: "bg-purple-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "xray_diagnostics"
   },
   {
     id: "image-analysis",
@@ -76,7 +84,8 @@ const chartingModules: ChartingModule[] = [
     icon: Camera,
     route: "/ai/image",
     color: "bg-orange-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "image_analysis"
   },
   {
     id: "treatment-plans",
@@ -85,7 +94,8 @@ const chartingModules: ChartingModule[] = [
     icon: Stethoscope,
     route: "/treatment-plans",
     color: "bg-indigo-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "treatment_plans"
   },
   {
     id: "consent-forms",
@@ -94,7 +104,8 @@ const chartingModules: ChartingModule[] = [
     icon: Shield,
     route: "/consent-forms",
     color: "bg-cyan-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "consent_forms"
   },
   {
     id: "chairside-assistant",
@@ -103,7 +114,8 @@ const chartingModules: ChartingModule[] = [
     icon: ClipboardList,
     route: "/chairside-assistant",
     color: "bg-pink-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "chairside_assistant"
   },
   {
     id: "voice-to-chart",
@@ -112,7 +124,8 @@ const chartingModules: ChartingModule[] = [
     icon: MicVocal,
     route: "/voice-to-chart",
     color: "bg-teal-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "voice_to_chart"
   },
   {
     id: "insurance-billing",
@@ -121,7 +134,8 @@ const chartingModules: ChartingModule[] = [
     icon: CreditCard,
     route: "/insurance-billing",
     color: "bg-yellow-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "insurance_billing"
   },
   {
     id: "voice-transcription",
@@ -130,7 +144,8 @@ const chartingModules: ChartingModule[] = [
     icon: MicVocal,
     route: "/ai/voice",
     color: "bg-emerald-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "voice_transcription"
   },
   {
     id: "voice-agent",
@@ -139,7 +154,8 @@ const chartingModules: ChartingModule[] = [
     icon: Brain,
     route: "/ai/agent",
     color: "bg-violet-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "voice_agent"
   },
   {
     id: "translation",
@@ -148,7 +164,8 @@ const chartingModules: ChartingModule[] = [
     icon: Brain,
     route: "/ai/translation",
     color: "bg-rose-500",
-    requiresPatient: true
+    requiresPatient: true,
+    moduleKey: "translation"
   },
   {
     id: "ai-patient-analytics",
@@ -226,11 +243,14 @@ const chartingModules: ChartingModule[] = [
 
 export default function PatientCharting() {
   const { patients, loading, searchPatients } = useOptimizedPatients();
+  const { canAccessModule } = useModulePermissions();
+  const { favorites, isFavorite, toggleFavorite } = useModuleFavorites();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredPatients, setFilteredPatients] = useState(patients);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -308,6 +328,26 @@ export default function PatientCharting() {
     
     navigate(route);
   };
+
+  // Filter modules based on permissions and favorites
+  const getFilteredModules = () => {
+    let filtered = chartingModules.filter(module => {
+      // Check module permissions if moduleKey exists
+      if (module.moduleKey && !canAccessModule(module.moduleKey)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Filter by favorites if enabled
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(module => isFavorite(module.id));
+    }
+
+    return filtered;
+  };
+
+  const filteredModules = getFilteredModules();
 
   if (loading) {
     return (
@@ -457,18 +497,39 @@ export default function PatientCharting() {
                   </Badge>
                 )}
               </CardTitle>
-              <CardDescription>
-                {selectedPatient 
-                  ? "Click on any module to access patient charting tools"
-                  : "Select a patient first to enable charting modules"
-                }
+              <CardDescription className="flex items-center justify-between">
+                <span>
+                  {selectedPatient 
+                    ? "Click on any module to access patient charting tools"
+                    : "Select a patient first to enable charting modules"
+                  }
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className="ml-4"
+                >
+                  {showFavoritesOnly ? (
+                    <>
+                      <StarOff className="h-4 w-4 mr-2" />
+                      Show All
+                    </>
+                  ) : (
+                    <>
+                      <Star className="h-4 w-4 mr-2" />
+                      Favorites Only
+                    </>
+                  )}
+                </Button>
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {chartingModules.map((module) => {
+                {filteredModules.map((module) => {
                   const isDisabled = module.requiresPatient && !selectedPatient;
                   const IconComponent = module.icon;
+                  const moduleIsFavorite = isFavorite(module.id);
                   
                   return (
                     <Card 
@@ -477,7 +538,7 @@ export default function PatientCharting() {
                         isDisabled 
                           ? "opacity-50 cursor-not-allowed border-gray-200" 
                           : "hover:border-primary/50 hover:scale-105 hover:shadow-2xl border-gray-200 hover:border-primary"
-                      } group`}
+                      } group relative`}
                       onClick={() => !isDisabled && handleModuleClick(module)}
                     >
                       <CardContent className="p-4 relative overflow-hidden">
@@ -485,6 +546,23 @@ export default function PatientCharting() {
                         {!isDisabled && (
                           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         )}
+                        
+                        {/* Favorite toggle */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(module.id);
+                          }}
+                        >
+                          {moduleIsFavorite ? (
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          ) : (
+                            <StarOff className="h-4 w-4" />
+                          )}
+                        </Button>
                         
                         <div className="flex items-start gap-3 relative z-10">
                           <div className={`w-12 h-12 rounded-xl ${module.color} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
