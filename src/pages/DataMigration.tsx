@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, Database, FileText, CheckCircle, AlertTriangle, Download, Sparkles, Zap, Wand2, Clock, MapPin, Layers, RefreshCw, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,49 @@ const TARGET_TABLES = [
   { id: 'invoices', name: 'Invoices', required: ['patient_id', 'total', 'status'] }
 ];
 
+const MIGRATION_TEMPLATES = {
+  dentrix: {
+    patients: [
+      { sourceField: 'Patient_First_Name', targetField: 'first_name', required: true, dataType: 'text' },
+      { sourceField: 'Patient_Last_Name', targetField: 'last_name', required: true, dataType: 'text' },
+      { sourceField: 'Patient_Email', targetField: 'email', required: false, dataType: 'email' },
+      { sourceField: 'Patient_Phone', targetField: 'phone', required: false, dataType: 'phone' },
+      { sourceField: 'Patient_DOB', targetField: 'date_of_birth', required: false, dataType: 'date' },
+      { sourceField: 'Patient_Gender', targetField: 'gender', required: false, dataType: 'text' },
+      { sourceField: 'Patient_Address', targetField: 'address', required: false, dataType: 'text' }
+    ],
+    appointments: [
+      { sourceField: 'Appt_Date', targetField: 'appointment_date', required: true, dataType: 'date' },
+      { sourceField: 'Appt_Title', targetField: 'title', required: true, dataType: 'text' },
+      { sourceField: 'Appt_Description', targetField: 'description', required: false, dataType: 'text' },
+      { sourceField: 'Appt_Duration', targetField: 'duration', required: false, dataType: 'number' },
+      { sourceField: 'Appt_Status', targetField: 'status', required: false, dataType: 'text' }
+    ]
+  },
+  eaglesoft: {
+    patients: [
+      { sourceField: 'First_Name', targetField: 'first_name', required: true, dataType: 'text' },
+      { sourceField: 'Last_Name', targetField: 'last_name', required: true, dataType: 'text' },
+      { sourceField: 'Email_Address', targetField: 'email', required: false, dataType: 'email' },
+      { sourceField: 'Home_Phone', targetField: 'phone', required: false, dataType: 'phone' },
+      { sourceField: 'Birth_Date', targetField: 'date_of_birth', required: false, dataType: 'date' },
+      { sourceField: 'Sex', targetField: 'gender', required: false, dataType: 'text' },
+      { sourceField: 'Address_1', targetField: 'address', required: false, dataType: 'text' }
+    ]
+  },
+  open_dental: {
+    patients: [
+      { sourceField: 'FName', targetField: 'first_name', required: true, dataType: 'text' },
+      { sourceField: 'LName', targetField: 'last_name', required: true, dataType: 'text' },
+      { sourceField: 'Email', targetField: 'email', required: false, dataType: 'email' },
+      { sourceField: 'HmPhone', targetField: 'phone', required: false, dataType: 'phone' },
+      { sourceField: 'Birthdate', targetField: 'date_of_birth', required: false, dataType: 'date' },
+      { sourceField: 'Gender', targetField: 'gender', required: false, dataType: 'text' },
+      { sourceField: 'Address', targetField: 'address', required: false, dataType: 'text' }
+    ]
+  }
+};
+
 export default function DataMigration() {
   const { toast } = useToast();
   const [selectedSoftware, setSelectedSoftware] = useState('');
@@ -58,6 +102,7 @@ export default function DataMigration() {
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [isApplyingAI, setIsApplyingAI] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState<MigrationStatus>({
     status: 'idle',
     progress: 0,
@@ -323,6 +368,46 @@ const startMigration = async () => {
     URL.revokeObjectURL(url);
   };
 
+  const applyTemplate = (softwareId: string, tableId: string) => {
+    const template = MIGRATION_TEMPLATES[softwareId as keyof typeof MIGRATION_TEMPLATES]?.[tableId as keyof any];
+    if (!template) {
+      toast({
+        title: "Template not found",
+        description: `No template available for ${softwareId} - ${tableId}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedSoftware(softwareId);
+    setSelectedTable(tableId);
+    setFieldMappings(template);
+    setShowTemplateDialog(false);
+
+    toast({
+      title: "Template applied",
+      description: `Applied ${softwareId} template for ${tableId}. ${template.length} fields mapped.`
+    });
+  };
+
+  const getAvailableTemplates = () => {
+    const templates = [];
+    for (const [softwareId, tables] of Object.entries(MIGRATION_TEMPLATES)) {
+      for (const [tableId] of Object.entries(tables)) {
+        const softwareName = SUPPORTED_SOFTWARE.find(s => s.id === softwareId)?.name || softwareId;
+        const tableName = TARGET_TABLES.find(t => t.id === tableId)?.name || tableId;
+        templates.push({
+          softwareId,
+          tableId,
+          softwareName,
+          tableName,
+          fieldCount: (tables as any)[tableId].length
+        });
+      }
+    }
+    return templates;
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -447,7 +532,12 @@ const startMigration = async () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     Pre-configured mappings for popular dental software
                   </p>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setShowTemplateDialog(true)}
+                  >
                     Browse Templates
                   </Button>
                 </Card>
@@ -1444,6 +1534,73 @@ const startMigration = async () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Template Browser Dialog */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Migration Templates
+            </DialogTitle>
+            <DialogDescription>
+              Choose a pre-configured template for your dental software
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {getAvailableTemplates().map((template) => (
+              <Card key={`${template.softwareId}-${template.tableId}`} className="p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{template.softwareName}</Badge>
+                      <Badge variant="secondary">{template.tableName}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {template.fieldCount} pre-configured field mappings
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => applyTemplate(template.softwareId, template.tableId)}
+                    size="sm"
+                  >
+                    Use Template
+                  </Button>
+                </div>
+                
+                {/* Preview mappings */}
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Field Mappings Preview:</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                    {(MIGRATION_TEMPLATES[template.softwareId as keyof typeof MIGRATION_TEMPLATES] as any)?.[template.tableId]?.slice(0, 6).map((mapping: any, index: number) => (
+                      <div key={index} className="flex items-center gap-1 text-muted-foreground">
+                        <span className="truncate">{mapping.sourceField}</span>
+                        <ArrowRight className="w-3 h-3" />
+                        <span className="truncate">{mapping.targetField}</span>
+                      </div>
+                    ))}
+                    {(MIGRATION_TEMPLATES[template.softwareId as keyof typeof MIGRATION_TEMPLATES] as any)?.[template.tableId]?.length > 6 && (
+                      <div className="text-muted-foreground">
+                        +{(MIGRATION_TEMPLATES[template.softwareId as keyof typeof MIGRATION_TEMPLATES] as any)[template.tableId].length - 6} more...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+            
+            {getAvailableTemplates().length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No templates available yet.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  More templates will be added for additional software platforms.
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
