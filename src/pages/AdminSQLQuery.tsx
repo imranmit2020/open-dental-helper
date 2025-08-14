@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Play, AlertCircle, CheckCircle, Database } from 'lucide-react';
+import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 export default function AdminSQLQuery() {
   const [query, setQuery] = useState('');
@@ -95,6 +96,93 @@ export default function AdminSQLQuery() {
     }
   };
 
+  const exportToCSV = () => {
+    if (!results || results.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const columns = Object.keys(results[0]);
+    const csvContent = [
+      columns.join(','),
+      ...results.map(row => 
+        columns.map(col => {
+          const value = row[col];
+          if (value === null) return '';
+          if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `query-results-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: "CSV file has been downloaded",
+      variant: "default"
+    });
+  };
+
+  const exportToJSON = () => {
+    if (!results || results.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const jsonContent = JSON.stringify(results, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `query-results-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: "JSON file has been downloaded",
+      variant: "default"
+    });
+  };
+
+  const exportToExcel = () => {
+    if (!results || results.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(results);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Query Results');
+    
+    XLSX.writeFile(workbook, `query-results-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    toast({
+      title: "Export Complete",
+      description: "Excel file has been downloaded",
+      variant: "default"
+    });
+  };
+
   const sampleQueries = [
     "SELECT COUNT(*) as total_patients FROM patients;",
     "SELECT status, COUNT(*) as count FROM appointments GROUP BY status;",
@@ -128,7 +216,23 @@ export default function AdminSQLQuery() {
               {executionTime && ` in ${executionTime}ms`}
             </span>
           </div>
-          <Badge variant="outline">{columns.length} columns</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{columns.length} columns</Badge>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" onClick={exportToCSV}>
+                <FileText className="h-4 w-4 mr-1" />
+                CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportToJSON}>
+                <FileText className="h-4 w-4 mr-1" />
+                JSON
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportToExcel}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                Excel
+              </Button>
+            </div>
+          </div>
         </div>
         
         <div className="border rounded-md">
