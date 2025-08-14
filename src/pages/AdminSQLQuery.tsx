@@ -8,9 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet, Table as TableIcon, Info } from 'lucide-react';
+import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet, Table as TableIcon, Info, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function AdminSQLQuery() {
@@ -28,6 +29,7 @@ export default function AdminSQLQuery() {
   const [tableLoading, setTableLoading] = useState(false);
   const [tableError, setTableError] = useState<string | null>(null);
   const [tableExecutionTime, setTableExecutionTime] = useState<number | null>(null);
+  const [tableFilter, setTableFilter] = useState<string>('');
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -1012,27 +1014,49 @@ export default function AdminSQLQuery() {
                       {tables.length} tables in the database
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {tables.map((table) => (
-                      <Button
-                        key={table.name}
-                        variant={selectedTable === table.name ? "default" : "outline"}
-                        size="sm"
-                        className="w-full justify-between"
-                        onClick={() => {
-                          setSelectedTable(table.name);
-                          generateQuery(table.name);
-                          setTableResults(null);
-                          setTableError(null);
-                        }}
-                        disabled={tableLoading}
-                      >
-                        <span>{table.name}</span>
-                        <Badge variant="secondary" className="ml-2">
-                          {table.columns.length}
-                        </Badge>
-                      </Button>
-                    ))}
+                  <CardContent className="space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Filter tables..."
+                        value={tableFilter}
+                        onChange={(e) => setTableFilter(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      {tables
+                        .filter(table => 
+                          table.name.toLowerCase().includes(tableFilter.toLowerCase())
+                        )
+                        .map((table) => (
+                        <Button
+                          key={table.name}
+                          variant={selectedTable === table.name ? "default" : "outline"}
+                          size="sm"
+                          className="w-full justify-between"
+                          onClick={() => {
+                            setSelectedTable(table.name);
+                            generateQuery(table.name);
+                            setTableResults(null);
+                            setTableError(null);
+                          }}
+                          disabled={tableLoading}
+                        >
+                          <span>{table.name}</span>
+                          <Badge variant="secondary" className="ml-2">
+                            {table.columns.length}
+                          </Badge>
+                        </Button>
+                      ))}
+                      {tables.filter(table => 
+                        table.name.toLowerCase().includes(tableFilter.toLowerCase())
+                      ).length === 0 && tableFilter && (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                          No tables found matching "{tableFilter}"
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
