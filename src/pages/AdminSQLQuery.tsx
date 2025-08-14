@@ -195,6 +195,93 @@ export default function AdminSQLQuery() {
     });
   };
 
+  const exportTableToCSV = () => {
+    if (!tableResults || tableResults.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const columns = Object.keys(tableResults[0]);
+    const csvContent = [
+      columns.join(','),
+      ...tableResults.map(row => 
+        columns.map(col => {
+          const value = row[col];
+          if (value === null) return '';
+          if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+          return `"${String(value).replace(/"/g, '""')}"`;
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedTable}-results-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: "CSV file has been downloaded",
+      variant: "default"
+    });
+  };
+
+  const exportTableToJSON = () => {
+    if (!tableResults || tableResults.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const jsonContent = JSON.stringify(tableResults, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedTable}-results-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Complete",
+      description: "JSON file has been downloaded",
+      variant: "default"
+    });
+  };
+
+  const exportTableToExcel = () => {
+    if (!tableResults || tableResults.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No results to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(tableResults);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedTable || 'Table Results');
+    
+    XLSX.writeFile(workbook, `${selectedTable}-results-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    toast({
+      title: "Export Complete",
+      description: "Excel file has been downloaded",
+      variant: "default"
+    });
+  };
+
   const exportSchemaToCSV = () => {
     if (!tables || tables.length === 0) {
       toast({
@@ -465,6 +552,20 @@ export default function AdminSQLQuery() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{columns.length} columns</Badge>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" onClick={exportTableToCSV}>
+                <FileText className="h-4 w-4 mr-1" />
+                CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportTableToJSON}>
+                <FileText className="h-4 w-4 mr-1" />
+                JSON
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportTableToExcel}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                Excel
+              </Button>
+            </div>
           </div>
         </div>
         
