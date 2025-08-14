@@ -91,6 +91,9 @@ const EmployeeTimeAnalytics = lazy(() => import("./pages/EmployeeTimeAnalytics")
 const AdminSecuritySettings = lazy(() => import("./pages/AdminSecuritySettings"));
 const AdminSQLQuery = lazy(() => import("./pages/AdminSQLQuery"));
 const ETLDeveloper = lazy(() => import("./pages/ETLDeveloper"));
+const GamifiedKidsApp = lazy(() => import("./pages/GamifiedKidsApp"));
+const ReferralNetwork = lazy(() => import("./pages/ReferralNetwork"));
+const PersonalizedPreventiveCare = lazy(() => import("./pages/PersonalizedPreventiveCare"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -322,6 +325,21 @@ function App() {
             <Route path="qa-checklist" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><QAChecklist /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="gamified-kids-app" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><GamifiedKidsApp /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="referral-network" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                <Suspense fallback={<PageLoader />}><ReferralNetwork /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="personalized-preventive-care" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist']}>
+                <Suspense fallback={<PageLoader />}><PersonalizedPreventiveCare /></Suspense>
               </ProtectedRoute>
             } />
           </Route>
