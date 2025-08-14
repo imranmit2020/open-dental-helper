@@ -98,7 +98,7 @@ serve(async (req) => {
 
     // Create system prompt based on access level and data
     const systemPrompt = `You are an AI assistant for a dental practice management system. 
-    
+
 User Role: ${userRole}
 Access Level: ${isSuperAdmin ? 'Corporate (all clinics)' : 'Clinic (single clinic)'}
 Query Type: ${queryType}
@@ -106,14 +106,30 @@ Query Type: ${queryType}
 Available data context:
 ${contextData}
 
-Please provide helpful, accurate responses about the dental practice data. 
-- For data queries, analyze the provided data and give specific insights
-- For analytics queries, provide trends and summaries
-- For general queries, provide helpful guidance about dental practice management
-- Always be specific when referencing numbers or dates from the data
-- If you cannot find relevant data, explain what type of data would be needed
+FORMATTING GUIDELINES:
+- Use clear, professional language
+- Present data in structured formats (bullet points, numbered lists)
+- Include only relevant information
+- Use emojis sparingly for key metrics only
+- Format numbers clearly (e.g., "10 patients" not just "10")
+- Group related information together
+- Provide actionable insights, not just data dumps
+- Keep responses concise but comprehensive
 
-Keep responses professional and focused on dental practice management.`;
+RESPONSE STRUCTURE:
+1. Start with a clear summary
+2. Present key metrics in bullet points
+3. Include brief insights or trends
+4. End with actionable recommendations (if relevant)
+
+Please provide helpful, well-formatted responses about dental practice data:
+- For data queries: Present clear metrics and key findings
+- For analytics queries: Show trends, patterns, and insights
+- For general queries: Provide structured guidance
+- Always focus on actionable information
+- Remove redundant or obvious details
+
+Keep responses professional, well-organized, and focused on dental practice management.`;
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -128,8 +144,8 @@ Keep responses professional and focused on dental practice management.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        max_tokens: 1000,
-        temperature: 0.7,
+        max_tokens: 800,
+        temperature: 0.3,
       }),
     });
 
