@@ -196,7 +196,7 @@ export default function DataMigration() {
     if (selectedTable && sourceFields.length > 0 && fieldMappings.length === 0) {
       initializeFieldMapping();
     }
-  }, [selectedTable, sourceFields]);
+  }, [selectedTable, sourceFields, fieldMappings.length]);
 
   const generateAIMapping = async () => {
     if (!selectedTable || sourceFields.length === 0) return;
