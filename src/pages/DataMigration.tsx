@@ -550,8 +550,14 @@ const startMigration = async () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     Automatically detect and map similar field names
                   </p>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Auto-Map Fields
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={generateAIMapping}
+                    disabled={sourceFields.length === 0 || !selectedTable || isApplyingAI}
+                  >
+                    {isApplyingAI ? 'Mapping...' : 'Auto-Map Fields'}
                   </Button>
                 </Card>
 
