@@ -75,7 +75,7 @@ export default function AdminSQLQuery() {
     try {
       // Execute the query using the new database function
       const { data, error: queryError } = await supabase.rpc('exec_sql', {
-        sql: query.trim()
+        sql: query.trim().replace(/;+$/, '')
       });
 
       const endTime = Date.now();
@@ -381,7 +381,7 @@ export default function AdminSQLQuery() {
       return;
     }
     
-    const query = `SELECT * FROM ${tableName} LIMIT 10;`;
+    const query = `SELECT * FROM ${tableName} LIMIT 10`;
     setGeneratedQuery(query);
   };
 
@@ -404,7 +404,7 @@ export default function AdminSQLQuery() {
 
     try {
       const { data, error: queryError } = await supabase.rpc('exec_sql', {
-        sql: generatedQuery.trim()
+        sql: generatedQuery.trim().replace(/;+$/, '')
       });
 
       const endTime = Date.now();
