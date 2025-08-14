@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,6 +184,13 @@ export default function DataMigration() {
     setAiSuggestions(null);
     console.log('Initialized field mappings:', mappings); // Debug log
   };
+
+  // Auto-initialize field mappings when both table and file are selected
+  useEffect(() => {
+    if (selectedTable && sourceFields.length > 0 && fieldMappings.length === 0) {
+      initializeFieldMapping();
+    }
+  }, [selectedTable, sourceFields]);
 
   const generateAIMapping = async () => {
     if (!selectedTable || sourceFields.length === 0) return;
