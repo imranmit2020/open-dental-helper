@@ -140,6 +140,7 @@ export default function Dashboard() {
     { title: "Patients", icon: Users, route: "/patients", color: "bg-secondary" },
     { title: "Insurance", icon: FileText, route: "/insurance-billing", color: "bg-success" },
     { title: "Analytics", icon: BarChart3, route: "/practice-analytics", color: "bg-warning" },
+    { title: "Time Analytics", icon: Clock, route: "/employee-time-analytics", color: "bg-violet-500" },
     { title: "Inventory", icon: Boxes, route: "/inventory", color: "bg-info" },
     { title: "Teledentistry", icon: Video, route: "/teledentistry", color: "bg-accent" },
   ];
