@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Play, 
   Save, 
@@ -29,7 +30,8 @@ import {
   Code,
   Table,
   Filter,
-  Shuffle
+  Shuffle,
+  FolderOpen
 } from 'lucide-react';
 
 interface ETLStep {
@@ -64,6 +66,7 @@ export default function ETLDeveloper() {
   const [selectedPipeline, setSelectedPipeline] = useState<ETLPipeline | null>(pipelines[0] || null);
   const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState<Array<{timestamp: Date, level: string, message: string}>>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const extractSources = [
@@ -209,6 +212,48 @@ export default function ETLDeveloper() {
     setSelectedPipeline(newPipeline);
   };
 
+  const handleFileUpload = async (stepId: string, file: File) => {
+    if (!file) return;
+    
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `etl-data/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('etl-files')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data } = supabase.storage
+        .from('etl-files')
+        .getPublicUrl(filePath);
+
+      // Update the step config with the uploaded file path
+      updateStepConfig(stepId, { filePath: data.publicUrl });
+
+      toast({
+        title: "File Uploaded",
+        description: `${file.name} uploaded successfully`,
+      });
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload file",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const renderStepConfig = (step: ETLStep) => {
     switch (step.type) {
       case 'extract':
@@ -236,14 +281,45 @@ export default function ETLDeveloper() {
               </Select>
             </div>
             
-            {step.config.sourceType === 'csv' && (
-              <div>
+            {(step.config.sourceType === 'csv' || step.config.sourceType === 'json') && (
+              <div className="space-y-2">
                 <Label>File Path or URL</Label>
-                <Input 
-                  placeholder="/path/to/file.csv or https://example.com/data.csv"
-                  value={step.config.filePath || ''}
-                  onChange={(e) => updateStepConfig(step.id, { filePath: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="/path/to/file.csv or https://example.com/data.csv"
+                    value={step.config.filePath || ''}
+                    onChange={(e) => updateStepConfig(step.id, { filePath: e.target.value })}
+                    className="flex-1"
+                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept={step.config.sourceType === 'csv' ? '.csv' : '.json'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleFileUpload(step.id, file);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isUploading}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      disabled={isUploading}
+                      className="whitespace-nowrap"
+                    >
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Browse'}
+                    </Button>
+                  </div>
+                </div>
+                {step.config.filePath && (
+                  <p className="text-sm text-muted-foreground">
+                    Current file: {step.config.filePath.split('/').pop()}
+                  </p>
+                )}
               </div>
             )}
             
