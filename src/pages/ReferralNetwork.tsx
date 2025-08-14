@@ -25,7 +25,7 @@ import {
   XCircle,
   AlertCircle
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 interface ReferralProvider {
   id: string;
@@ -205,7 +205,10 @@ export default function ReferralNetwork() {
   };
 
   const handleSendReferral = () => {
-    toast.success("Referral sent successfully!");
+    toast({
+      title: "Referral Sent",
+      description: "The referral has been sent successfully to the specialist.",
+    });
     setNewReferralOpen(false);
   };
 
