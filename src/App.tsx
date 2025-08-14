@@ -89,6 +89,7 @@ const ModuleAnalysisReport = lazy(() => import("./pages/ModuleAnalysisReport"));
 const EmployeeTimeTracking = lazy(() => import("./pages/EmployeeTimeTracking"));
 const EmployeeTimeAnalytics = lazy(() => import("./pages/EmployeeTimeAnalytics"));
 const AdminSecuritySettings = lazy(() => import("./pages/AdminSecuritySettings"));
+const AdminSQLQuery = lazy(() => import("./pages/AdminSQLQuery"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -245,6 +246,11 @@ function App() {
             <Route path="admin/security-settings" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminSecuritySettings /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/sql-query" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminSQLQuery /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="patient-charting" element={
