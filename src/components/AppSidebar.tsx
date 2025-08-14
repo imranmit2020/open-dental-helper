@@ -142,6 +142,8 @@ const adminItems: NavigationItem[] = [
   { title: "Security Settings", url: "/admin/security-settings", icon: Shield, requiredRoles: ['admin'] },
   { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
   { title: "Data Migration", url: "/admin/data-migration", icon: Database, requiredRoles: ['admin'] },
+  { title: "ETL Developer", url: "/admin/etl-developer", icon: Database, requiredRoles: ['admin'] },
+  { title: "SQL Query Tool", url: "/admin/sql-query", icon: Database, requiredRoles: ['admin'] },
   { title: "Module Flows", url: "/admin/module-flows", icon: TrendIcon, requiredRoles: ['admin'] },
   { title: "QA Checklist", url: "/qa-checklist", icon: ClipboardList, requiredRoles: ['admin', 'dentist', 'staff'] },
 ];
