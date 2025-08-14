@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,7 +173,7 @@ export default function DataMigration() {
     }
   };
 
-  const initializeFieldMapping = useCallback(() => {
+  const initializeFieldMapping = () => {
     if (!selectedTable) return;
     
     const targetFields = getTargetFields(selectedTable);
@@ -189,14 +189,7 @@ export default function DataMigration() {
     setFieldMappings(mappings);
     setAiSuggestions(null);
     console.log('Initialized field mappings:', mappings); // Debug log
-  }, [selectedTable]);
-
-  // Initialize field mappings when table changes
-  useEffect(() => {
-    if (selectedTable) {
-      initializeFieldMapping();
-    }
-  }, [selectedTable, initializeFieldMapping]);
+  };
 
   const generateAIMapping = async () => {
     if (!selectedTable || sourceFields.length === 0) return;
@@ -770,7 +763,10 @@ const startMigration = async () => {
                 
                 <div className="space-y-2">
                   <Label>Target Table</Label>
-                  <Select value={selectedTable} onValueChange={setSelectedTable}>
+                  <Select value={selectedTable} onValueChange={(value) => {
+                    setSelectedTable(value);
+                    initializeFieldMapping();
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select table" />
                     </SelectTrigger>
