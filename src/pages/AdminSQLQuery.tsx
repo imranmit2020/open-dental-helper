@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,7 @@ export default function AdminSQLQuery() {
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [tables, setTables] = useState<any[] | null>(null);
   const [loadingTables, setLoadingTables] = useState(false);
+  const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -196,8 +198,21 @@ export default function AdminSQLQuery() {
       return;
     }
 
+    const tablesToExport = selectedTables.length > 0 
+      ? tables.filter(table => selectedTables.includes(table.name))
+      : tables;
+
+    if (tablesToExport.length === 0) {
+      toast({
+        title: "No Tables Selected",
+        description: "Please select at least one table to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Flatten the schema data for CSV export
-    const schemaData = tables.flatMap(table => 
+    const schemaData = tablesToExport.flatMap(table => 
       table.columns.map((column: any) => ({
         table_name: table.table_name,
         column_name: column.name,
@@ -244,7 +259,20 @@ export default function AdminSQLQuery() {
       return;
     }
 
-    const blob = new Blob([JSON.stringify(tables, null, 2)], { type: 'application/json' });
+    const tablesToExport = selectedTables.length > 0 
+      ? tables.filter(table => selectedTables.includes(table.name))
+      : tables;
+
+    if (tablesToExport.length === 0) {
+      toast({
+        title: "No Tables Selected",
+        description: "Please select at least one table to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(tablesToExport, null, 2)], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -269,12 +297,25 @@ export default function AdminSQLQuery() {
       return;
     }
 
+    const tablesToExport = selectedTables.length > 0 
+      ? tables.filter(table => selectedTables.includes(table.name))
+      : tables;
+
+    if (tablesToExport.length === 0) {
+      toast({
+        title: "No Tables Selected",
+        description: "Please select at least one table to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const wb = XLSX.utils.book_new();
     
-    // Create a summary sheet with all tables and columns
-    const schemaData = tables.flatMap(table => 
+    // Create a summary sheet with selected tables and columns
+    const schemaData = tablesToExport.flatMap(table => 
       table.columns.map((column: any) => ({
-        table_name: table.table_name,
+        table_name: table.name,
         column_name: column.name,
         data_type: column.type,
         is_nullable: column.nullable ? 'YES' : 'NO',
@@ -285,8 +326,8 @@ export default function AdminSQLQuery() {
     const summarySheet = XLSX.utils.json_to_sheet(schemaData);
     XLSX.utils.book_append_sheet(wb, summarySheet, "Database Schema");
     
-    // Create individual sheets for each table
-    tables.forEach(table => {
+    // Create individual sheets for each selected table
+    tablesToExport.forEach(table => {
       if (table.columns && table.columns.length > 0) {
         const tableData = table.columns.map((column: any) => ({
           column_name: column.name,
@@ -297,7 +338,7 @@ export default function AdminSQLQuery() {
         
         const tableSheet = XLSX.utils.json_to_sheet(tableData);
         // Sanitize table name for sheet name (Excel has limitations)
-        const sheetName = table.table_name.substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
+        const sheetName = table.name.substring(0, 31).replace(/[\\\/\?\*\[\]]/g, '_');
         XLSX.utils.book_append_sheet(wb, tableSheet, sheetName);
       }
     });
@@ -306,9 +347,25 @@ export default function AdminSQLQuery() {
     
     toast({
       title: "Export Successful",
-      description: "Schema exported to Excel file with multiple sheets",
+      description: `Schema exported to Excel file with ${tablesToExport.length} table(s)`,
       variant: "default"
     });
+  };
+
+  const handleTableSelection = (tableName: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTables(prev => [...prev, tableName]);
+    } else {
+      setSelectedTables(prev => prev.filter(name => name !== tableName));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && tables) {
+      setSelectedTables(tables.map(table => table.name));
+    } else {
+      setSelectedTables([]);
+    }
   };
 
   const fetchDatabaseSchema = async () => {
@@ -635,15 +692,55 @@ export default function AdminSQLQuery() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : tables ? (
-            <div className="grid gap-4">
+            <div className="space-y-4">
+              {/* Selection Controls */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="select-all"
+                          checked={tables.length > 0 && selectedTables.length === tables.length}
+                          onCheckedChange={handleSelectAll}
+                        />
+                        <label htmlFor="select-all" className="text-sm font-medium">
+                          Select All Tables ({tables.length})
+                        </label>
+                      </div>
+                      {selectedTables.length > 0 && (
+                        <Badge variant="outline">
+                          {selectedTables.length} selected
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedTables.length === 0 
+                        ? "Select tables to export specific schemas, or export all if none selected"
+                        : `${selectedTables.length} table(s) will be exported`
+                      }
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Tables List */}
+              <div className="grid gap-4">
               {tables.map((table) => (
                 <Card key={table.name}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <TableIcon className="h-5 w-5" />
-                        {table.name}
-                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`table-${table.name}`}
+                          checked={selectedTables.includes(table.name)}
+                          onCheckedChange={(checked) => handleTableSelection(table.name, checked as boolean)}
+                        />
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <TableIcon className="h-5 w-5" />
+                          {table.name}
+                        </CardTitle>
+                      </div>
                       <Badge variant="secondary">{table.columns.length} columns</Badge>
                     </div>
                   </CardHeader>
@@ -687,6 +784,7 @@ export default function AdminSQLQuery() {
                   </CardContent>
                 </Card>
               ))}
+              </div>
             </div>
           ) : (
             <Card>
