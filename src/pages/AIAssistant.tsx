@@ -160,59 +160,117 @@ const AIAssistant = () => {
           <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.length === 0 && (
-                <div className="text-center text-muted-foreground py-8">
-                  <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Hello! I'm your AI assistant. Ask me anything about your clinic data.</p>
-                  <p className="text-sm mt-2">Try asking about appointments, patients, revenue, or analytics.</p>
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Bot className="h-10 w-10 text-primary/70" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Hello! I'm your AI assistant
+                    </h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Ask me anything about your clinic data. I can help with appointments, patients, revenue analytics, and more.
+                    </p>
+                  </div>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    <Badge variant="outline" className="bg-primary/5">Analytics</Badge>
+                    <Badge variant="outline" className="bg-primary/5">Appointments</Badge>
+                    <Badge variant="outline" className="bg-primary/5">Patients</Badge>
+                    <Badge variant="outline" className="bg-primary/5">Revenue</Badge>
+                  </div>
                 </div>
               )}
               
               {messages.map((message) => (
-                <div key={message.id} className="flex gap-3">
-                  <div className="flex-none">
-                    {message.role === 'user' ? (
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary-foreground" />
+                <div key={message.id} className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {message.role === 'assistant' && (
+                    <div className="flex-none">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
+                        <Bot className="h-5 w-5 text-primary-foreground" />
                       </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                        <Bot className="h-4 w-4 text-secondary-foreground" />
+                    </div>
+                  )}
+                  
+                  <div className={`flex-1 max-w-[80%] ${message.role === 'user' ? 'order-first' : ''}`}>
+                    <div className={`relative group ${
+                      message.role === 'user' 
+                        ? 'bg-primary text-primary-foreground ml-auto' 
+                        : 'bg-card border border-border'
+                    } rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200`}>
+                      {/* Message content with better typography */}
+                      <div className={`prose prose-sm max-w-none ${
+                        message.role === 'user' 
+                          ? 'prose-invert' 
+                          : 'prose-slate dark:prose-invert'
+                      }`}>
+                        <div className="whitespace-pre-wrap leading-relaxed">
+                          {message.content}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="bg-card border rounded-lg p-3">
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      
+                      {/* Data sources with improved styling */}
                       {message.data_sources && message.data_sources.length > 0 && (
-                        <div className="mt-2 pt-2 border-t">
-                          <p className="text-xs text-muted-foreground mb-1">Data sources:</p>
-                          <div className="flex flex-wrap gap-1">
+                        <div className="mt-4 pt-3 border-t border-border/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Database className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                              Data Sources
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
                             {message.data_sources.map((source, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
+                              <Badge 
+                                key={index} 
+                                variant="secondary" 
+                                className="text-xs px-2 py-1 bg-secondary/50 hover:bg-secondary/70 transition-colors"
+                              >
                                 {source}
                               </Badge>
                             ))}
                           </div>
                         </div>
                       )}
+                      
+                      {/* Timestamp with better positioning */}
+                      <div className={`mt-3 flex items-center gap-1 ${
+                        message.role === 'user' ? 'justify-end' : 'justify-start'
+                      }`}>
+                        <span className="text-xs text-muted-foreground/70">
+                          {message.timestamp.toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
                   </div>
+                  
+                  {message.role === 'user' && (
+                    <div className="flex-none">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center shadow-md">
+                        <User className="h-5 w-5 text-secondary-foreground" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               
               {isLoading && (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-secondary-foreground" />
+                <div className="flex gap-4 justify-start">
+                  <div className="flex-none">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
+                      <Bot className="h-5 w-5 text-primary-foreground" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="bg-card border rounded-lg p-3">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Thinking...</span>
+                  <div className="flex-1 max-w-[80%]">
+                    <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                        </div>
+                        <span className="text-sm text-muted-foreground">AI is thinking...</span>
                       </div>
                     </div>
                   </div>
@@ -224,33 +282,14 @@ const AIAssistant = () => {
           <Separator />
           
           {/* Input Area */}
-          <div className="p-4">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your clinic data..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button 
-                onClick={handleSendMessage} 
-                disabled={!input.trim() || isLoading}
-                size="icon"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            <div className="flex gap-2 mt-2">
+          <div className="p-6 bg-background/50 backdrop-blur-sm">
+            {/* Query Type Selector */}
+            <div className="flex gap-2 mb-4">
               <Button
                 variant={queryType === 'general' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setQueryType('general')}
+                className="text-xs"
               >
                 General
               </Button>
@@ -258,15 +297,43 @@ const AIAssistant = () => {
                 variant={queryType === 'data' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setQueryType('data')}
+                className="text-xs"
               >
+                <Database className="h-3 w-3 mr-1" />
                 Data Query
               </Button>
               <Button
                 variant={queryType === 'analytics' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setQueryType('analytics')}
+                className="text-xs"
               >
+                <BarChart3 className="h-3 w-3 mr-1" />
                 Analytics
+              </Button>
+            </div>
+            
+            {/* Input Field */}
+            <div className="flex gap-3">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about your clinic data..."
+                className="flex-1 h-12 px-4 text-sm border-border/50 focus:border-primary/50 bg-background/80"
+                disabled={isLoading}
+              />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={!input.trim() || isLoading}
+                size="default"
+                className="h-12 px-6 bg-primary hover:bg-primary/90"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
