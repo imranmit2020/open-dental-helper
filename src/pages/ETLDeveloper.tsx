@@ -104,6 +104,12 @@ export default function ETLDeveloper() {
 
     setSelectedPipeline(updatedPipeline);
     setPipelines(pipelines.map(p => p.id === selectedPipeline.id ? updatedPipeline : p));
+    
+    // Show success message
+    toast({
+      title: "Step Added",
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} step added to pipeline`,
+    });
   };
 
   const removeStep = (stepId: string) => {
