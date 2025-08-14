@@ -46,7 +46,8 @@ export type ModuleKey =
   | 'patient_medical_records'
   | 'patient_treatment_plans'
   | 'patient_consent_forms'
-  | 'admin_navigation_permissions';
+  | 'admin_navigation_permissions'
+  | 'ai_assistant';
 
 interface ModulePermissionRow {
   id: string;

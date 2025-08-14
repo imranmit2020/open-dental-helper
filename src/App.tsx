@@ -36,6 +36,7 @@ const AIVoiceNotes = lazy(() => import("./pages/AIVoiceNotes"));
 const VoiceAgent = lazy(() => import("./pages/VoiceAgent").then(m => ({ default: m.VoiceAgent })));
 const ImageAnalysis = lazy(() => import("./pages/ImageAnalysis").then(m => ({ default: m.ImageAnalysis })));
 const AIMarketing = lazy(() => import("./pages/AIMarketing"));
+const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const PracticeAnalytics = lazy(() => import("./pages/PracticeAnalytics"));
 const PracticeAnalyticsDetail = lazy(() => import("./pages/PracticeAnalyticsDetail"));
 const PredictiveAnalytics = lazy(() => import("./pages/PredictiveAnalytics").then(m => ({ default: m.PredictiveAnalytics })));
@@ -161,6 +162,7 @@ function App() {
             <Route path="ai/image" element={<Suspense fallback={<PageLoader />}><ImageAnalysis /></Suspense>} />
             <Route path="ai-marketing" element={<Suspense fallback={<PageLoader />}><AIMarketing /></Suspense>} />
             <Route path="ai/marketing" element={<Suspense fallback={<PageLoader />}><AIMarketing /></Suspense>} />
+            <Route path="ai-assistant" element={<Suspense fallback={<PageLoader />}><AIAssistant /></Suspense>} />
             <Route path="practice-analytics" element={<Suspense fallback={<PageLoader />}><PracticeAnalytics /></Suspense>} />
             <Route path="practice-analytics/:tenantId" element={<Suspense fallback={<PageLoader />}><PracticeAnalyticsDetail /></Suspense>} />
             <Route path="quantum-dental-ai" element={<Suspense fallback={<PageLoader />}><QuantumDentalAI /></Suspense>} />

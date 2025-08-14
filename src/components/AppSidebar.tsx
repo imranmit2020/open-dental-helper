@@ -95,6 +95,7 @@ const aiItems: NavigationItem[] = [
   { title: "Translation", url: "/ai/translation", icon: Brain, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'translation' },
   { title: "Predictive Analytics", url: "/ai/analytics", icon: BarChart3, requiredRoles: ['admin', 'dentist'], requiredFeature: 'analytics', moduleKey: 'analytics' },
   { title: "AI Marketing", url: "/ai-marketing", icon: Target, requiredRoles: ['admin'], requiredFeature: 'ai_features', moduleKey: 'ai_marketing' },
+  { title: "AI Assistant", url: "/ai-assistant", icon: MessageSquare, requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'], moduleKey: 'ai_assistant' },
   { title: "AI Patient Analytics", url: "/ai/patient-analytics", icon: Brain, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Smart Documentation", url: "/smart-documentation", icon: Zap, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features' },
   { title: "Predictive Treatment", url: "/predictive-treatment", icon: Sparkles, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
