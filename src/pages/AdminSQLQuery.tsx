@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Play, AlertCircle, CheckCircle, Database, Download, FileText, FileSpreadsheet, Table as TableIcon, Info } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function AdminSQLQuery() {
@@ -16,6 +17,8 @@ export default function AdminSQLQuery() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [tables, setTables] = useState<any[] | null>(null);
+  const [loadingTables, setLoadingTables] = useState(false);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -183,6 +186,71 @@ export default function AdminSQLQuery() {
     });
   };
 
+  const fetchDatabaseSchema = async () => {
+    setLoadingTables(true);
+    try {
+      const schemaQuery = `
+        SELECT 
+          t.table_name,
+          t.table_type,
+          c.column_name,
+          c.data_type,
+          c.is_nullable,
+          c.column_default,
+          c.ordinal_position
+        FROM information_schema.tables t
+        LEFT JOIN information_schema.columns c ON t.table_name = c.table_name
+        WHERE t.table_schema = 'public'
+        AND t.table_type = 'BASE TABLE'
+        ORDER BY t.table_name, c.ordinal_position
+      `;
+
+      const { data, error: schemaError } = await supabase.rpc('exec_sql', {
+        sql: schemaQuery
+      });
+
+      if (schemaError) {
+        toast({
+          title: "Schema Error",
+          description: schemaError.message,
+          variant: "destructive"
+        });
+      } else {
+        // Group columns by table
+        const tablesMap = new Map();
+        if (Array.isArray(data)) {
+          data.forEach((row: any) => {
+            if (!tablesMap.has(row.table_name)) {
+              tablesMap.set(row.table_name, {
+                name: row.table_name,
+                type: row.table_type,
+                columns: []
+              });
+            }
+            if (row.column_name) {
+              tablesMap.get(row.table_name).columns.push({
+                name: row.column_name,
+                type: row.data_type,
+                nullable: row.is_nullable === 'YES',
+                default: row.column_default,
+                position: row.ordinal_position
+              });
+            }
+          });
+        }
+        setTables(Array.from(tablesMap.values()));
+      }
+    } catch (err: any) {
+      toast({
+        title: "Schema Fetch Error",
+        description: err.message || 'Failed to fetch database schema',
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingTables(false);
+    }
+  };
+
   const sampleQueries = [
     "SELECT COUNT(*) as total_patients FROM patients;",
     "SELECT status, COUNT(*) as count FROM appointments GROUP BY status;",
@@ -283,102 +351,205 @@ export default function AdminSQLQuery() {
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Query Editor</CardTitle>
-              <CardDescription>
-                Write your SELECT statements here. Only read operations are allowed.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder="SELECT * FROM patients LIMIT 10;"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="min-h-32 font-mono text-sm"
-                disabled={loading}
-              />
-              <div className="flex gap-2">
-                <Button 
-                  onClick={executeQuery}
-                  disabled={loading || !query.trim()}
-                  className="flex items-center gap-2"
-                >
-                  <Play className="h-4 w-4" />
-                  {loading ? 'Executing...' : 'Execute Query'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setQuery('')}
-                  disabled={loading}
-                >
-                  Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <Tabs defaultValue="query" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="query" className="flex items-center gap-2">
+            <Play className="h-4 w-4" />
+            Query Editor
+          </TabsTrigger>
+          <TabsTrigger value="schema" className="flex items-center gap-2" onClick={() => !tables && fetchDatabaseSchema()}>
+            <TableIcon className="h-4 w-4" />
+            Database Schema
+          </TabsTrigger>
+        </TabsList>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <TabsContent value="query" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <section className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Query Editor</CardTitle>
+                  <CardDescription>
+                    Write your SELECT statements here. Only read operations are allowed.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Textarea
+                    placeholder="SELECT * FROM patients LIMIT 10;"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="min-h-32 font-mono text-sm"
+                    disabled={loading}
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={executeQuery}
+                      disabled={loading || !query.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      <Play className="h-4 w-4" />
+                      {loading ? 'Executing...' : 'Execute Query'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setQuery('')}
+                      disabled={loading}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {results !== null && (
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {results !== null && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Query Results</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {renderResults()}
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+
+            <aside className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sample Queries</CardTitle>
+                  <CardDescription>
+                    Click any query below to load it in the editor
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {sampleQueries.map((sampleQuery, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-left justify-start h-auto py-2 px-3"
+                      onClick={() => setQuery(sampleQuery)}
+                      disabled={loading}
+                    >
+                      <code className="text-xs text-left whitespace-pre-wrap">
+                        {sampleQuery}
+                      </code>
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Safety Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>• Only SELECT queries are allowed</p>
+                  <p>• No data modification possible</p>
+                  <p>• Query timeout: 30 seconds</p>
+                  <p>• Results limited to 1000 rows</p>
+                  <p>• Execution time is displayed</p>
+                </CardContent>
+              </Card>
+            </aside>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="schema" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium">Database Schema</h2>
+              <p className="text-sm text-muted-foreground">
+                Explore all tables and their column structures
+              </p>
+            </div>
+            <Button 
+              onClick={fetchDatabaseSchema} 
+              disabled={loadingTables}
+              variant="outline"
+              size="sm"
+            >
+              {loadingTables ? 'Loading...' : 'Refresh'}
+            </Button>
+          </div>
+
+          {loadingTables ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : tables ? (
+            <div className="grid gap-4">
+              {tables.map((table) => (
+                <Card key={table.name}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <TableIcon className="h-5 w-5" />
+                        {table.name}
+                      </CardTitle>
+                      <Badge variant="secondary">{table.columns.length} columns</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="border rounded-md">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Column</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Nullable</TableHead>
+                            <TableHead>Default</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {table.columns.map((column: any) => (
+                            <TableRow key={column.name}>
+                              <TableCell className="font-medium">{column.name}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{column.type}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={column.nullable ? "secondary" : "destructive"}>
+                                  {column.nullable ? "Yes" : "No"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {column.default ? (
+                                  <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                    {column.default}
+                                  </code>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
             <Card>
-              <CardHeader>
-                <CardTitle>Query Results</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {renderResults()}
+              <CardContent className="py-8">
+                <div className="text-center text-muted-foreground">
+                  <TableIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Click "Refresh" to load database schema</p>
+                </div>
               </CardContent>
             </Card>
           )}
-        </section>
-
-        <aside className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sample Queries</CardTitle>
-              <CardDescription>
-                Click any query below to load it in the editor
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {sampleQueries.map((sampleQuery, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-left justify-start h-auto py-2 px-3"
-                  onClick={() => setQuery(sampleQuery)}
-                  disabled={loading}
-                >
-                  <code className="text-xs text-left whitespace-pre-wrap">
-                    {sampleQuery}
-                  </code>
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Safety Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>• Only SELECT queries are allowed</p>
-              <p>• No data modification possible</p>
-              <p>• Query timeout: 30 seconds</p>
-              <p>• Results limited to 1000 rows</p>
-              <p>• Execution time is displayed</p>
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }
