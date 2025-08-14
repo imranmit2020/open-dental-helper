@@ -374,6 +374,13 @@ export default function AdminSQLQuery() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Security Notice:</strong> Only SELECT queries are allowed for security reasons.
+                      Queries that modify data (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, TRUNCATE) are strictly forbidden.
+                    </AlertDescription>
+                  </Alert>
                   <Textarea
                     placeholder="SELECT * FROM patients LIMIT 10;"
                     value={query}
