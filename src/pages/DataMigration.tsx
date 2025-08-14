@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, Database, FileText, CheckCircle, AlertTriangle, Download, Sparkles, Zap, Wand2, Clock, MapPin, Layers, RefreshCw, ArrowRight, Settings, Play } from "lucide-react";
+import { Upload, Database, FileText, CheckCircle, AlertTriangle, Download, Sparkles, Zap, Wand2, Clock, MapPin, Layers, RefreshCw, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AIFieldMappingService } from "@/services/AIFieldMappingService";
@@ -103,10 +103,6 @@ export default function DataMigration() {
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [isApplyingAI, setIsApplyingAI] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [batchSize, setBatchSize] = useState(100);
-  const [duplicateHandling, setDuplicateHandling] = useState('skip');
-  const [dataQuality, setDataQuality] = useState('validate');
   const [migrationStatus, setMigrationStatus] = useState<MigrationStatus>({
     status: 'idle',
     progress: 0,
@@ -117,12 +113,11 @@ export default function DataMigration() {
     migratedRecords: []
   });
 
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setUploadedFile(file);
-    setCurrentStep(1);
     setMigrationStatus({
       ...migrationStatus,
       status: 'uploading',
@@ -136,7 +131,6 @@ export default function DataMigration() {
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
       
       setSourceFields(headers);
-      setCurrentStep(2);
       setMigrationStatus({
         ...migrationStatus,
         status: 'mapping',
@@ -191,11 +185,17 @@ export default function DataMigration() {
     console.log('Initialized field mappings:', mappings); // Debug log
   };
 
+  // Auto-initialize field mappings when both table and file are selected
+  useEffect(() => {
+    if (selectedTable && sourceFields.length > 0 && fieldMappings.length === 0) {
+      initializeFieldMapping();
+    }
+  }, [selectedTable, sourceFields]);
+
   const generateAIMapping = async () => {
     if (!selectedTable || sourceFields.length === 0) return;
 
     setIsApplyingAI(true);
-    setCurrentStep(2);
     try {
       const targetFields = getTargetFields(selectedTable);
       const aiResult = AIFieldMappingService.suggestFieldMappings(
@@ -232,7 +232,6 @@ export default function DataMigration() {
       });
 
       setFieldMappings(newMappings);
-      setCurrentStep(3);
       console.log('Applied AI mappings:', newMappings); // Debug log
 
       toast({
@@ -306,7 +305,10 @@ export default function DataMigration() {
 const startMigration = async () => {
     if (!validateMappings() || !uploadedFile) return;
 
-    setCurrentStep(4);
+    // Switch to migration tab and update status
+    const migrationTab = document.querySelector('[value="migration"]') as HTMLButtonElement;
+    if (migrationTab) migrationTab.click();
+
     setMigrationStatus({
       ...migrationStatus,
       status: 'migrating',
@@ -321,9 +323,6 @@ const startMigration = async () => {
       formData.append('software', selectedSoftware);
       formData.append('targetTable', selectedTable);
       formData.append('fieldMappings', JSON.stringify(fieldMappings));
-      formData.append('batchSize', batchSize.toString());
-      formData.append('duplicateHandling', duplicateHandling);
-      formData.append('dataQuality', dataQuality);
 
       const { data, error } = await supabase.functions.invoke('data-migration', {
         body: formData
@@ -343,7 +342,7 @@ const startMigration = async () => {
 
       toast({
         title: "Migration completed",
-        description: `Successfully imported ${data.recordsImported} records with ${duplicateHandling} duplicate handling.`
+        description: `Successfully imported ${data.recordsImported} records.`
       });
 
     } catch (error) {
@@ -429,227 +428,14 @@ const startMigration = async () => {
         </Badge>
       </div>
 
-      <Tabs defaultValue="smooth-migration" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="smooth-migration">Smooth Migration</TabsTrigger>
-          <TabsTrigger value="upload">Upload & Configure</TabsTrigger>
-          <TabsTrigger value="custom-mapping">Custom Mapping</TabsTrigger>
+      <Tabs defaultValue="upload" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="upload">1. Upload File</TabsTrigger>
+          <TabsTrigger value="mapping" disabled={!uploadedFile}>2. Field Mapping</TabsTrigger>
+          <TabsTrigger value="smooth-migration">3. Smooth Migration</TabsTrigger>
+          <TabsTrigger value="validation" disabled={fieldMappings.length === 0}>4. Validation</TabsTrigger>
+          <TabsTrigger value="migration" disabled={fieldMappings.length === 0}>5. Migration</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="smooth-migration" className="space-y-6">
-          {/* Header */}
-          <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary" />
-                <CardTitle className="text-2xl gradient-text">Smooth Data Migration</CardTitle>
-              </div>
-              <CardDescription>
-                AI-powered migration with smart mapping and conflict resolution
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* One-Click Templates */}
-            <Card className="hover:shadow-lg transition-all duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                  <CardTitle className="text-lg">One-Click Templates</CardTitle>
-                </div>
-                <CardDescription>
-                  Pre-configured mappings for popular dental software
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => setShowTemplateDialog(true)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Browse Templates
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* AI Field Detection */}
-            <Card className="hover:shadow-lg transition-all duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="w-5 h-5 text-purple-600" />
-                  <CardTitle className="text-lg">AI Field Detection</CardTitle>
-                </div>
-                <CardDescription>
-                  Automatically detect and map similar field names
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={generateAIMapping}
-                  disabled={!uploadedFile || !selectedTable || isApplyingAI}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {isApplyingAI ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>Auto-Map Fields</>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Batch Processing */}
-            <Card className="hover:shadow-lg transition-all duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-green-600" />
-                  <CardTitle className="text-lg">Batch Processing</CardTitle>
-                </div>
-                <CardDescription>
-                  Process large datasets in optimized chunks
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => {
-                    const newSize = batchSize === 100 ? 500 : batchSize === 500 ? 1000 : 100;
-                    setBatchSize(newSize);
-                    toast({
-                      title: "Batch Size Updated",
-                      description: `Batch size set to ${newSize} records`
-                    });
-                  }}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Configure Batches ({batchSize})
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Smart Conflict Resolution */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-orange-600" />
-                <CardTitle>Smart Conflict Resolution</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Duplicate Handling</Label>
-                  <Select value={duplicateHandling} onValueChange={setDuplicateHandling}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="skip">Skip duplicates</SelectItem>
-                      <SelectItem value="update">Update existing</SelectItem>
-                      <SelectItem value="create">Create new</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Data Quality</Label>
-                  <Select value={dataQuality} onValueChange={setDataQuality}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="validate">Validate & clean</SelectItem>
-                      <SelectItem value="strict">Strict validation</SelectItem>
-                      <SelectItem value="permissive">Permissive import</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Migration Flow */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ArrowRight className="w-5 h-5 text-indigo-600" />
-                <CardTitle>Migration Flow</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className={`p-4 rounded-lg border text-center transition-all ${currentStep >= 1 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2 ${currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground text-muted'}`}>
-                    1
-                  </div>
-                  <h4 className="font-medium">Upload & Analyze</h4>
-                  <p className="text-sm text-muted-foreground">File structure analysis</p>
-                </div>
-                <div className={`p-4 rounded-lg border text-center transition-all ${currentStep >= 2 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2 ${currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground text-muted'}`}>
-                    2
-                  </div>
-                  <h4 className="font-medium">AI Mapping</h4>
-                  <p className="text-sm text-muted-foreground">Smart field detection</p>
-                </div>
-                <div className={`p-4 rounded-lg border text-center transition-all ${currentStep >= 3 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2 ${currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground text-muted'}`}>
-                    3
-                  </div>
-                  <h4 className="font-medium">Validation</h4>
-                  <p className="text-sm text-muted-foreground">Data quality check</p>
-                </div>
-                <div className={`p-4 rounded-lg border text-center transition-all ${currentStep >= 4 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2 ${currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground text-muted'}`}>
-                    4
-                  </div>
-                  <h4 className="font-medium">Migration</h4>
-                  <p className="text-sm text-muted-foreground">Seamless import</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-              size="lg"
-              onClick={() => {
-                if (!uploadedFile || !selectedTable) {
-                  toast({
-                    title: "Setup Required",
-                    description: "Please upload a file and select a target table first.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-                startMigration();
-              }}
-              disabled={!uploadedFile || !selectedTable || migrationStatus.status === 'migrating'}
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Start Smart Migration
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => {
-                const tab = document.querySelector('[value="custom-mapping"]') as HTMLButtonElement;
-                if (tab) tab.click();
-              }}
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              Custom Mapping
-            </Button>
-          </div>
-        </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
           <Card>
@@ -731,245 +517,7 @@ const startMigration = async () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="custom-mapping" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Custom Field Mapping
-              </CardTitle>
-              <CardDescription>
-                Manually configure field mappings between your source file and target database
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Quick Setup */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Source Software</Label>
-                  <Select value={selectedSoftware} onValueChange={setSelectedSoftware}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select software" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUPPORTED_SOFTWARE.map(software => (
-                        <SelectItem key={software.id} value={software.id}>
-                          {software.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Target Table</Label>
-                  <Select value={selectedTable} onValueChange={(value) => {
-                    setSelectedTable(value);
-                    initializeFieldMapping();
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select table" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TARGET_TABLES.map(table => (
-                        <SelectItem key={table.id} value={table.id}>
-                          {table.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>File Upload</Label>
-                  <Input
-                    type="file"
-                    accept=".csv,.xlsx,.xml,.txt"
-                    onChange={handleFileUpload}
-                    disabled={!selectedSoftware || !selectedTable}
-                  />
-                </div>
-              </div>
-
-              {/* AI Suggestions Section */}
-              {sourceFields.length > 0 && selectedTable && (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button 
-                    onClick={generateAIMapping}
-                    disabled={isApplyingAI}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {isApplyingAI ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Generating AI Suggestions...
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 className="w-4 h-4 mr-2" />
-                        Generate AI Mapping
-                      </>
-                    )}
-                  </Button>
-                  
-                  {aiSuggestions && (
-                    <Button 
-                      onClick={applyAISuggestions}
-                      variant="default"
-                      className="flex-1"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Apply {aiSuggestions.suggestions.length} Suggestions
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {/* Field Mapping Table */}
-              {fieldMappings.length > 0 && (
-                <div className="border rounded-lg">
-                  <div className="p-4 border-b bg-muted/50">
-                    <h3 className="font-semibold">Field Mappings</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Map fields from your source file to the target database table
-                    </p>
-                  </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Target Field</TableHead>
-                        <TableHead>Source Field</TableHead>
-                        <TableHead>Required</TableHead>
-                        <TableHead>Data Type</TableHead>
-                        <TableHead>Confidence</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {fieldMappings.map((mapping, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {mapping.targetField}
-                            {mapping.required && (
-                              <Badge variant="destructive" className="ml-2 text-xs">
-                                Required
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={mapping.sourceField || ''}
-                              onValueChange={(value) => {
-                                const newMappings = [...fieldMappings];
-                                newMappings[index].sourceField = value || undefined;
-                                setFieldMappings(newMappings);
-                              }}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select source field" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="SKIP_FIELD">-- None --</SelectItem>
-                                {sourceFields.map(field => (
-                                  <SelectItem key={field} value={field}>
-                                    {field}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={mapping.required ? "destructive" : "secondary"}>
-                              {mapping.required ? "Yes" : "No"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{mapping.dataType}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {mapping.confidence && (
-                              <div className="flex items-center gap-2">
-                                <Badge 
-                                  variant={mapping.confidence > 0.8 ? "default" : mapping.confidence > 0.5 ? "secondary" : "outline"}
-                                  className="text-xs"
-                                >
-                                  {Math.round(mapping.confidence * 100)}%
-                                </Badge>
-                                {mapping.reason && (
-                                  <span className="text-xs text-muted-foreground truncate max-w-32" title={mapping.reason}>
-                                    {mapping.reason}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Actions */}
-              {fieldMappings.length > 0 && (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button 
-                    onClick={startMigration}
-                    disabled={migrationStatus.status === 'migrating' || !validateMappings()}
-                    className="flex-1"
-                  >
-                    {migrationStatus.status === 'migrating' ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Migrating...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Start Migration
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowTemplateDialog(true)}
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Load Template
-                  </Button>
-                </div>
-              )}
-
-              {/* Migration Status */}
-              {migrationStatus.status !== 'idle' && (
-                <Alert className={migrationStatus.status === 'error' ? 'border-destructive' : ''}>
-                  {migrationStatus.status === 'completed' ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : migrationStatus.status === 'error' ? (
-                    <AlertTriangle className="h-4 w-4" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  )}
-                  <AlertDescription>
-                    {migrationStatus.message}
-                    {migrationStatus.progress > 0 && (
-                      <div className="mt-2">
-                        <Progress value={migrationStatus.progress} className="w-full" />
-                        <p className="text-xs mt-1">
-                          {migrationStatus.recordsProcessed} / {migrationStatus.totalRecords} records processed
-                        </p>
-                      </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="smooth-migration-old" className="space-y-6">
+        <TabsContent value="smooth-migration" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
