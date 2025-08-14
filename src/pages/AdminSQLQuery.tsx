@@ -60,36 +60,22 @@ export default function AdminSQLQuery() {
     const startTime = Date.now();
 
     try {
-      // Get auth token
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        setError('Authentication required');
-        return;
-      }
-
-      // Call the edge function to execute the query
-      const response = await fetch(`https://nqrwtihwuvyfucmbcsem.supabase.co/functions/v1/admin-sql-query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.session.access_token}`,
-        },
-        body: JSON.stringify({ query: query.trim() })
+      // Execute the query using the new database function
+      const { data, error: queryError } = await supabase.rpc('exec_sql', {
+        sql: query.trim()
       });
 
       const endTime = Date.now();
       setExecutionTime(endTime - startTime);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.error || 'Query execution failed');
+      if (queryError) {
+        setError(queryError.message);
         toast({
           title: "Query Error",
-          description: errorData.error || 'Query execution failed',
+          description: queryError.message,
           variant: "destructive"
         });
       } else {
-        const data = await response.json();
         setResults(Array.isArray(data) ? data : []);
         toast({
           title: "Query Executed",

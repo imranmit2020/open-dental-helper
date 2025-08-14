@@ -2253,6 +2253,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      exec_sql: {
+        Args: { sql: string }
+        Returns: Json
+      }
       generate_employee_id: {
         Args: { _tenant_id: string }
         Returns: string
