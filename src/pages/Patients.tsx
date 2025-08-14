@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,14 +29,13 @@ import {
   X
 } from "lucide-react";
 
-export default function Patients() {
+function Patients() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { logPatientView } = useAuditLog();
   const { user } = useAuth();
+  const { patients, loading, refetch } = useOptimizedPatients();
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filters, setFilters] = useState({
     status: "",
@@ -59,45 +59,9 @@ export default function Patients() {
 
   useEffect(() => {
     if (user) {
-      // Add a small delay to ensure auth context is established
-      const timer = setTimeout(() => {
-        fetchPatients();
-        fetchStats();
-      }, 100);
-      return () => clearTimeout(timer);
+      fetchStats();
     }
   }, [user]);
-
-  const fetchPatients = async () => {
-    try {
-      setLoading(true);
-      console.log('Fetching patients for user:', user?.id);
-      
-      // Ensure we have a valid session before making the query
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('No active session found');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-      
-      console.log('Fetched patients:', data?.length || 0);
-      setPatients(data || []);
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchStats = async () => {
     try {
@@ -171,7 +135,7 @@ export default function Patients() {
   };
 
   const handlePatientAdded = (newPatient: any) => {
-    setPatients(prev => [...prev, newPatient]);
+    refetch();
   };
 
   const getStatusColor = (status: string) => {
@@ -232,7 +196,7 @@ export default function Patients() {
 
     // Insurance filter
     const matchesInsurance = !filters.insurance || (() => {
-      const hasInsurance = patient.insurance_info?.provider;
+      const hasInsurance = patient.insurance_info && typeof patient.insurance_info === 'object' && 'provider' in patient.insurance_info;
       return filters.insurance === 'with' ? hasInsurance : !hasInsurance;
     })();
 
@@ -276,7 +240,7 @@ export default function Patients() {
         date_of_birth: p.date_of_birth ?? "",
         gender: p.gender ?? "",
         address: p.address ?? "",
-        insurance_provider: p.insurance_info?.provider ?? "",
+        insurance_provider: (p.insurance_info && typeof p.insurance_info === 'object' && 'provider' in p.insurance_info) ? p.insurance_info.provider : "",
         risk_level: p.risk_level ?? "",
         last_visit: p.last_visit ?? "",
       }));
@@ -375,7 +339,7 @@ export default function Patients() {
       if (error) throw error;
 
       toast({ title: "Import complete", description: `Imported ${data?.length ?? payload.length} patients.` });
-      await fetchPatients();
+      refetch();
     } catch (err: any) {
       console.error('Import error:', err);
       toast({ title: "Import failed", description: err?.message || "Could not import patients.", variant: "destructive" });
@@ -675,7 +639,7 @@ export default function Patients() {
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Insurance</p>
                   <p className="text-sm font-semibold">
-                    {patient.insurance_info?.provider || 'No insurance'}
+                    {(patient.insurance_info && typeof patient.insurance_info === 'object' && 'provider' in patient.insurance_info) ? String(patient.insurance_info.provider) : 'No insurance'}
                   </p>
                 </div>
                 <Button 
@@ -723,3 +687,5 @@ export default function Patients() {
     </div>
   );
 }
+
+export default Patients;
