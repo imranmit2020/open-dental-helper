@@ -45,13 +45,13 @@ const Layout = () => {
   const handleSignOut = async () => {
     try {
       setSigningOut(true);
+      console.log('Layout: Starting sign out process...');
+      
       const result = await signOut();
+      console.log('Layout: Sign out result:', result);
       
-      if (result.error) {
-        throw result.error;
-      }
-      
-      // Force immediate navigation
+      // Always navigate to auth page and show success
+      // since we clear local state regardless of server response
       navigate('/auth', { replace: true });
       
       toast({
@@ -59,13 +59,18 @@ const Layout = () => {
         description: "You have been successfully signed out.",
       });
       setConfirmOpen(false);
+      
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Layout: Sign out error:', error);
+      
+      // Even on error, try to navigate to auth page
+      navigate('/auth', { replace: true });
+      
       toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
+        title: "Signed out",
+        description: "Session cleared successfully.",
       });
+      setConfirmOpen(false);
     } finally {
       setSigningOut(false);
     }
