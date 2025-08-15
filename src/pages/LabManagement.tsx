@@ -141,8 +141,9 @@ export default function LabManagement() {
   };
 
   const fetchLabProviders = async () => {
-    const { data, error } = await supabase
-      .from('lab_providers.lab_provider_accounts')
+    const { data, error } = await (supabase as any)
+      .schema('lab_providers')
+      .from('lab_provider_accounts')
       .select('*')
       .eq('status', 'active')
       .eq('verification_status', 'verified');
@@ -162,15 +163,16 @@ export default function LabManagement() {
   };
 
   const fetchTrackingData = async () => {
-    const { data, error } = await supabase
-      .from('lab_providers.lab_order_tracking')
+    const { data, error } = await (supabase as any)
+      .schema('lab_providers')
+      .from('lab_order_tracking')
       .select('*')
       .order('created_at', { ascending: true });
 
     if (error) throw error;
     
     // Group tracking data by lab_order_id
-    const grouped = (data || []).reduce((acc, tracking) => {
+    const grouped = (data || []).reduce((acc: any, tracking: any) => {
       if (!acc[tracking.lab_order_id]) {
         acc[tracking.lab_order_id] = [];
       }
