@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, lazy, Suspense, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -26,6 +27,8 @@ import {
   Clock,
   ChevronRight
 } from "lucide-react";
+
+// Import components normally for better performance and simpler code
 import { ProfessionalProfileForm } from "@/components/ProfessionalProfileForm";
 import { CETracker } from "@/components/CETracker";
 import { AchievementsBadges } from "@/components/AchievementsBadges";
@@ -61,28 +64,46 @@ export default function ProfessionalProfile() {
     enabled: !!user?.id && isProfessional,
   });
 
-  // Calculate CE progress
-  const ceProgress = useMemo(() => {
-    if (!profile?.continuing_education || !Array.isArray(profile.continuing_education)) return 0;
-    const currentYear = new Date().getFullYear();
-    const thisYearCEs = profile.continuing_education.filter((ce: any) => 
-      new Date(ce.completion_date).getFullYear() === currentYear
-    );
-    const totalHours = thisYearCEs.reduce((sum: number, ce: any) => sum + (ce.hours || 0), 0);
-    const requiredHours = userRole === 'dentist' ? 40 : 25; // Example requirements
-    return Math.min((totalHours / requiredHours) * 100, 100);
-  }, [profile?.continuing_education, userRole]);
+  // Memoize calculations for better performance
+  const profileStats = useMemo(() => {
+    if (!profile) return { ceProgress: 0, yearsOfExperience: 0, certificationsCount: 0, specializationsCount: 0 };
+    
+    // Calculate CE progress
+    const ceProgress = (() => {
+      if (!profile.continuing_education || !Array.isArray(profile.continuing_education)) return 0;
+      const currentYear = new Date().getFullYear();
+      const thisYearCEs = profile.continuing_education.filter((ce: any) => 
+        new Date(ce.completion_date).getFullYear() === currentYear
+      );
+      const totalHours = thisYearCEs.reduce((sum: number, ce: any) => sum + (ce.hours || 0), 0);
+      const requiredHours = userRole === 'dentist' ? 40 : 25;
+      return Math.min((totalHours / requiredHours) * 100, 100);
+    })();
 
-  // Calculate years of experience
-  const yearsOfExperience = useMemo(() => {
-    if (!profile?.experience || !Array.isArray(profile.experience)) return 0;
-    return profile.experience.reduce((total: number, exp: any) => {
-      const start = new Date(exp.start_date);
-      const end = exp.end_date ? new Date(exp.end_date) : new Date();
-      const years = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
-      return total + Math.max(0, Number(years) || 0);
-    }, 0);
-  }, [profile?.experience]);
+    // Calculate years of experience
+    const yearsOfExperience = (() => {
+      if (!profile.experience || !Array.isArray(profile.experience)) return 0;
+      return profile.experience.reduce((total: number, exp: any) => {
+        const start = new Date(exp.start_date);
+        const end = exp.end_date ? new Date(exp.end_date) : new Date();
+        const years = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
+        return total + Math.max(0, Number(years) || 0);
+      }, 0);
+    })();
+
+    return {
+      ceProgress,
+      yearsOfExperience,
+      certificationsCount: Array.isArray(profile.certifications) ? profile.certifications.length : 0,
+      specializationsCount: Array.isArray(profile.specializations) ? profile.specializations.length : 0
+    };
+  }, [profile, userRole]);
+
+  const handleEditSuccess = useCallback(() => {
+    refetch();
+    setEditMode(false);
+    toast({ title: "Profile updated successfully!" });
+  }, [refetch, toast]);
 
   useEffect(() => {
     // SEO
@@ -148,11 +169,7 @@ export default function ProfessionalProfile() {
       {editMode ? (
         <ProfessionalProfileForm 
           profile={profile} 
-          onSuccess={() => {
-            refetch();
-            setEditMode(false);
-            toast({ title: "Profile updated successfully!" });
-          }}
+          onSuccess={handleEditSuccess}
           onCancel={() => setEditMode(false)}
         />
       ) : (
@@ -167,7 +184,7 @@ export default function ProfessionalProfile() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Experience</p>
-                    <p className="text-xl font-bold">{Math.round(Number(yearsOfExperience))} years</p>
+                    <p className="text-xl font-bold">{Math.round(Number(profileStats.yearsOfExperience))} years</p>
                   </div>
                 </div>
               </CardContent>
@@ -182,8 +199,8 @@ export default function ProfessionalProfile() {
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">CE Progress</p>
                     <div className="flex items-center gap-2">
-                      <Progress value={ceProgress} className="flex-1 h-2" />
-                      <span className="text-sm font-medium">{Math.round(ceProgress)}%</span>
+                      <Progress value={Number(profileStats.ceProgress)} className="flex-1 h-2" />
+                      <span className="text-sm font-medium">{Math.round(profileStats.ceProgress)}%</span>
                     </div>
                   </div>
                 </div>
@@ -198,7 +215,7 @@ export default function ProfessionalProfile() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Certifications</p>
-                    <p className="text-xl font-bold">{Array.isArray(profile?.certifications) ? profile.certifications.length : 0}</p>
+                    <p className="text-xl font-bold">{profileStats.certificationsCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -212,7 +229,7 @@ export default function ProfessionalProfile() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Specializations</p>
-                    <p className="text-xl font-bold">{Array.isArray(profile?.specializations) ? profile.specializations.length : 0}</p>
+                    <p className="text-xl font-bold">{profileStats.specializationsCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -394,7 +411,7 @@ export default function ProfessionalProfile() {
               <CETracker 
                 continuingEducation={Array.isArray(profile?.continuing_education) ? profile.continuing_education : []} 
                 userRole={userRole}
-                ceProgress={ceProgress}
+                ceProgress={profileStats.ceProgress}
               />
             </TabsContent>
 
@@ -405,8 +422,8 @@ export default function ProfessionalProfile() {
             <TabsContent value="achievements">
               <AchievementsBadges 
                 achievements={Array.isArray(profile?.achievements) ? profile.achievements : []}
-                yearsOfExperience={Number(yearsOfExperience)}
-                ceProgress={ceProgress}
+                yearsOfExperience={Number(profileStats.yearsOfExperience)}
+                ceProgress={Number(profileStats.ceProgress)}
               />
             </TabsContent>
           </Tabs>
