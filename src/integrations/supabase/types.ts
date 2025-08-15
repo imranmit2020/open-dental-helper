@@ -806,6 +806,68 @@ export type Database = {
           },
         ]
       }
+      lab_order_revisions: {
+        Row: {
+          additional_cost: number | null
+          after_images: string[] | null
+          before_images: string[] | null
+          created_at: string
+          description: string
+          estimated_additional_time_hours: number | null
+          id: string
+          lab_order_id: string
+          requested_by: string
+          resolution_notes: string | null
+          revision_number: number
+          revision_type: string
+          status: string | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          additional_cost?: number | null
+          after_images?: string[] | null
+          before_images?: string[] | null
+          created_at?: string
+          description: string
+          estimated_additional_time_hours?: number | null
+          id?: string
+          lab_order_id: string
+          requested_by: string
+          resolution_notes?: string | null
+          revision_number: number
+          revision_type: string
+          status?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          additional_cost?: number | null
+          after_images?: string[] | null
+          before_images?: string[] | null
+          created_at?: string
+          description?: string
+          estimated_additional_time_hours?: number | null
+          id?: string
+          lab_order_id?: string
+          requested_by?: string
+          resolution_notes?: string | null
+          revision_number?: number
+          revision_type?: string
+          status?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_order_revisions_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_order_tracking: {
         Row: {
           created_at: string
@@ -846,6 +908,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_lab_order_tracking_lab_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_order_workflow: {
+        Row: {
+          actual_end_time: string | null
+          actual_start_time: string | null
+          assigned_technician_id: string | null
+          attachments: string[] | null
+          created_at: string
+          estimated_duration_hours: number | null
+          id: string
+          lab_order_id: string
+          notes: string | null
+          quality_scores: Json | null
+          revision_count: number | null
+          stage: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          assigned_technician_id?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          estimated_duration_hours?: number | null
+          id?: string
+          lab_order_id: string
+          notes?: string | null
+          quality_scores?: Json | null
+          revision_count?: number | null
+          stage: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          actual_end_time?: string | null
+          actual_start_time?: string | null
+          assigned_technician_id?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          estimated_duration_hours?: number | null
+          id?: string
+          lab_order_id?: string
+          notes?: string | null
+          quality_scores?: Json | null
+          revision_count?: number | null
+          stage?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_order_workflow_order"
             columns: ["lab_order_id"]
             isOneToOne: false
             referencedRelation: "lab_orders"
@@ -933,6 +1054,178 @@ export type Database = {
           },
         ]
       }
+      lab_partnerships: {
+        Row: {
+          communication_preferences: Json | null
+          contract_terms: Json | null
+          created_at: string
+          dental_office_tenant_id: string
+          id: string
+          lab_provider_account_id: string
+          partnership_type: string | null
+          performance_metrics: Json | null
+          pricing_agreement: Json | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          communication_preferences?: Json | null
+          contract_terms?: Json | null
+          created_at?: string
+          dental_office_tenant_id: string
+          id?: string
+          lab_provider_account_id: string
+          partnership_type?: string | null
+          performance_metrics?: Json | null
+          pricing_agreement?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          communication_preferences?: Json | null
+          contract_terms?: Json | null
+          created_at?: string
+          dental_office_tenant_id?: string
+          id?: string
+          lab_provider_account_id?: string
+          partnership_type?: string | null
+          performance_metrics?: Json | null
+          pricing_agreement?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_partnerships_lab_provider"
+            columns: ["lab_provider_account_id"]
+            isOneToOne: false
+            referencedRelation: "lab_provider_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_provider_accounts: {
+        Row: {
+          address: string | null
+          banner_url: string | null
+          capacity_info: Json | null
+          certifications: string[] | null
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          equipment_list: string[] | null
+          id: string
+          logo_url: string | null
+          onboarding_completed: boolean | null
+          operating_hours: Json | null
+          phone: string | null
+          pricing_structure: Json | null
+          quality_standards: string[] | null
+          registration_number: string | null
+          specialties: string[] | null
+          status: string | null
+          subscription_plan: string | null
+          turnaround_guarantees: Json | null
+          updated_at: string
+          verification_documents: string[] | null
+          verification_status: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          banner_url?: string | null
+          capacity_info?: Json | null
+          certifications?: string[] | null
+          company_name: string
+          contact_person: string
+          created_at?: string
+          email: string
+          equipment_list?: string[] | null
+          id?: string
+          logo_url?: string | null
+          onboarding_completed?: boolean | null
+          operating_hours?: Json | null
+          phone?: string | null
+          pricing_structure?: Json | null
+          quality_standards?: string[] | null
+          registration_number?: string | null
+          specialties?: string[] | null
+          status?: string | null
+          subscription_plan?: string | null
+          turnaround_guarantees?: Json | null
+          updated_at?: string
+          verification_documents?: string[] | null
+          verification_status?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          banner_url?: string | null
+          capacity_info?: Json | null
+          certifications?: string[] | null
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          equipment_list?: string[] | null
+          id?: string
+          logo_url?: string | null
+          onboarding_completed?: boolean | null
+          operating_hours?: Json | null
+          phone?: string | null
+          pricing_structure?: Json | null
+          quality_standards?: string[] | null
+          registration_number?: string | null
+          specialties?: string[] | null
+          status?: string | null
+          subscription_plan?: string | null
+          turnaround_guarantees?: Json | null
+          updated_at?: string
+          verification_documents?: string[] | null
+          verification_status?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      lab_provider_users: {
+        Row: {
+          created_at: string
+          id: string
+          lab_provider_account_id: string
+          permissions: Json | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lab_provider_account_id: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lab_provider_account_id?: string
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_provider_users_account"
+            columns: ["lab_provider_account_id"]
+            isOneToOne: false
+            referencedRelation: "lab_provider_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_providers: {
         Row: {
           address: string | null
@@ -983,6 +1276,112 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lab_quality_control: {
+        Row: {
+          certified_at: string | null
+          created_at: string
+          defects_found: string[] | null
+          id: string
+          improvement_suggestions: string | null
+          inspection_images: string[] | null
+          inspection_stage: string
+          inspector_user_id: string
+          lab_order_id: string
+          overall_score: number | null
+          pass_status: boolean | null
+          quality_parameters: Json
+          reinspection_required: boolean | null
+        }
+        Insert: {
+          certified_at?: string | null
+          created_at?: string
+          defects_found?: string[] | null
+          id?: string
+          improvement_suggestions?: string | null
+          inspection_images?: string[] | null
+          inspection_stage: string
+          inspector_user_id: string
+          lab_order_id: string
+          overall_score?: number | null
+          pass_status?: boolean | null
+          quality_parameters: Json
+          reinspection_required?: boolean | null
+        }
+        Update: {
+          certified_at?: string | null
+          created_at?: string
+          defects_found?: string[] | null
+          id?: string
+          improvement_suggestions?: string | null
+          inspection_images?: string[] | null
+          inspection_stage?: string
+          inspector_user_id?: string
+          lab_order_id?: string
+          overall_score?: number | null
+          pass_status?: boolean | null
+          quality_parameters?: Json
+          reinspection_required?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_quality_control_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_technician_assignments: {
+        Row: {
+          actual_completion: string | null
+          assigned_at: string
+          assignment_type: string
+          estimated_completion: string | null
+          id: string
+          lab_order_id: string
+          notes: string | null
+          performance_rating: number | null
+          specialization: string | null
+          technician_user_id: string
+          workload_percentage: number | null
+        }
+        Insert: {
+          actual_completion?: string | null
+          assigned_at?: string
+          assignment_type: string
+          estimated_completion?: string | null
+          id?: string
+          lab_order_id: string
+          notes?: string | null
+          performance_rating?: number | null
+          specialization?: string | null
+          technician_user_id: string
+          workload_percentage?: number | null
+        }
+        Update: {
+          actual_completion?: string | null
+          assigned_at?: string
+          assignment_type?: string
+          estimated_completion?: string | null
+          id?: string
+          lab_order_id?: string
+          notes?: string | null
+          performance_rating?: number | null
+          specialization?: string | null
+          technician_user_id?: string
+          workload_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_technician_assignments_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_activities: {
         Row: {
