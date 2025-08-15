@@ -37,6 +37,7 @@ interface ModulePermission {
 }
 
 const MODULE_DEFINITIONS = [
+  // Core Practice Management
   {
     key: 'practice_dashboard',
     name: 'Practice Dashboard',
@@ -58,24 +59,321 @@ const MODULE_DEFINITIONS = [
     description: 'Schedule and manage appointments'
   },
   {
+    key: 'schedule_management',
+    name: 'Schedule Management',
+    description: 'Advanced scheduling and calendar management'
+  },
+  
+  // Clinical & Medical
+  {
     key: 'medical_records',
     name: 'Medical Records',
     description: 'Access and manage medical records'
   },
+  {
+    key: 'medical_history',
+    name: 'Medical History',
+    description: 'Patient medical history management'
+  },
+  {
+    key: 'patient_charting',
+    name: 'Patient Charting',
+    description: 'Digital patient charting and notes'
+  },
+  {
+    key: 'consent_forms',
+    name: 'Consent Forms',
+    description: 'Digital consent form management'
+  },
+  {
+    key: 'treatment_plan_generator',
+    name: 'Treatment Plan Generator',
+    description: 'Create and manage treatment plans'
+  },
+  
+  // Imaging & Diagnostics
+  {
+    key: 'image_analysis',
+    name: 'Image Analysis',
+    description: 'AI-powered dental image analysis'
+  },
+  {
+    key: 'xray_diagnostics',
+    name: 'X-Ray Diagnostics',
+    description: 'X-ray imaging and diagnostic tools'
+  },
+  {
+    key: 'microscopic_analysis',
+    name: 'Microscopic Analysis',
+    description: 'Microscopic imaging analysis'
+  },
+  {
+    key: 'dental_modeling_3d',
+    name: '3D Dental Modeling',
+    description: '3D dental modeling and visualization'
+  },
+  {
+    key: 'ar_treatment_preview',
+    name: 'AR Treatment Preview',
+    description: 'Augmented reality treatment previews'
+  },
+  
+  // Financial Management
   {
     key: 'billing',
     name: 'Billing & Invoicing',
     description: 'Manage billing and financial records'
   },
   {
+    key: 'insurance_billing',
+    name: 'Insurance Billing',
+    description: 'Insurance claims and billing management'
+  },
+  {
+    key: 'revenue_management',
+    name: 'Revenue Management',
+    description: 'Revenue tracking and optimization'
+  },
+  {
+    key: 'competitive_fee_analyzer',
+    name: 'Competitive Fee Analyzer',
+    description: 'Analyze and optimize pricing strategies'
+  },
+  
+  // Analytics & Intelligence
+  {
     key: 'analytics',
     name: 'Analytics & Reports',
     description: 'View practice analytics and reports'
   },
   {
+    key: 'practice_analytics',
+    name: 'Practice Analytics',
+    description: 'Detailed practice performance analytics'
+  },
+  {
+    key: 'multi_practice_analytics',
+    name: 'Multi-Practice Analytics',
+    description: 'Cross-practice analytics and comparisons'
+  },
+  {
+    key: 'predictive_analytics',
+    name: 'Predictive Analytics',
+    description: 'Predictive insights and forecasting'
+  },
+  {
+    key: 'predictive_treatment',
+    name: 'Predictive Treatment',
+    description: 'AI-powered treatment predictions'
+  },
+  {
+    key: 'market_intelligence',
+    name: 'Market Intelligence',
+    description: 'Market trends and competitive analysis'
+  },
+  
+  // AI & Automation
+  {
+    key: 'ai_assistant',
+    name: 'AI Assistant',
+    description: 'AI-powered practice assistant'
+  },
+  {
+    key: 'ai_marketing',
+    name: 'AI Marketing',
+    description: 'AI-driven marketing campaigns'
+  },
+  {
+    key: 'ai_patient_analytics',
+    name: 'AI Patient Analytics',
+    description: 'AI-powered patient insights'
+  },
+  {
+    key: 'ai_revenue_advisor',
+    name: 'AI Revenue Advisor',
+    description: 'AI-driven revenue optimization'
+  },
+  {
+    key: 'ai_scheduling',
+    name: 'AI Scheduling',
+    description: 'Intelligent appointment scheduling'
+  },
+  {
+    key: 'ai_voice_notes',
+    name: 'AI Voice Notes',
+    description: 'Voice-to-text note taking'
+  },
+  {
+    key: 'quantum_dental_ai',
+    name: 'Quantum Dental AI',
+    description: 'Advanced AI diagnostic tools'
+  },
+  {
+    key: 'quantum_scheduling',
+    name: 'Quantum Scheduling',
+    description: 'Advanced scheduling optimization'
+  },
+  
+  // Communication & Marketing
+  {
+    key: 'marketing_automation',
+    name: 'Marketing Automation',
+    description: 'Automated marketing campaigns'
+  },
+  {
+    key: 'lead_conversion',
+    name: 'Lead Conversion',
+    description: 'Lead management and conversion tools'
+  },
+  {
+    key: 'reputation_management',
+    name: 'Reputation Management',
+    description: 'Online reputation monitoring and management'
+  },
+  {
+    key: 'patient_concierge',
+    name: 'Patient Concierge',
+    description: 'Enhanced patient communication and support'
+  },
+  {
+    key: 'patient_journey',
+    name: 'Patient Journey',
+    description: 'Patient journey mapping and optimization'
+  },
+  {
+    key: 'voice_agent',
+    name: 'Voice Agent',
+    description: 'AI voice communication system'
+  },
+  
+  // Operations & Management
+  {
+    key: 'team_management',
+    name: 'Team Management',
+    description: 'Staff and team management tools'
+  },
+  {
+    key: 'employee_time_tracking',
+    name: 'Employee Time Tracking',
+    description: 'Staff time and attendance tracking'
+  },
+  {
+    key: 'employee_time_analytics',
+    name: 'Employee Time Analytics',
+    description: 'Staff productivity and time analytics'
+  },
+  {
+    key: 'smart_operations',
+    name: 'Smart Operations',
+    description: 'Operational efficiency tools'
+  },
+  {
+    key: 'smart_documentation',
+    name: 'Smart Documentation',
+    description: 'Intelligent document management'
+  },
+  {
+    key: 'realtime_monitoring',
+    name: 'Realtime Monitoring',
+    description: 'Real-time practice monitoring'
+  },
+  
+  // Specialized Services
+  {
+    key: 'teledentistry',
+    name: 'Teledentistry',
+    description: 'Remote dental consultation platform'
+  },
+  {
+    key: 'teledentistry_enhanced',
+    name: 'Enhanced Teledentistry',
+    description: 'Advanced teledentistry features'
+  },
+  {
+    key: 'lab_management',
+    name: 'Lab Management',
+    description: 'Dental laboratory management'
+  },
+  {
+    key: 'referral_network',
+    name: 'Referral Network',
+    description: 'Professional referral management'
+  },
+  {
+    key: 'professional_profile',
+    name: 'Professional Profile',
+    description: 'Professional profile management'
+  },
+  
+  // Tools & Utilities
+  {
+    key: 'chairside_assistant',
+    name: 'Chairside Assistant',
+    description: 'Clinical chairside support tools'
+  },
+  {
+    key: 'voice_transcription',
+    name: 'Voice Transcription',
+    description: 'Voice-to-text transcription services'
+  },
+  {
+    key: 'voice_to_chart',
+    name: 'Voice to Chart',
+    description: 'Voice dictation for patient charts'
+  },
+  {
+    key: 'translation',
+    name: 'Translation Services',
+    description: 'Multi-language translation tools'
+  },
+  {
+    key: 'personalized_preventive_care',
+    name: 'Personalized Preventive Care',
+    description: 'Customized preventive care programs'
+  },
+  {
+    key: 'gamified_kids_app',
+    name: 'Gamified Kids App',
+    description: 'Interactive dental education for children'
+  },
+  
+  // Security & Compliance
+  {
+    key: 'compliance_security',
+    name: 'Compliance & Security',
+    description: 'HIPAA compliance and security management'
+  },
+  {
+    key: 'fraud_detection_system',
+    name: 'Fraud Detection',
+    description: 'AI-powered fraud detection and prevention'
+  },
+  {
+    key: 'qa_checklist',
+    name: 'QA Checklist',
+    description: 'Quality assurance and compliance checklists'
+  },
+  
+  // System Administration
+  {
     key: 'admin_tools',
     name: 'Administrative Tools',
     description: 'Access administrative functions'
+  },
+  {
+    key: 'data_migration',
+    name: 'Data Migration',
+    description: 'Data import and migration tools'
+  },
+  {
+    key: 'module_flows',
+    name: 'Module Flows',
+    description: 'System workflow and module management'
+  },
+  {
+    key: 'module_analysis_report',
+    name: 'Module Analysis Report',
+    description: 'System usage and module analysis'
   }
 ];
 
