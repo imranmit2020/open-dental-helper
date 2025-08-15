@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, Building, Users, Plus, Trash2, User } from "lucide-react";
+import { Loader2, Save, Building, Users, Plus, Trash2, User, Check, ChevronsUpDown } from "lucide-react";
 
 interface OrganizationTabProps {
   userId?: string;
@@ -53,6 +55,9 @@ export function OrganizationTab({ userId }: OrganizationTabProps) {
   const [userCorporations, setUserCorporations] = useState<CorporateUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [tenantDropdownOpen, setTenantDropdownOpen] = useState(false);
+  const [corporateDropdownOpen, setCorporateDropdownOpen] = useState(false);
   const { toast } = useToast();
 
   const [newTenantAssignment, setNewTenantAssignment] = useState({
@@ -181,6 +186,7 @@ export function OrganizationTab({ userId }: OrganizationTabProps) {
     if (user) {
       setSelectedUser(user);
       fetchUserAssignments(userIdToSelect);
+      setUserDropdownOpen(false);
     }
   };
 
@@ -354,18 +360,47 @@ export function OrganizationTab({ userId }: OrganizationTabProps) {
         <CardContent>
           <div className="space-y-2">
             <Label>User</Label>
-            <Select value={selectedUser?.user_id || ""} onValueChange={handleUserSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a user..." />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.user_id} value={user.user_id}>
-                    {user.first_name} {user.last_name} ({user.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={userDropdownOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedUser ? (
+                    `${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})`
+                  ) : (
+                    "Select a user..."
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search users..." />
+                  <CommandList>
+                    <CommandEmpty>No users found.</CommandEmpty>
+                    <CommandGroup>
+                      {users.map((user) => (
+                        <CommandItem
+                          key={user.user_id}
+                          value={`${user.first_name} ${user.last_name} ${user.email}`}
+                          onSelect={() => handleUserSelect(user.user_id)}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedUser?.user_id === user.user_id ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          {user.first_name} {user.last_name} ({user.email})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
       </Card>

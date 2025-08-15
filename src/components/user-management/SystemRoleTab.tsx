@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, Shield, User, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Save, Shield, User, CheckCircle, AlertCircle, Check, ChevronsUpDown } from "lucide-react";
 
 interface SystemRoleTabProps {
   userId?: string;
@@ -35,6 +36,7 @@ export function SystemRoleTab({ userId }: SystemRoleTabProps) {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export function SystemRoleTab({ userId }: SystemRoleTabProps) {
     if (user) {
       setSelectedUser(user);
       setSelectedRole(user.role);
+      setUserDropdownOpen(false);
     }
   };
 
@@ -140,23 +143,57 @@ export function SystemRoleTab({ userId }: SystemRoleTabProps) {
         <CardContent>
           <div className="space-y-2">
             <Label>User</Label>
-            <Select value={selectedUser?.user_id || ""} onValueChange={handleUserSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a user..." />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.user_id} value={user.user_id}>
+            <Popover open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={userDropdownOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedUser ? (
                     <div className="flex items-center justify-between w-full">
-                      <span>{user.first_name} {user.last_name}</span>
-                      <Badge variant={getRoleInfo(user.role).color as any} className="ml-2">
-                        {getRoleInfo(user.role).label}
+                      <span>{selectedUser.first_name} {selectedUser.last_name}</span>
+                      <Badge variant={getRoleInfo(selectedUser.role).color as any} className="ml-2">
+                        {getRoleInfo(selectedUser.role).label}
                       </Badge>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  ) : (
+                    "Select a user..."
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search users..." />
+                  <CommandList>
+                    <CommandEmpty>No users found.</CommandEmpty>
+                    <CommandGroup>
+                      {users.map((user) => (
+                        <CommandItem
+                          key={user.user_id}
+                          value={`${user.first_name} ${user.last_name} ${user.email}`}
+                          onSelect={() => handleUserSelect(user.user_id)}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedUser?.user_id === user.user_id ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          <div className="flex items-center justify-between w-full">
+                            <span>{user.first_name} {user.last_name}</span>
+                            <Badge variant={getRoleInfo(user.role).color as any} className="ml-2">
+                              {getRoleInfo(user.role).label}
+                            </Badge>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
       </Card>

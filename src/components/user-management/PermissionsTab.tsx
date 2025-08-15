@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, Shield, User, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Save, Shield, User, CheckCircle, XCircle, Check, ChevronsUpDown } from "lucide-react";
 
 interface PermissionsTabProps {
   userId?: string;
@@ -89,6 +90,9 @@ export function PermissionsTab({ userId }: PermissionsTabProps) {
   const [permissions, setPermissions] = useState<ModulePermission[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [tenantDropdownOpen, setTenantDropdownOpen] = useState(false);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -172,6 +176,7 @@ export function PermissionsTab({ userId }: PermissionsTabProps) {
     if (user) {
       setSelectedUser(user);
       setSelectedRole(user.role);
+      setUserDropdownOpen(false);
     }
   };
 
@@ -306,50 +311,143 @@ export function PermissionsTab({ userId }: PermissionsTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>User</Label>
-              <Select value={selectedUser?.user_id || ""} onValueChange={handleUserSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a user..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.user_id} value={user.user_id}>
-                      {user.first_name} {user.last_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={userDropdownOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedUser ? (
+                      `${selectedUser.first_name} ${selectedUser.last_name}`
+                    ) : (
+                      "Select a user..."
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search users..." />
+                    <CommandList>
+                      <CommandEmpty>No users found.</CommandEmpty>
+                      <CommandGroup>
+                        {users.map((user) => (
+                          <CommandItem
+                            key={user.user_id}
+                            value={`${user.first_name} ${user.last_name} ${user.email}`}
+                            onSelect={() => handleUserSelect(user.user_id)}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                selectedUser?.user_id === user.user_id ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {user.first_name} {user.last_name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
               <Label>Clinic</Label>
-              <Select value={selectedTenant} onValueChange={setSelectedTenant}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a clinic..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name} ({tenant.clinic_code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={tenantDropdownOpen} onOpenChange={setTenantDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={tenantDropdownOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedTenant ? (
+                      `${tenants.find(t => t.id === selectedTenant)?.name} (${tenants.find(t => t.id === selectedTenant)?.clinic_code})`
+                    ) : (
+                      "Select a clinic..."
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search clinics..." />
+                    <CommandList>
+                      <CommandEmpty>No clinics found.</CommandEmpty>
+                      <CommandGroup>
+                        {tenants.map((tenant) => (
+                          <CommandItem
+                            key={tenant.id}
+                            value={`${tenant.name} ${tenant.clinic_code}`}
+                            onSelect={() => {
+                              setSelectedTenant(tenant.id);
+                              setTenantDropdownOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                selectedTenant === tenant.id ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {tenant.name} ({tenant.clinic_code})
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
               <Label>Role Context</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {USER_ROLES.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={roleDropdownOpen} onOpenChange={setRoleDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={roleDropdownOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedRole ? (
+                      selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)
+                    ) : (
+                      "Select a role..."
+                    )}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search roles..." />
+                    <CommandList>
+                      <CommandEmpty>No roles found.</CommandEmpty>
+                      <CommandGroup>
+                        {USER_ROLES.map((role) => (
+                          <CommandItem
+                            key={role}
+                            value={role}
+                            onSelect={() => {
+                              setSelectedRole(role);
+                              setRoleDropdownOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                selectedRole === role ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardContent>
