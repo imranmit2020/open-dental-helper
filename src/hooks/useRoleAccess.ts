@@ -2,7 +2,6 @@ import { useMemo, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useTenant } from '@/contexts/TenantContext';
 
 export type UserRole = 'admin' | 'dentist' | 'hygienist' | 'staff' | 'patient';
 
@@ -90,7 +89,6 @@ const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
 
 export function useRoleAccess() {
   const { user } = useAuth();
-  const { currentTenant } = useTenant();
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -111,29 +109,6 @@ export function useRoleAccess() {
       return data;
     },
     enabled: !!user?.id,
-  });
-
-  // Fetch tenant-specific role
-  const { data: tenantUser, isLoading: tenantLoading } = useQuery({
-    queryKey: ['tenant-user-role', user?.id, currentTenant?.id],
-    queryFn: async () => {
-      if (!user?.id || !currentTenant?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('tenant_users')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('tenant_id', currentTenant.id)
-        .single();
-        
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching tenant user role:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!user?.id && !!currentTenant?.id,
   });
 
   const { data: corporateRole, isLoading: corporateLoading } = useQuery({
@@ -157,11 +132,10 @@ export function useRoleAccess() {
     enabled: !!user?.id,
   });
 
-  // Prioritize tenant-specific role, then fall back to profile role
-  const userRole: UserRole = (tenantUser?.role as UserRole) || (profile?.role as UserRole) || 'patient';
+  const userRole: UserRole = (profile?.role as UserRole) || 'patient';
   const isSuperAdmin = profile?.role === 'super_admin';
   const isCorporateAdmin = corporateRole?.role === 'admin';
-  const isLoading = profileLoading || corporateLoading || tenantLoading;
+  const isLoading = profileLoading || corporateLoading;
   
   const permissions = useMemo(() => {
     return ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.patient;

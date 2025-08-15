@@ -242,22 +242,7 @@ const chartingModules: ChartingModule[] = [
 ];
 
 export default function PatientCharting() {
-  // Add error boundary for React Query context
-  let patients, loading, searchPatients;
-  try {
-    ({ patients, loading, searchPatients } = useOptimizedPatients());
-  } catch (error) {
-    console.error('Error initializing patient data:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Loading Error</h2>
-          <p className="text-muted-foreground">Unable to initialize patient data. Please refresh the page.</p>
-        </div>
-      </div>
-    );
-  }
-  
+  const { patients, loading, searchPatients } = useOptimizedPatients();
   const { canAccessModule } = useModulePermissions();
   const { favorites, isFavorite, toggleFavorite } = useModuleFavorites();
   const [searchTerm, setSearchTerm] = useState("");
