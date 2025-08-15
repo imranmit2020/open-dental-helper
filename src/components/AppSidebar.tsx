@@ -142,7 +142,7 @@ const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_user_approvals' },
   { title: "User Management", url: "/admin/user-management", icon: Users, requiredRoles: ['admin'], moduleKey: 'admin_user_management' },
   { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'] },
-  { title: "Team Management", url: "/team-management", icon: Users, requiredRoles: ['admin'] },
+  { title: "Team Management", url: "/admin/team", icon: Users, requiredRoles: ['admin'] },
   { title: "Module Access", url: "/admin/navigation-permissions", icon: Settings, requiredRoles: ['admin'], moduleKey: 'admin_navigation_permissions' },
   { title: "Security Settings", url: "/admin/security-settings", icon: Shield, requiredRoles: ['admin'] },
   { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
