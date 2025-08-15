@@ -139,8 +139,9 @@ export default function LabProviderDashboard() {
 
   const fetchLabAccount = async () => {
     try {
-      const { data, error } = await supabase
-        .from('lab_providers.lab_provider_users')
+      const { data, error } = await (supabase as any)
+        .schema('lab_providers')
+        .from('lab_provider_users')
         .select(`
           lab_provider_account_id,
           role,
@@ -188,8 +189,9 @@ export default function LabProviderDashboard() {
     if (!labAccount?.id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('lab_providers.lab_order_workflow')
+      const { data, error } = await (supabase as any)
+        .schema('lab_providers')
+        .from('lab_order_workflow')
         .select(`
           *,
           profiles (first_name, last_name)
@@ -215,8 +217,9 @@ export default function LabProviderDashboard() {
       if (error) throw error;
 
       // Add workflow tracking
-      await supabase
-        .from('lab_providers.lab_order_tracking')
+      await (supabase as any)
+        .schema('lab_providers')
+        .from('lab_order_tracking')
         .insert({
           lab_order_id: orderId,
           status: newStatus,
