@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,64 @@ interface AssignmentRow {
 }
 
 const ROLE_OPTIONS = ["admin", "dentist", "hygienist", "staff"] as const;
+
+// Memoized row component to prevent unnecessary re-renders
+const AssignmentRowComponent = memo(({
+  row, 
+  savingId, 
+  actionLoading, 
+  updateRole, 
+  saveRole, 
+  sendInvite, 
+  sendReset, 
+  openSetPassword 
+}: {
+  row: AssignmentRow;
+  savingId: string | null;
+  actionLoading: string | null;
+  updateRole: (user_id: string, role: string) => void;
+  saveRole: (user_id: string) => void;
+  sendInvite: (email?: string | null) => void;
+  sendReset: (email?: string | null) => void;
+  openSetPassword: (user_id: string) => void;
+}) => {
+  const name = [row.first_name, row.last_name].filter(Boolean).join(" ") || "—";
+  
+  return (
+    <TableRow>
+      <TableCell>{name}</TableCell>
+      <TableCell>{row.email || "—"}</TableCell>
+      <TableCell>
+        <Select value={row.role} onValueChange={(val) => updateRole(row.user_id, val)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            {ROLE_OPTIONS.map((opt) => (
+              <SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center gap-2 justify-end">
+          <Button size="sm" onClick={() => saveRole(row.user_id)} disabled={savingId === row.user_id}>
+            {savingId === row.user_id ? "Saving..." : "Save"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => sendInvite(row.email)} disabled={actionLoading === `invite:${row.email}`}>
+            {actionLoading === `invite:${row.email}` ? "Sending..." : "Send Invite"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => sendReset(row.email)} disabled={actionLoading === `reset:${row.email}`}>
+            {actionLoading === `reset:${row.email}` ? "Sending..." : "Send Reset Link"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => openSetPassword(row.user_id)}>
+            Set Password
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+});
 
 export default function AdminRoleAssignment() {
   const { currentTenant } = useTenant();
@@ -108,9 +166,9 @@ export default function AdminRoleAssignment() {
     loadData();
   }, [currentTenant?.id, toast]);
 
-  const updateRole = (user_id: string, role: string) => {
+  const updateRole = useCallback((user_id: string, role: string) => {
     setRows(prev => prev.map(r => r.user_id === user_id ? { ...r, role } : r));
-  };
+  }, []);
 
   const saveRole = async (user_id: string) => {
     if (!currentTenant?.id) {
@@ -244,44 +302,19 @@ export default function AdminRoleAssignment() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => {
-                  const name = [r.first_name, r.last_name].filter(Boolean).join(" ") || "—";
-                  return (
-                    <TableRow key={r.user_id}>
-                      <TableCell>{name}</TableCell>
-                      <TableCell>{r.email || "—"}</TableCell>
-                      <TableCell>
-                        <Select value={r.role} onValueChange={(val) => updateRole(r.user_id, val)}>
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ROLE_OPTIONS.map((opt) => (
-                              <SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <Button size="sm" onClick={() => saveRole(r.user_id)} disabled={savingId === r.user_id}>
-                            {savingId === r.user_id ? "Saving..." : "Save"}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => sendInvite(r.email)} disabled={actionLoading === `invite:${r.email}`}>
-                            {actionLoading === `invite:${r.email}` ? "Sending..." : "Send Invite"}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => sendReset(r.email)} disabled={actionLoading === `reset:${r.email}`}>
-                            {actionLoading === `reset:${r.email}` ? "Sending..." : "Send Reset Link"}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => openSetPassword(r.user_id)}>
-                            Set Password
-                          </Button>
-                        </div>
-
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {rows.map((r) => (
+                  <AssignmentRowComponent
+                    key={r.user_id}
+                    row={r}
+                    savingId={savingId}
+                    actionLoading={actionLoading}
+                    updateRole={updateRole}
+                    saveRole={saveRole}
+                    sendInvite={sendInvite}
+                    sendReset={sendReset}
+                    openSetPassword={openSetPassword}
+                  />
+                ))}
               </TableBody>
             </Table>
           )}
