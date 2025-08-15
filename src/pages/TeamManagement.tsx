@@ -322,7 +322,23 @@ export default function TeamManagement() {
           .eq("id", invite.id);
       }
 
-      toast({ title: "Invitation sent", description: "We emailed a login link to the user." });
+      // 3) Send onboarding email with product familiarization
+      try {
+        await supabase.functions.invoke("send-employee-onboarding", {
+          body: {
+            email: values.email,
+            name: `${values.first_name} ${values.last_name}`,
+            role: values.role,
+            clinicName: currentTenant?.name || "Dental Clinic",
+            loginUrl: redirectUrl,
+          },
+        });
+      } catch (onboardingError) {
+        console.warn("Onboarding email failed:", onboardingError);
+        // Don't fail the entire process if onboarding email fails
+      }
+
+      toast({ title: "Invitation sent", description: "We emailed a login link and onboarding materials to the user." });
       form.reset({ role: values.role } as any);
       setTimeout(() => { refetch(); refetchInvites?.(); }, 800);
     } catch (e: any) {

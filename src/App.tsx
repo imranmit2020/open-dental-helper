@@ -25,6 +25,7 @@ const PracticeDashboard = lazy(() => import("./pages/PracticeDashboard"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const ScheduleManagement = lazy(() => import("./pages/ScheduleManagement"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement"));
+const EmployeeOnboarding = lazy(() => import("./pages/EmployeeOnboarding"));
 const AdminAddEmployee = lazy(() => import("./pages/AdminAddEmployee"));
 const Patients = lazy(() => import("./pages/Patients"));
 const PatientProfile = lazy(() => import("./pages/PatientProfile"));
@@ -360,6 +361,7 @@ function App() {
             <Route path="lab-provider-dashboard" element={
               <Suspense fallback={<PageLoader />}><LabProviderDashboard /></Suspense>
             } />
+            <Route path="employee-onboarding" element={<Suspense fallback={<PageLoader />}><EmployeeOnboarding /></Suspense>} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
