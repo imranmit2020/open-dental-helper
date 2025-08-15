@@ -6,7 +6,7 @@ import { ClinicSwitcher } from "@/components/ClinicSwitcher";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Outlet, useLocation, Link } from "react-router-dom";
+import { Outlet, useLocation, Link, useNavigate } from "react-router-dom";
 import { LogOut, Home, Loader2, User, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -45,6 +46,7 @@ const Layout = () => {
     try {
       setSigningOut(true);
       await signOut();
+      navigate('/auth');
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
