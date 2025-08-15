@@ -43,6 +43,17 @@ const Index = () => {
             </Button>
           </div>
           
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">Lab Provider?</p>
+            <Button 
+              variant="ghost" 
+              className="text-primary hover:bg-primary/10"
+              onClick={() => window.location.href = '/lab-provider-signup'}
+            >
+              Join Our Laboratory Network →
+            </Button>
+          </div>
+          
           <div className="mt-12 text-sm text-muted-foreground">
             ⭐ 4.9/5 rating from 2,500+ dental practices
           </div>

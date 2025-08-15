@@ -98,6 +98,7 @@ const PersonalizedPreventiveCare = lazy(() => import("./pages/PersonalizedPreven
 const LabManagement = lazy(() => import("./pages/LabManagement"));
 const LabProviderDashboard = lazy(() => import("./pages/LabProviderDashboard"));
 const LabProviderSignUp = lazy(() => import("./pages/LabProviderSignUp"));
+const LabProviderAuth = lazy(() => import("./pages/LabProviderAuth"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -134,6 +135,7 @@ function App() {
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/lab-provider-signup" element={<LabProviderSignUp />} />
+          <Route path="/lab-provider-auth" element={<Suspense fallback={<PageLoader />}><LabProviderAuth /></Suspense>} />
           <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
           <Route path="/patient-signup" element={<PatientSignUp />} />

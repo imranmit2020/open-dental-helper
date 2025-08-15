@@ -180,6 +180,7 @@ export default function LabProviderSignUp() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/lab-provider-dashboard`,
           data: {
             first_name: formData.contact_person.split(' ')[0],
             last_name: formData.contact_person.split(' ').slice(1).join(' '),
@@ -193,7 +194,6 @@ export default function LabProviderSignUp() {
       if (authData.user) {
         // Create lab provider account
         const { data: labAccount, error: labError } = await (supabase as any)
-          .schema('lab_providers')
           .from('lab_provider_accounts')
           .insert({
             company_name: formData.company_name,
@@ -220,7 +220,6 @@ export default function LabProviderSignUp() {
 
         // Create lab provider user relationship
         await (supabase as any)
-          .schema('lab_providers')
           .from('lab_provider_users')
           .insert({
             lab_provider_account_id: labAccount.id,
@@ -590,6 +589,20 @@ export default function LabProviderSignUp() {
                   <CheckCircle className="h-4 w-4 ml-2" />
                 </Button>
               )}
+            </div>
+
+            {/* Already have an account link */}
+            <div className="text-center pt-4 border-t">
+              <p className="text-sm text-muted-foreground mb-2">
+                Already have a lab provider account?
+              </p>
+              <Button 
+                variant="link" 
+                onClick={() => navigate('/lab-provider-auth')}
+                className="text-primary"
+              >
+                Sign in to your dashboard
+              </Button>
             </div>
           </CardContent>
         </Card>
