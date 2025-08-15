@@ -1489,6 +1489,75 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_profiles: {
+        Row: {
+          achievements: Json | null
+          bio: string | null
+          certifications: Json | null
+          continuing_education: Json | null
+          created_at: string
+          education: Json | null
+          experience: Json | null
+          id: string
+          languages_spoken: string[] | null
+          license_expiry: string | null
+          license_number: string | null
+          license_state: string | null
+          practice_philosophy: string | null
+          professional_memberships: Json | null
+          profile_image_url: string | null
+          skills_expertise: Json | null
+          specializations: string[] | null
+          tenant_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievements?: Json | null
+          bio?: string | null
+          certifications?: Json | null
+          continuing_education?: Json | null
+          created_at?: string
+          education?: Json | null
+          experience?: Json | null
+          id?: string
+          languages_spoken?: string[] | null
+          license_expiry?: string | null
+          license_number?: string | null
+          license_state?: string | null
+          practice_philosophy?: string | null
+          professional_memberships?: Json | null
+          profile_image_url?: string | null
+          skills_expertise?: Json | null
+          specializations?: string[] | null
+          tenant_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievements?: Json | null
+          bio?: string | null
+          certifications?: Json | null
+          continuing_education?: Json | null
+          created_at?: string
+          education?: Json | null
+          experience?: Json | null
+          id?: string
+          languages_spoken?: string[] | null
+          license_expiry?: string | null
+          license_number?: string | null
+          license_state?: string | null
+          practice_philosophy?: string | null
+          professional_memberships?: Json | null
+          profile_image_url?: string | null
+          skills_expertise?: Json | null
+          specializations?: string[] | null
+          tenant_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
