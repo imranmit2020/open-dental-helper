@@ -414,6 +414,23 @@ export default function Auth() {
             </TabsContent>
             </Tabs>
           )}
+          
+          {/* Lab Provider Link */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-primary/20">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                Are you a dental laboratory provider?
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/lab-provider-signup')}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                Join as Lab Provider
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

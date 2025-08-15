@@ -986,6 +986,7 @@ export type Database = {
           estimated_cost: number | null
           id: string
           instructions: string | null
+          lab_provider_account_id: string | null
           lab_provider_id: string
           order_number: string
           order_type: string
@@ -1009,6 +1010,7 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           instructions?: string | null
+          lab_provider_account_id?: string | null
           lab_provider_id: string
           order_number: string
           order_type: string
@@ -1032,6 +1034,7 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           instructions?: string | null
+          lab_provider_account_id?: string | null
           lab_provider_id?: string
           order_number?: string
           order_type?: string
@@ -1050,6 +1053,13 @@ export type Database = {
             columns: ["lab_provider_id"]
             isOneToOne: false
             referencedRelation: "lab_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lab_orders_lab_provider_account"
+            columns: ["lab_provider_account_id"]
+            isOneToOne: false
+            referencedRelation: "lab_provider_accounts"
             referencedColumns: ["id"]
           },
         ]

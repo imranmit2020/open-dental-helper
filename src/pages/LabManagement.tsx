@@ -142,10 +142,10 @@ export default function LabManagement() {
 
   const fetchLabProviders = async () => {
     const { data, error } = await supabase
-      .from('lab_providers')
+      .from('lab_provider_accounts')
       .select('*')
-      .eq('tenant_id', currentTenant?.id)
-      .eq('status', 'active');
+      .eq('status', 'active')
+      .eq('verification_status', 'verified');
 
     if (error) throw error;
     setLabProviders(data || []);
@@ -503,6 +503,7 @@ function NewLabOrderForm({ patients, labProviders, onSuccess }: any) {
           ...formData,
           tenant_id: currentTenant?.id,
           dentist_id: user?.id,
+          lab_provider_account_id: formData.lab_provider_id,
           order_number: orderNumber,
           case_details: {}
         });
@@ -551,7 +552,7 @@ function NewLabOrderForm({ patients, labProviders, onSuccess }: any) {
             <SelectContent>
               {labProviders.map((provider: any) => (
                 <SelectItem key={provider.id} value={provider.id}>
-                  {provider.name}
+                  {provider.company_name}
                 </SelectItem>
               ))}
             </SelectContent>
