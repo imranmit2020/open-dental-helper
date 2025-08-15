@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -10,11 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, UserPlus } from "lucide-react";
+import { Calendar as CalendarIcon, UserPlus, Plus, Trash2, GraduationCap, Briefcase } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -45,6 +46,21 @@ function setSEO() {
   canonical.setAttribute("href", window.location.origin + "/admin/employees/new");
 }
 
+const EducationSchema = z.object({
+  degree: z.string().min(1, "Degree is required"),
+  institution: z.string().min(1, "Institution is required"),
+  year: z.string().min(1, "Year is required"),
+  gpa: z.string().optional(),
+});
+
+const ExperienceSchema = z.object({
+  position: z.string().min(1, "Position is required"),
+  organization: z.string().min(1, "Organization is required"),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().optional(),
+  description: z.string().optional(),
+});
+
 const FormSchema = z.object({
   scope: z.enum(["tenant", "corporation"]),
   tenant_id: z.string().optional(),
@@ -58,6 +74,8 @@ const FormSchema = z.object({
   employment_type: z.enum(["full_time", "part_time", "contractor"]).default("full_time"),
   status: z.enum(["active", "inactive"]).default("active"),
   hire_date: z.date().optional(),
+  education: z.array(EducationSchema).default([]),
+  experience: z.array(ExperienceSchema).default([]),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -88,7 +106,19 @@ export default function AdminAddEmployee() {
       department: "",
       employment_type: "full_time",
       status: "active",
+      education: [],
+      experience: [],
     },
+  });
+
+  const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
+    control: form.control,
+    name: "education",
+  });
+
+  const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({
+    control: form.control,
+    name: "experience",
   });
 
   async function onSubmit(values: FormValues) {
@@ -104,6 +134,8 @@ export default function AdminAddEmployee() {
         employment_type: values.employment_type,
         status: values.status,
         hire_date: values.hire_date ? values.hire_date.toISOString().slice(0, 10) : null,
+        education: values.education,
+        experience: values.experience,
         tenant_id: values.scope === "tenant" ? values.tenant_id : null,
         corporation_id: values.scope === "corporation" ? corporation?.id : null,
       };
@@ -386,6 +418,201 @@ export default function AdminAddEmployee() {
                   </FormItem>
                 )}
               />
+
+              {/* Education Section */}
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    Education
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendEducation({ degree: "", institution: "", year: "", gpa: "" })}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Education
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {educationFields.map((field, index) => (
+                    <Card key={field.id} className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`education.${index}.degree`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Degree</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., DDS, Bachelor of Science" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`education.${index}.institution`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Institution</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., University of California" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`education.${index}.year`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Year</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 2020" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`education.${index}.gpa`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>GPA (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 3.8" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex justify-end mt-4">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeEducation(index)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Experience Section */}
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Experience
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendExperience({ position: "", organization: "", start_date: "", end_date: "", description: "" })}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Experience
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {experienceFields.map((field, index) => (
+                    <Card key={field.id} className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`experience.${index}.position`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Position</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Senior Dental Hygienist" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`experience.${index}.organization`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Organization</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., ABC Dental Clinic" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`experience.${index}.start_date`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Start Date</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 2020-01" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`experience.${index}.end_date`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End Date (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 2023-12 or leave blank if current" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="md:col-span-2">
+                          <FormField
+                            control={form.control}
+                            name={`experience.${index}.description`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Brief description of responsibilities and achievements..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-4">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeExperience(index)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
 
               <div className="md:col-span-2 flex justify-end gap-3">
                 <Button type="button" variant="secondary" onClick={() => navigate(-1)}>Cancel</Button>

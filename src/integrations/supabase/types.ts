@@ -466,9 +466,11 @@ export type Database = {
           corporation_id: string | null
           created_at: string
           department: string | null
+          education: Json | null
           email: string | null
           employee_id: string | null
           employment_type: string | null
+          experience: Json | null
           first_name: string
           hire_date: string | null
           id: string
@@ -486,9 +488,11 @@ export type Database = {
           corporation_id?: string | null
           created_at?: string
           department?: string | null
+          education?: Json | null
           email?: string | null
           employee_id?: string | null
           employment_type?: string | null
+          experience?: Json | null
           first_name: string
           hire_date?: string | null
           id?: string
@@ -506,9 +510,11 @@ export type Database = {
           corporation_id?: string | null
           created_at?: string
           department?: string | null
+          education?: Json | null
           email?: string | null
           employee_id?: string | null
           employment_type?: string | null
+          experience?: Json | null
           first_name?: string
           hire_date?: string | null
           id?: string
