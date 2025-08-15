@@ -1,0 +1,4 @@
+-- Insert sample lab providers for demonstration
+INSERT INTO public.lab_providers (tenant_id, name, contact_email, contact_phone, address, specialties, turnaround_times, status) VALUES
+('22222222-2222-2222-2222-222222222222', 'Premium Dental Lab', 'orders@premiumdentallab.com', '(555) 123-4567', '123 Lab Street, City, ST 12345', ARRAY['crown', 'bridge', 'denture'], '{"crown": "5-7 days", "bridge": "7-10 days", "denture": "10-14 days"}', 'active'),
+('22222222-2222-2222-2222-222222222222', 'Express Orthodontics Lab', 'info@expressortho.com', '(555) 987-6543', '456 Ortho Ave, City, ST 12345', ARRAY['orthodontics', 'implant'], '{"orthodontics": "3-5 days", "implant": "7-14 days"}', 'active');
