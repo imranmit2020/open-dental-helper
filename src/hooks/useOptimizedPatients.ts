@@ -9,7 +9,15 @@ const PATIENTS_QUERY_KEY = 'patients';
 export function useOptimizedPatients() {
   const { toast } = useToast();
   const { currentTenant } = useTenant();
-  const queryClient = useQueryClient();
+  
+  // Safely get query client with error handling
+  let queryClient;
+  try {
+    queryClient = useQueryClient();
+  } catch (error) {
+    console.error('QueryClient not available:', error);
+    throw new Error('useOptimizedPatients must be used within a QueryClientProvider');
+  }
 
   const {
     data: patients = [],
