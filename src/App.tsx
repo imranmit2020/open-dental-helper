@@ -95,6 +95,7 @@ const ETLDeveloper = lazy(() => import("./pages/ETLDeveloper"));
 const GamifiedKidsApp = lazy(() => import("./pages/GamifiedKidsApp"));
 const ReferralNetwork = lazy(() => import("./pages/ReferralNetwork"));
 const PersonalizedPreventiveCare = lazy(() => import("./pages/PersonalizedPreventiveCare"));
+const LabManagement = lazy(() => import("./pages/LabManagement"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -342,6 +343,11 @@ function App() {
             <Route path="personalized-preventive-care" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist']}>
                 <Suspense fallback={<PageLoader />}><PersonalizedPreventiveCare /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="lab-management" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist']}>
+                <Suspense fallback={<PageLoader />}><LabManagement /></Suspense>
               </ProtectedRoute>
             } />
           </Route>

@@ -765,6 +765,225 @@ export type Database = {
           },
         ]
       }
+      lab_communications: {
+        Row: {
+          attachments: string[] | null
+          created_at: string
+          id: string
+          lab_order_id: string
+          message: string
+          read_at: string | null
+          sender_id: string | null
+          sender_type: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          created_at?: string
+          id?: string
+          lab_order_id: string
+          message: string
+          read_at?: string | null
+          sender_id?: string | null
+          sender_type: string
+        }
+        Update: {
+          attachments?: string[] | null
+          created_at?: string
+          id?: string
+          lab_order_id?: string
+          message?: string
+          read_at?: string | null
+          sender_id?: string | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_communications_lab_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_order_tracking: {
+        Row: {
+          created_at: string
+          estimated_completion: string | null
+          id: string
+          images: string[] | null
+          lab_order_id: string
+          message: string | null
+          metadata: Json | null
+          progress_percentage: number | null
+          status: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          images?: string[] | null
+          lab_order_id: string
+          message?: string | null
+          metadata?: Json | null
+          progress_percentage?: number | null
+          status: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          images?: string[] | null
+          lab_order_id?: string
+          message?: string | null
+          metadata?: Json | null
+          progress_percentage?: number | null
+          status?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_order_tracking_lab_order"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_orders: {
+        Row: {
+          actual_cost: number | null
+          attachments: string[] | null
+          case_details: Json
+          created_at: string
+          delivered_date: string | null
+          dentist_id: string
+          due_date: string | null
+          estimated_cost: number | null
+          id: string
+          instructions: string | null
+          lab_provider_id: string
+          order_number: string
+          order_type: string
+          patient_id: string
+          priority: string | null
+          quality_notes: string | null
+          shipped_date: string | null
+          status: string | null
+          tenant_id: string
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          attachments?: string[] | null
+          case_details?: Json
+          created_at?: string
+          delivered_date?: string | null
+          dentist_id: string
+          due_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          instructions?: string | null
+          lab_provider_id: string
+          order_number: string
+          order_type: string
+          patient_id: string
+          priority?: string | null
+          quality_notes?: string | null
+          shipped_date?: string | null
+          status?: string | null
+          tenant_id: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          attachments?: string[] | null
+          case_details?: Json
+          created_at?: string
+          delivered_date?: string | null
+          dentist_id?: string
+          due_date?: string | null
+          estimated_cost?: number | null
+          id?: string
+          instructions?: string | null
+          lab_provider_id?: string
+          order_number?: string
+          order_type?: string
+          patient_id?: string
+          priority?: string | null
+          quality_notes?: string | null
+          shipped_date?: string | null
+          status?: string | null
+          tenant_id?: string
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lab_orders_lab_provider"
+            columns: ["lab_provider_id"]
+            isOneToOne: false
+            referencedRelation: "lab_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_providers: {
+        Row: {
+          address: string | null
+          api_endpoint: string | null
+          api_key: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          name: string
+          pricing_info: Json | null
+          specialties: string[] | null
+          status: string | null
+          tenant_id: string
+          turnaround_times: Json | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          api_endpoint?: string | null
+          api_key?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          pricing_info?: Json | null
+          specialties?: string[] | null
+          status?: string | null
+          tenant_id: string
+          turnaround_times?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          api_endpoint?: string | null
+          api_key?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          pricing_info?: Json | null
+          specialties?: string[] | null
+          status?: string | null
+          tenant_id?: string
+          turnaround_times?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_type: string
