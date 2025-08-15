@@ -121,10 +121,30 @@ export default function AdminRoleAssignment() {
     if (!row) return;
     setSavingId(user_id);
     try {
-      const { error } = await supabase
-        .from("tenant_users")
-        .upsert({ tenant_id: currentTenant.id, user_id, role: row.role }, { onConflict: "tenant_id,user_id" });
-      if (error) throw error;
+      // Update both tenant_users and profiles tables to keep them in sync
+      const [tenantUsersResult, profilesResult] = await Promise.allSettled([
+        supabase
+          .from("tenant_users")
+          .upsert({ tenant_id: currentTenant.id, user_id, role: row.role }, { onConflict: "tenant_id,user_id" }),
+        supabase
+          .from("profiles")
+          .update({ role: row.role })
+          .eq("user_id", user_id)
+      ]);
+
+      if (tenantUsersResult.status === 'rejected') {
+        throw new Error(`Failed to update tenant role: ${tenantUsersResult.reason?.message}`);
+      }
+      if (tenantUsersResult.value.error) {
+        throw tenantUsersResult.value.error;
+      }
+
+      if (profilesResult.status === 'rejected') {
+        console.warn('Failed to update profile role:', profilesResult.reason);
+      } else if (profilesResult.value.error) {
+        console.warn('Failed to update profile role:', profilesResult.value.error);
+      }
+
       toast({ title: "Role updated" });
     } catch (e:any) {
       toast({ title: "Update failed", description: e.message || "Please try again.", variant: "destructive" });
