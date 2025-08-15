@@ -71,6 +71,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
 const MyProfile = lazy(() => import("./pages/MyProfile"));
+const ProfessionalProfile = lazy(() => import("./pages/ProfessionalProfile"));
 const QAChecklist = lazy(() => import("./pages/QAChecklist"));
 const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 const DataMigration = lazy(() => import("./pages/DataMigration"));
@@ -188,6 +189,7 @@ function App() {
             <Route path="patient-insights" element={<Suspense fallback={<PageLoader />}><PracticeAnalytics /></Suspense>} />
             <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
             <Route path="my-profile" element={<Suspense fallback={<PageLoader />}><MyProfile /></Suspense>} />
+            <Route path="professional-profile" element={<Suspense fallback={<PageLoader />}><ProfessionalProfile /></Suspense>} />
             <Route path="xray-diagnostics" element={<Suspense fallback={<PageLoader />}><XRayDiagnostics /></Suspense>} />
             <Route path="treatment-plans" element={<Suspense fallback={<PageLoader />}><TreatmentPlanGenerator /></Suspense>} />
             <Route path="voice-to-chart" element={<Suspense fallback={<PageLoader />}><VoiceToChart /></Suspense>} />

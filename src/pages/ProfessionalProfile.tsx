@@ -80,7 +80,7 @@ export default function ProfessionalProfile() {
       const start = new Date(exp.start_date);
       const end = exp.end_date ? new Date(exp.end_date) : new Date();
       const years = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
-      return total + Number(years);
+      return total + Math.max(0, Number(years) || 0);
     }, 0);
   }, [profile?.experience]);
 
@@ -167,7 +167,7 @@ export default function ProfessionalProfile() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Experience</p>
-                    <p className="text-xl font-bold">{Math.round(yearsOfExperience)} years</p>
+                    <p className="text-xl font-bold">{Math.round(Number(yearsOfExperience))} years</p>
                   </div>
                 </div>
               </CardContent>
