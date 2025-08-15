@@ -136,7 +136,7 @@ function App() {
             <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/lab-provider-signup" element={<LabProviderSignUp />} />
+          <Route path="/lab-provider-signup" element={<Suspense fallback={<PageLoader />}><LabProviderSignUp /></Suspense>} />
           <Route path="/lab-provider-auth" element={<Suspense fallback={<PageLoader />}><LabProviderAuth /></Suspense>} />
           <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
