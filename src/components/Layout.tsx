@@ -45,14 +45,22 @@ const Layout = () => {
   const handleSignOut = async () => {
     try {
       setSigningOut(true);
-      await signOut();
-      navigate('/auth');
+      const result = await signOut();
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      // Force immediate navigation
+      navigate('/auth', { replace: true });
+      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
       setConfirmOpen(false);
     } catch (error) {
+      console.error('Sign out error:', error);
       toast({
         title: "Error",
         description: "Failed to sign out. Please try again.",
