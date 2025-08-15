@@ -39,6 +39,7 @@ export type ModuleKey =
   | 'admin_user_approvals'
   | 'admin_employees'
   | 'admin_roles'
+  | 'admin_user_management'
   | 'admin_passwords'
   | 'admin_add_employee'
   | 'patient_dashboard'

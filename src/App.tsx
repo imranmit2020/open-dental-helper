@@ -65,7 +65,7 @@ const QuantumDentalAI = lazy(() => import("./pages/QuantumDentalAI"));
 const QuantumScheduling = lazy(() => import("./pages/QuantumScheduling"));
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard"));
-const AdminRoleAssignment = lazy(() => import("./pages/AdminRoleAssignment"));
+const AdminUserManagement = lazy(() => import("./pages/AdminUserManagement"));
 const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
@@ -217,9 +217,9 @@ function App() {
                 <Suspense fallback={<PageLoader />}><TeamManagement /></Suspense>
               </ProtectedRoute>
             } />
-            <Route path="admin/roles" element={
+            <Route path="admin/user-management" element={
               <ProtectedRoute requiredRoles={['admin']}>
-                <Suspense fallback={<PageLoader />}><AdminRoleAssignment /></Suspense>
+                <Suspense fallback={<PageLoader />}><AdminUserManagement /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="admin/passwords" element={

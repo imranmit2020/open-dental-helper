@@ -140,10 +140,7 @@ const complianceItems: NavigationItem[] = [
 
 const adminItems: NavigationItem[] = [
   { title: "User Approvals", url: "/admin/user-approvals", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_user_approvals' },
-  { title: "Team Management", url: "/admin/employees", icon: Users, requiredRoles: ['admin'], moduleKey: 'admin_employees' },
-  { title: "Role Assignment", url: "/admin/roles", icon: User, requiredRoles: ['admin'], moduleKey: 'admin_roles' },
-  { title: "Password Management", url: "/admin/passwords", icon: Lock, requiredRoles: ['admin'], moduleKey: 'admin_passwords' },
-  { title: "Add Employee", url: "/admin/employees/new", icon: UserPlus, requiredRoles: ['admin'], moduleKey: 'admin_add_employee' },
+  { title: "User Management", url: "/admin/user-management", icon: Users, requiredRoles: ['admin'], moduleKey: 'admin_user_management' },
   { title: "Module Access", url: "/admin/navigation-permissions", icon: Settings, requiredRoles: ['admin'], moduleKey: 'admin_navigation_permissions' },
   { title: "Security Settings", url: "/admin/security-settings", icon: Shield, requiredRoles: ['admin'] },
   { title: "Audit Log", url: "/admin/audit-log", icon: ClipboardList, requiredRoles: ['admin'] },
