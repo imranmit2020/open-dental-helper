@@ -193,7 +193,7 @@ export default function LabProviderSignUp() {
       if (authData.user) {
         // Create lab provider account
         const { data: labAccount, error: labError } = await supabase
-          .from('lab_provider_accounts')
+          .from('lab_providers.lab_provider_accounts')
           .insert({
             company_name: formData.company_name,
             registration_number: formData.registration_number,
@@ -219,7 +219,7 @@ export default function LabProviderSignUp() {
 
         // Create lab provider user relationship
         await supabase
-          .from('lab_provider_users')
+          .from('lab_providers.lab_provider_users')
           .insert({
             lab_provider_account_id: labAccount.id,
             user_id: authData.user.id,

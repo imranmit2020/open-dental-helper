@@ -142,7 +142,7 @@ export default function LabManagement() {
 
   const fetchLabProviders = async () => {
     const { data, error } = await supabase
-      .from('lab_provider_accounts')
+      .from('lab_providers.lab_provider_accounts')
       .select('*')
       .eq('status', 'active')
       .eq('verification_status', 'verified');
@@ -163,7 +163,7 @@ export default function LabManagement() {
 
   const fetchTrackingData = async () => {
     const { data, error } = await supabase
-      .from('lab_order_tracking')
+      .from('lab_providers.lab_order_tracking')
       .select('*')
       .order('created_at', { ascending: true });
 
