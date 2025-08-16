@@ -170,6 +170,7 @@ export default function ChairsideAssistant() {
   const [open, setOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<OptimizedPatient[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const { user } = useAuth();
   const { searchPatients } = useOptimizedPatients();
   const [providerName, setProviderName] = useState<string | null>(null);
@@ -192,28 +193,37 @@ useEffect(() => {
   fetchProfileName();
 }, [user?.id]);
 
-const handlePatientSearch = useCallback(async (searchValue: string) => {
+// Debounced search effect
+useEffect(() => {
   if (!searchValue.trim()) {
     setSearchResults([]);
+    setSearchLoading(false);
     return;
   }
-  
+
   setSearchLoading(true);
-  try {
-    const results = await searchPatients(searchValue);
-    setSearchResults(results);
-  } catch (err) {
-    console.error('Error searching patients:', err);
-    toast.error("Failed to search patients");
-  } finally {
-    setSearchLoading(false);
-  }
-}, [searchPatients]);
+  const timer = setTimeout(async () => {
+    try {
+      const results = await searchPatients(searchValue);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Error searching patients:', err);
+      toast.error("Failed to search patients");
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [searchValue, searchPatients]);
 
 const handlePatientSelect = (patient: OptimizedPatient) => {
   setSelectedPatient(patient.id);
   setSelectedPatientName(`${patient.last_name}, ${patient.first_name}`);
   setOpen(false);
+  setSearchResults([]);
+  setSearchValue("");
 };
 
 const analysisResults = useMemo(() => {
@@ -331,11 +341,12 @@ const seedDemo = async () => {
                 <Command>
                   <CommandInput 
                     placeholder="Search patients..." 
-                    onValueChange={handlePatientSearch}
+                    value={searchValue}
+                    onValueChange={setSearchValue}
                   />
                   <CommandList>
                     <CommandEmpty>
-                      {searchLoading ? "Searching..." : "No patients found."}
+                      {searchLoading ? "Searching..." : !searchValue ? "Type to search for patients..." : "No patients found."}
                     </CommandEmpty>
                     <CommandGroup>
                       {searchResults.map((patient) => (
