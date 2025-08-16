@@ -19,6 +19,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import TeledentistrySessionManager from '@/components/TeledentistrySessionManager';
 import NewTeledentistrySessionForm from '@/components/NewTeledentistrySessionForm';
 import { useToast } from '@/hooks/use-toast';
+import TeleDentistrySkeleton from '@/components/TeleDentistrySkeleton';
 
 export default function Teledentistry() {
   const { toast } = useToast();
@@ -185,10 +186,7 @@ export default function Teledentistry() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-2">Loading sessions...</p>
-            </div>
+            <TeleDentistrySkeleton />
           ) : todaySessions.length === 0 ? (
             <div className="text-center py-12">
               <Video className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />

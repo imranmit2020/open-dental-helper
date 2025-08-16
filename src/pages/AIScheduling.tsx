@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AISchedulingService } from "@/services/AISchedulingService";
 import { useAppointments } from "@/hooks/useAppointments";
+import AISchedulingSkeleton from "@/components/AISchedulingSkeleton";
 
 export default function AIScheduling() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -182,6 +183,10 @@ export default function AIScheduling() {
     }
     setCurrentDate(newDate);
   };
+
+  if (loading) {
+    return <AISchedulingSkeleton />;
+  }
 
   return (
       <div className="space-y-6">

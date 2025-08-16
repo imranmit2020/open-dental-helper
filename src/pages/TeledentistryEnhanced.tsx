@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { RealtimeChat } from "@/utils/RealtimeAudio";
 import { useTeledentistry, TeledentistrySession as DbSession } from "@/hooks/useTeledentistry";
 import { supabase } from "@/integrations/supabase/client";
+import TeleDentistrySkeleton from "@/components/TeleDentistrySkeleton";
 
 // Use DB session type
 
@@ -352,7 +353,7 @@ export default function TeledentistryEnhanced() {
             <CardContent>
               <div className="space-y-3">
                 {isLoading ? (
-                  <p className="text-muted-foreground">Loading sessions…</p>
+                  <TeleDentistrySkeleton />
                 ) : todaySessions.length === 0 ? (
                   <p className="text-muted-foreground">No sessions scheduled for today.</p>
                 ) : (

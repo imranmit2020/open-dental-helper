@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { DentistAvailabilityManager } from "@/components/DentistAvailabilityManager";
 import { StaffAvailabilityManager } from "@/components/StaffAvailabilityManager";
+import ScheduleManagementSkeleton from "@/components/ScheduleManagementSkeleton";
 
 function setSEO() {
   document.title = "Schedule Management | DentalAI Pro";
@@ -27,10 +28,18 @@ function setSEO() {
 
 export default function ScheduleManagement() {
   const [tab, setTab] = useState("dentists");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setSEO();
+    // Simulate loading time for complex availability data
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
   }, []);
+
+  if (loading) {
+    return <ScheduleManagementSkeleton />;
+  }
 
   return (
     <main className="space-y-6">

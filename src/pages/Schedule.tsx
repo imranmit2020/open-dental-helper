@@ -25,6 +25,7 @@ import BlockTimeForm from "@/components/BlockTimeForm";
 import WalkInForm from "@/components/WalkInForm";
 import RescheduleDialog from "@/components/RescheduleDialog";
 import StartVisitDialog from "@/components/StartVisitDialog";
+import ScheduleSkeleton from "@/components/ScheduleSkeleton";
 
 export default function Schedule() {
   const { t } = useLanguage();
@@ -287,6 +288,10 @@ export default function Schedule() {
       currentDate: currentDate.toISOString()
     });
   }, [user, isAdmin, providerId, appointments.length, displayAppointments.length, loading, view, filter, currentDate]);
+
+  if (loading) {
+    return <ScheduleSkeleton />;
+  }
 
   return (
     <div className="space-y-6">
