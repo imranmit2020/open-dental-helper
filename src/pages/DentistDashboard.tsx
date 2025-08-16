@@ -25,6 +25,7 @@ import {
   Loader2
 } from "lucide-react";
 import ReviewRequestDialog from "@/components/ReviewRequestDialog";
+import { DentistDashboardSkeleton } from "@/components/DentistDashboardSkeleton";
 
 interface Appointment {
   id: string;
@@ -114,149 +115,145 @@ const DentistDashboard = () => {
   const fetchDashboardData = async () => {
     if (!user) return;
 
+    let isMounted = true;
     setLoading(true);
+    
     try {
       const today = new Date();
       const startOfToday = startOfDay(today);
       const endOfToday = endOfDay(today);
-
-      // Fetch current user's provider profile id
-      const { data: profileRow, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (profileError) throw profileError;
-      const providerId = profileRow?.id;
-      const isAdmin = (profileRow?.role || '').toLowerCase() === 'admin';
-
-      // Determine tenant scope and fetch patient IDs in current tenant
-      const tenantId = currentTenant?.id as string | undefined;
-      let tenantPatientIds: string[] = [];
-      if (tenantId) {
-        const { data: tenantPatients, error: tpError } = await supabase
-          .from('patients')
-          .select('id')
-          .eq('tenant_id', tenantId);
-        if (tpError) throw tpError;
-        tenantPatientIds = (tenantPatients || []).map(p => p.id);
-      }
-
-      // Fetch today's appointments (admin sees all; others see own)
-      let apptQuery = supabase
-        .from('appointments')
-        .select(`
-          *,
-          patient:patients(id, first_name, last_name)
-        `)
-        .gte('appointment_date', startOfToday.toISOString())
-        .lte('appointment_date', endOfToday.toISOString())
-        .order('appointment_date', { ascending: true });
-      if (!isAdmin && providerId) {
-        apptQuery = apptQuery.eq('dentist_id', providerId);
-      }
-      if (tenantId) {
-        apptQuery = apptQuery.eq('tenant_id', tenantId);
-      }
-      const { data: appointments, error: appointmentsError } = await apptQuery;
-
-      if (appointmentsError) throw appointmentsError;
-
-      // Fetch recent medical records (last 10)
-      let mrQuery = supabase
-        .from('medical_records')
-        .select(`
-          *,
-          patient:patients(id, first_name, last_name)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (tenantPatientIds.length > 0) {
-        mrQuery = mrQuery.in('patient_id', tenantPatientIds);
-      }
-      const { data: medicalRecords, error: recordsError } = await mrQuery;
-
-      if (recordsError) throw recordsError;
-
-      // Fetch patient alerts (allergies and conditions)
-      let allergiesQuery = supabase
-        .from('allergies')
-        .select(`
-          *,
-          patient:patients(id, first_name, last_name)
-        `)
-        .in('severity', ['severe', 'moderate'])
-        .limit(5);
-      if (tenantPatientIds.length > 0) {
-        allergiesQuery = allergiesQuery.in('patient_id', tenantPatientIds);
-      }
-
-      let conditionsQuery = supabase
-        .from('medical_conditions')
-        .select(`
-          *,
-          patient:patients(id, first_name, last_name)
-        `)
-        .eq('status', 'active')
-        .limit(5);
-      if (tenantPatientIds.length > 0) {
-        conditionsQuery = conditionsQuery.in('patient_id', tenantPatientIds);
-      }
-
-      const [allergiesResult, conditionsResult] = await Promise.all([
-        allergiesQuery,
-        conditionsQuery
-      ]);
-
-      if (allergiesResult.error) throw allergiesResult.error;
-      if (conditionsResult.error) throw conditionsResult.error;
-
-      // Fetch dashboard stats (admin sees all; others see own)
-      let statsQuery = supabase
-        .from('appointments')
-        .select('id, status, appointment_date');
-      if (!isAdmin && providerId) {
-        statsQuery = statsQuery.eq('dentist_id', providerId);
-      }
-      if (tenantId) {
-        statsQuery = statsQuery.eq('tenant_id', tenantId);
-      }
-      const { data: allAppointments, error: allAppointmentsError } = await statsQuery;
-      if (allAppointmentsError) throw allAppointmentsError;
-
-      const { data: patients, error: patientsError } = await supabase
-        .from('patients')
-        .select('id');
-
-      if (patientsError) throw patientsError;
-
-      // Open appointments today (exclude blocked/cancelled/completed)
-      const todayOpenCount = allAppointments?.filter(apt => {
-        const isTodayApt = isToday(new Date(apt.appointment_date));
-        const isOpen = ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
-        return isTodayApt && isOpen;
-      }).length || 0;
-
-      const completedTodayCount = allAppointments?.filter(apt => 
-        isToday(new Date(apt.appointment_date)) && apt.status === 'completed'
-      ).length || 0;
-
-      // Upcoming tomorrow (open statuses only)
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
       const startOfTomorrow = startOfDay(tomorrow);
       const endOfTomorrow = endOfDay(tomorrow);
 
-      const upcomingTomorrowCount = allAppointments?.filter(apt => {
-        const d = new Date(apt.appointment_date);
-        const isTomorrow = d >= startOfTomorrow && d <= endOfTomorrow;
-        const isOpen = ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
-        return isTomorrow && isOpen;
-      }).length || 0;
+      // Fetch user profile and tenant info first
+      const { data: profileRow, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (profileError) throw profileError;
+      if (!isMounted) return;
 
-      // Set state
-      setTodayAppointments(appointments || []);
-      setRecentTreatments(medicalRecords || []);
+      const providerId = profileRow?.id;
+      const isAdmin = (profileRow?.role || '').toLowerCase() === 'admin';
+      const tenantId = currentTenant?.id;
+
+      // Build base query conditions
+      const baseConditions = tenantId ? { tenant_id: tenantId } : {};
+      const providerConditions = !isAdmin && providerId ? { dentist_id: providerId } : {};
+
+      // Parallel fetch all required data
+      const [
+        todayApptsResult,
+        allApptsResult,
+        medicalRecordsResult,
+        allergiesResult,
+        conditionsResult,
+        patientsResult
+      ] = await Promise.all([
+        // Today's appointments
+        supabase
+          .from('appointments')
+          .select(`
+            *,
+            patient:patients(id, first_name, last_name)
+          `)
+          .gte('appointment_date', startOfToday.toISOString())
+          .lte('appointment_date', endOfToday.toISOString())
+          .match({ ...baseConditions, ...providerConditions })
+          .order('appointment_date', { ascending: true }),
+
+        // All appointments for stats (optimized with select)
+        supabase
+          .from('appointments')
+          .select('id, status, appointment_date')
+          .match({ ...baseConditions, ...providerConditions }),
+
+        // Recent medical records (limit early)
+        supabase
+          .from('medical_records')
+          .select(`
+            *,
+            patient:patients!inner(id, first_name, last_name, tenant_id)
+          `)
+          .match(tenantId ? { 'patient.tenant_id': tenantId } : {})
+          .order('created_at', { ascending: false })
+          .limit(10),
+
+        // Patient alerts - allergies
+        supabase
+          .from('allergies')
+          .select(`
+            *,
+            patient:patients!inner(id, first_name, last_name, tenant_id)
+          `)
+          .in('severity', ['severe', 'moderate'])
+          .match(tenantId ? { 'patient.tenant_id': tenantId } : {})
+          .limit(5),
+
+        // Patient alerts - conditions
+        supabase
+          .from('medical_conditions')
+          .select(`
+            *,
+            patient:patients!inner(id, first_name, last_name, tenant_id)
+          `)
+          .eq('status', 'active')
+          .match(tenantId ? { 'patient.tenant_id': tenantId } : {})
+          .limit(5),
+
+        // Total patients count
+        supabase
+          .from('patients')
+          .select('id', { count: 'exact', head: true })
+          .match(tenantId ? { tenant_id: tenantId } : {})
+      ]);
+
+      // Check for errors
+      const errors = [
+        todayApptsResult.error,
+        allApptsResult.error,
+        medicalRecordsResult.error,
+        allergiesResult.error,
+        conditionsResult.error,
+        patientsResult.error
+      ].filter(Boolean);
+
+      if (errors.length > 0) {
+        throw new Error(`Database errors: ${errors.map(e => e?.message).join(', ')}`);
+      }
+
+      if (!isMounted) return;
+
+      // Process stats efficiently
+      const allAppointments = allApptsResult.data || [];
+      const todayOpenCount = allAppointments.filter(apt => {
+        const aptDate = new Date(apt.appointment_date);
+        return aptDate >= startOfToday && 
+               aptDate <= endOfToday && 
+               ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
+      }).length;
+
+      const completedTodayCount = allAppointments.filter(apt => {
+        const aptDate = new Date(apt.appointment_date);
+        return aptDate >= startOfToday && 
+               aptDate <= endOfToday && 
+               apt.status === 'completed';
+      }).length;
+
+      const upcomingTomorrowCount = allAppointments.filter(apt => {
+        const aptDate = new Date(apt.appointment_date);
+        return aptDate >= startOfTomorrow && 
+               aptDate <= endOfTomorrow && 
+               ['scheduled', 'confirmed', 'pending'].includes(apt.status || 'scheduled');
+      }).length;
+
+      // Update state
+      setTodayAppointments(todayApptsResult.data || []);
+      setRecentTreatments(medicalRecordsResult.data || []);
       setPatientAlerts([
         ...(allergiesResult.data || []),
         ...(conditionsResult.data || [])
@@ -265,19 +262,27 @@ const DentistDashboard = () => {
         totalAppointments: todayOpenCount,
         completedToday: completedTodayCount,
         upcomingTomorrow: upcomingTomorrowCount,
-        totalPatients: patients?.length || 0
+        totalPatients: patientsResult.count || 0
       });
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive",
-      });
+      if (isMounted) {
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard data. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
+
+    return () => {
+      isMounted = false;
+    };
   };
 
   const getStatusColor = (status: string) => {
@@ -315,14 +320,7 @@ const DentistDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading dashboard...</span>
-        </div>
-      </div>
-    );
+    return <DentistDashboardSkeleton />;
   }
 
   return (
