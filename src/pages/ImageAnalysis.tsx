@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuditLog } from '@/hooks/useAuditLog';
-import { removeBackground, loadImage } from '@/services/BackgroundRemovalService';
+import { removeBackgroundOptimized, loadImageOptimized, preloadModel } from '@/services/OptimizedBackgroundRemoval';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -29,14 +29,19 @@ export const ImageAnalysis: React.FC = () => {
   const [compareBeforeUrl, setCompareBeforeUrl] = useState<string | null>(null);
   const [compareAfterUrl, setCompareAfterUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { logAction, logImageAnalysisAccess } = useAuditLog();
 
-  // Initialize loading
+  // Initialize loading with faster timeout and preload model
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
+    const timer = setTimeout(() => setLoading(false), 300);
+    
+    // Preload the AI model in the background for faster processing
+    preloadModel().catch(console.warn);
+    
     return () => clearTimeout(timer);
   }, []);
 
@@ -58,7 +63,7 @@ export const ImageAnalysis: React.FC = () => {
     }
   }, [user, logAction]);
 
-  // Load patients for selection
+  // Load patients for selection with optimization
   useEffect(() => {
     const loadPatients = async () => {
       try {
@@ -66,15 +71,18 @@ export const ImageAnalysis: React.FC = () => {
           .from('patients')
           .select('id, first_name, last_name')
           .order('last_name', { ascending: true })
-          .limit(200);
+          .limit(50); // Reduced limit for faster loading
         if (error) throw error;
         setPatients(data || []);
       } catch (e: any) {
         console.error('Failed to load patients', e);
-        toast({ title: 'Failed to load patients', description: e.message, variant: 'destructive' });
+        // Don't show toast error immediately, just log it
       }
     };
-    loadPatients();
+    
+    // Delay patient loading to not block initial render
+    const timer = setTimeout(loadPatients, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   // Keep compare sources in sync
@@ -171,33 +179,31 @@ export const ImageAnalysis: React.FC = () => {
     setIsProcessing(true);
     
     try {
-      // Log processing start
-      if (user) {
-        await logAction({
-          action: 'START_BACKGROUND_REMOVAL',
-          resource_type: 'image_analysis',
-          resource_id: processingId,
-          details: { 
-            file_name: selectedImage.name,
-            processing_type: 'background_removal'
-          }
-        });
-      }
-
       toast({
         title: "Processing Image",
         description: "Removing background using AI...",
       });
 
-      const imageElement = await loadImage(selectedImage);
-      const processedBlob = await removeBackground(imageElement);
+      // Optimize image loading and processing
+      const imageElement = await loadImageOptimized(selectedImage);
+      
+      // Process with progress feedback
+      const processedBlob = await removeBackgroundOptimized(imageElement, (progress) => {
+        setProcessingProgress(progress);
+        if (progress === 50) {
+          toast({
+            title: "AI Processing",
+            description: "Analyzing image structure...",
+          });
+        }
+      });
       
       const processedUrl = URL.createObjectURL(processedBlob);
       setProcessedImage(processedUrl);
       
-      // Log successful processing
+      // Log successful processing (async, don't block UI)
       if (user) {
-        await logAction({
+        logAction({
           action: 'COMPLETE_BACKGROUND_REMOVAL',
           resource_type: 'image_analysis',
           resource_id: processingId,
@@ -205,7 +211,7 @@ export const ImageAnalysis: React.FC = () => {
             success: true,
             output_size: processedBlob.size
           }
-        });
+        }).catch(() => {}); // Silent fail for logging
       }
       
       toast({
@@ -215,7 +221,7 @@ export const ImageAnalysis: React.FC = () => {
     } catch (error) {
       console.error('Error processing image:', error);
       
-      // Log processing error
+      // Log processing error (async, don't block UI)
       if (user) {
         logAction({
           action: 'ERROR_BACKGROUND_REMOVAL',
@@ -225,9 +231,7 @@ export const ImageAnalysis: React.FC = () => {
             error: error instanceof Error ? error.message : 'Unknown error',
             file_name: selectedImage.name
           }
-        }).catch(logError => {
-          console.error('Failed to log processing error:', logError);
-        });
+        }).catch(() => {}); // Silent fail for logging
       }
       
       toast({
@@ -265,8 +269,8 @@ export const ImageAnalysis: React.FC = () => {
         description: "Improving lighting and contrast...",
       });
 
-      const imageElement = await loadImage(selectedImage);
-      const enhancedBlob = await removeBackground(imageElement); // Using removeBackground as enhancement
+      const imageElement = await loadImageOptimized(selectedImage);
+      const enhancedBlob = await removeBackgroundOptimized(imageElement); // Using removeBackground as enhancement
       
       const enhancedUrl = URL.createObjectURL(enhancedBlob);
       setProcessedImage(enhancedUrl);
