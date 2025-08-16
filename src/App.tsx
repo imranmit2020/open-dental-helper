@@ -8,7 +8,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
-import LabRoutes from "@/components/LabRoutes";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -137,7 +136,8 @@ function App() {
             <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/lab-provider/*" element={<LabRoutes />} />
+          <Route path="/lab-provider-signup" element={<LabProviderSignUp />} />
+          <Route path="/lab-provider-auth" element={<Suspense fallback={<PageLoader />}><LabProviderAuth /></Suspense>} />
           <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
           <Route path="/patient-signup" element={<PatientSignUp />} />
@@ -357,6 +357,9 @@ function App() {
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist']}>
                 <Suspense fallback={<PageLoader />}><LabManagement /></Suspense>
               </ProtectedRoute>
+            } />
+            <Route path="lab-provider-dashboard" element={
+              <Suspense fallback={<PageLoader />}><LabProviderDashboard /></Suspense>
             } />
             <Route path="employee-onboarding" element={<Suspense fallback={<PageLoader />}><EmployeeOnboarding /></Suspense>} />
           </Route>
