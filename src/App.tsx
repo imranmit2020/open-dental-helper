@@ -7,6 +7,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { useAuth } from "@/hooks/useAuth";
+import { LabAuthProvider } from "@/hooks/useLabAuth";
 import Layout from "@/components/Layout";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
@@ -136,8 +137,16 @@ function App() {
             <SidebarProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/lab-provider-signup" element={<Suspense fallback={<PageLoader />}><LabProviderSignUp /></Suspense>} />
-          <Route path="/lab-provider-auth" element={<Suspense fallback={<PageLoader />}><LabProviderAuth /></Suspense>} />
+          <Route path="/lab-provider-signup" element={
+            <LabAuthProvider>
+              <Suspense fallback={<PageLoader />}><LabProviderSignUp /></Suspense>
+            </LabAuthProvider>
+          } />
+          <Route path="/lab-provider-auth" element={
+            <LabAuthProvider>
+              <Suspense fallback={<PageLoader />}><LabProviderAuth /></Suspense>
+            </LabAuthProvider>
+          } />
           <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
           <Route path="/patient-signin" element={<PatientSignIn />} />
           <Route path="/patient-signup" element={<PatientSignUp />} />
@@ -359,7 +368,9 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="lab-provider-dashboard" element={
-              <Suspense fallback={<PageLoader />}><LabProviderDashboard /></Suspense>
+              <LabAuthProvider>
+                <Suspense fallback={<PageLoader />}><LabProviderDashboard /></Suspense>
+              </LabAuthProvider>
             } />
             <Route path="employee-onboarding" element={<Suspense fallback={<PageLoader />}><EmployeeOnboarding /></Suspense>} />
           </Route>

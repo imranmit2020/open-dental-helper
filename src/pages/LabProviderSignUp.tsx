@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import LabProviderWrapper from '@/components/LabProviderWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -232,8 +231,7 @@ export default function LabProviderSignUp() {
   const progress = (currentStep / 4) * 100;
 
   return (
-    <LabProviderWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <Card className="shadow-2xl border-0 bg-gradient-to-br from-card to-card/80">
           <CardHeader className="text-center pb-2">
@@ -600,6 +598,5 @@ export default function LabProviderSignUp() {
         </Card>
       </div>
     </div>
-    </LabProviderWrapper>
   );
 }
