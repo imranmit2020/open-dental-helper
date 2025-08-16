@@ -3,17 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill, Search, Check, ChevronsUpDown } from "lucide-react";
+import { Brain, Shield, AlertTriangle, Clock, Syringe, Heart, Pill } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog, UpdateAllergiesDialog } from "@/components/chairside/ActionDialogs";
 import { useAuth } from "@/hooks/useAuth";
 import ChairsideAssistantSkeleton from "@/components/ChairsideAssistantSkeleton";
-import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
-import { Patient as OptimizedPatient } from "@/hooks/usePatients";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -154,8 +149,8 @@ function analyzePatientData(currentProcedure: string, allergies: AllergyRow[], m
 }
 
 export default function ChairsideAssistant() {
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<string>("");
-  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
   const [currentProcedure, setCurrentProcedure] = useState("root_canal");
   const [alerts, setAlerts] = useState<PatientAlert[]>([]);
   const [anesthesiaRec, setAnesthesiaRec] = useState<AnesthesiaRecommendation | null>(null);
@@ -167,12 +162,7 @@ export default function ChairsideAssistant() {
   const [openSecondOpinion, setOpenSecondOpinion] = useState(false);
   const [openUpdateAllergies, setOpenUpdateAllergies] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<OptimizedPatient[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const { user } = useAuth();
-  const { searchPatients } = useOptimizedPatients();
   const [providerName, setProviderName] = useState<string | null>(null);
 
 useEffect(() => {
@@ -193,49 +183,35 @@ useEffect(() => {
   fetchProfileName();
 }, [user?.id]);
 
-// Debounced search function
-const debouncedSearch = useCallback(async (query: string) => {
-  if (!query.trim()) {
-    setSearchResults([]);
-    setSearchLoading(false);
-    return;
-  }
-
-  setSearchLoading(true);
+const loadPatients = useCallback(async () => {
+  setLoading(true);
   try {
-    const results = await searchPatients(query);
-    setSearchResults(results);
+    const { data, error } = await supabase
+      .from('patients')
+      .select('id, first_name, last_name, date_of_birth, gender')
+      .order('last_name', { ascending: true })
+      .limit(50);
+    if (error) throw error;
+    const list = (data || []) as Patient[];
+    setPatients(list);
+    if (!selectedPatient && list.length > 0) {
+      setSelectedPatient(list[0].id);
+    }
+    if (!list || list.length === 0) {
+      toast("No patients found. You can seed demo data.");
+    }
   } catch (err) {
-    console.error('Error searching patients:', err);
-    toast.error("Failed to search patients");
-    setSearchResults([]);
+    console.error('Error loading patients:', err);
+    toast.error("Failed to load patients");
   } finally {
-    setSearchLoading(false);
+    setLoading(false);
   }
-}, [searchPatients]);
+}, [selectedPatient]);
 
-// Debounced search effect
 useEffect(() => {
-  if (!searchValue.trim()) {
-    setSearchResults([]);
-    setSearchLoading(false);
-    return;
-  }
-
-  const timer = setTimeout(() => {
-    debouncedSearch(searchValue);
-  }, 300);
-
-  return () => clearTimeout(timer);
-}, [searchValue, debouncedSearch]);
-
-const handlePatientSelect = (patient: OptimizedPatient) => {
-  setSelectedPatient(patient.id);
-  setSelectedPatientName(`${patient.last_name}, ${patient.first_name}`);
-  setOpen(false);
-  setSearchResults([]);
-  setSearchValue("");
-};
+  loadPatients();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
 const analysisResults = useMemo(() => {
   if (!selectedPatient) return null;
@@ -283,6 +259,7 @@ const seedDemo = async () => {
     setLoading(true);
     const { data, error } = await supabase.functions.invoke('seed-chairside-data', { body: {} });
     if (error) throw error;
+    await loadPatients();
     toast.success("Demo data seeded");
   } catch (err) {
     console.error('Seed error:', err);
@@ -336,58 +313,23 @@ const seedDemo = async () => {
             <CardTitle className="text-lg">Current Patient</CardTitle>
           </CardHeader>
           <CardContent>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-full justify-between"
-                >
-                  {selectedPatientName || "Search for a patient..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
-                <Command>
-                  <CommandInput 
-                    placeholder="Search patients..." 
-                    value={searchValue}
-                    onValueChange={setSearchValue}
-                  />
-                  <CommandList>
-                    <CommandEmpty>
-                      {searchLoading ? "Searching..." : !searchValue ? "Type to search for patients..." : "No patients found."}
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {searchResults.map((patient) => (
-                        <CommandItem
-                          key={patient.id}
-                          value={patient.id}
-                          onSelect={() => handlePatientSelect(patient)}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedPatient === patient.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <div>
-                            <div className="font-medium">
-                              {patient.last_name}, {patient.first_name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {patient.date_of_birth ? `Age: ${calcAge(patient.date_of_birth)}` : 'Age: Unknown'}
-                              {patient.gender ? ` • ${patient.gender}` : ''}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <select 
+              value={selectedPatient}
+              onChange={(e) => setSelectedPatient(e.target.value)}
+              className="w-full p-2 border rounded-md"
+              disabled={loading || patients.length === 0}
+            >
+              <option value="" disabled>
+                {loading ? 'Loading patients...' : patients.length === 0 ? 'No patients found' : 'Select a patient'}
+              </option>
+              {patients.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.last_name}, {p.first_name}
+                  {p.date_of_birth ? ` (Age: ${calcAge(p.date_of_birth)})` : ''}
+                  {p.gender ? `, ${p.gender}` : ''}
+                </option>
+              ))}
+            </select>
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="outline" onClick={seedDemo} disabled={loading}>
                 Seed demo data
@@ -424,32 +366,24 @@ const seedDemo = async () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {alerts.length === 0 ? (
-            <Alert>
-              <AlertDescription>
-                {selectedPatient ? "No critical alerts for this patient." : "Select a patient to view alerts."}
-              </AlertDescription>
-            </Alert>
-          ) : (
-            alerts.map((alert, index) => (
-              <Alert key={index} className={getSeverityColor(alert.severity)}>
-                <div className="flex items-start gap-3">
-                  {getAlertIcon(alert.type)}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">{alert.message}</span>
-                      <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
-                        {alert.severity}
-                      </Badge>
-                    </div>
-                    <AlertDescription>
-                      <strong>Recommendation:</strong> {alert.recommendation}
-                    </AlertDescription>
+          {alerts.map((alert, index) => (
+            <Alert key={index} className={getSeverityColor(alert.severity)}>
+              <div className="flex items-start gap-3">
+                {getAlertIcon(alert.type)}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold">{alert.message}</span>
+                    <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                      {alert.severity}
+                    </Badge>
                   </div>
+                  <AlertDescription>
+                    <strong>Recommendation:</strong> {alert.recommendation}
+                  </AlertDescription>
                 </div>
-              </Alert>
-            ))
-          )}
+              </div>
+            </Alert>
+          ))}
         </CardContent>
       </Card>
 
