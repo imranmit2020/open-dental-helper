@@ -40,8 +40,7 @@ const AIAssistant = () => {
   ];
 
   useEffect(() => {
-    const timer = setTimeout(() => setPageLoading(false), 1000);
-    return () => clearTimeout(timer);
+    setPageLoading(false);
   }, []);
 
   useEffect(() => {
