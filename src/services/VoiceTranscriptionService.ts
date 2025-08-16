@@ -9,10 +9,13 @@ interface VoiceRecognitionResult {
 export class VoiceTranscriptionService {
   private recognition: any | null = null;
   private isListening = false;
+  private lastProcessedTime = 0;
   private medicalTermsDict = [
     'cavity', 'filling', 'crown', 'root canal', 'extraction', 'periodontal',
     'gingivitis', 'plaque', 'tartar', 'orthodontics', 'braces', 'implant',
-    'veneer', 'whitening', 'fluoride', 'anesthesia', 'novocaine', 'wisdom teeth'
+    'veneer', 'whitening', 'fluoride', 'anesthesia', 'novocaine', 'wisdom teeth',
+    'molar', 'incisor', 'canine', 'premolar', 'enamel', 'dentine', 'pulp',
+    'gums', 'bite', 'occlusion', 'x-ray', 'cleaning', 'checkup', 'appointment'
   ];
 
   constructor() {
@@ -29,38 +32,76 @@ export class VoiceTranscriptionService {
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
     this.recognition.lang = 'en-US';
+    this.recognition.maxAlternatives = 1;
+    
+    // Optimize for faster processing
+    if ('webkitSpeechRecognition' in window) {
+      this.recognition.serviceURI = 'wss://www.google.com/speech-api/v2/recognize';
+    }
   }
 
   async startListening(onResult: (result: VoiceRecognitionResult) => void): Promise<void> {
     if (!this.recognition || this.isListening) return;
 
     this.isListening = true;
+    this.lastProcessedTime = Date.now();
     
     this.recognition.onresult = (event) => {
+      const now = Date.now();
+      
+      // Throttle processing to avoid excessive calls
+      if (now - this.lastProcessedTime < 100) return;
+      this.lastProcessedTime = now;
+
       let finalTranscript = '';
       let interimTranscript = '';
+      let bestConfidence = 0;
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
+        const confidence = event.results[i][0].confidence || 0.8;
+        
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
+          bestConfidence = Math.max(bestConfidence, confidence);
         } else {
           interimTranscript += transcript;
+          bestConfidence = Math.max(bestConfidence, confidence * 0.7); // Lower confidence for interim
         }
       }
 
       const fullTranscript = finalTranscript || interimTranscript;
-      const result = this.analyzeTranscript(fullTranscript, event.results[0][0].confidence || 0.8);
-      onResult(result);
+      if (fullTranscript.trim().length > 2) { // Only process meaningful content
+        const result = this.analyzeTranscript(fullTranscript, bestConfidence);
+        onResult(result);
+      }
     };
 
     this.recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       this.isListening = false;
+      
+      // Auto-restart on network errors
+      if (event.error === 'network' && this.isListening) {
+        setTimeout(() => {
+          if (this.isListening) {
+            this.recognition.start();
+          }
+        }, 1000);
+      }
     };
 
     this.recognition.onend = () => {
       this.isListening = false;
+      
+      // Auto-restart if still supposed to be listening
+      if (this.isListening) {
+        setTimeout(() => {
+          if (this.isListening) {
+            this.recognition.start();
+          }
+        }, 100);
+      }
     };
 
     this.recognition.start();
@@ -76,26 +117,40 @@ export class VoiceTranscriptionService {
   private analyzeTranscript(transcript: string, confidence: number): VoiceRecognitionResult {
     const lowerTranscript = transcript.toLowerCase();
     
-    // Detect medical terms
-    const medicalTerms = this.medicalTermsDict.filter(term => 
-      lowerTranscript.includes(term)
-    );
+    // Optimized medical terms detection using regex for better performance
+    const medicalTerms = this.medicalTermsDict.filter(term => {
+      const regex = new RegExp(`\\b${term}\\b`, 'i');
+      return regex.test(transcript);
+    });
 
-    // Analyze anxiety level based on speech patterns
-    const anxietyKeywords = ['nervous', 'scared', 'worried', 'anxious', 'afraid', 'uncomfortable'];
-    const anxietyScore = anxietyKeywords.reduce((score, keyword) => {
-      return score + (lowerTranscript.includes(keyword) ? 0.2 : 0);
-    }, 0);
+    // Enhanced anxiety analysis with more keywords
+    const anxietyKeywords = [
+      'nervous', 'scared', 'worried', 'anxious', 'afraid', 'uncomfortable',
+      'panic', 'stress', 'tense', 'uneasy', 'concerned', 'apprehensive'
+    ];
+    
+    let anxietyScore = 0;
+    const words = lowerTranscript.split(/\s+/);
+    
+    anxietyKeywords.forEach(keyword => {
+      const matches = words.filter(word => word.includes(keyword)).length;
+      anxietyScore += matches * 0.15; // Reduced multiplier for better balance
+    });
 
-    // Detect pain indicators
-    const painKeywords = ['hurt', 'pain', 'ache', 'sore', 'sensitive', 'throb', 'sharp', 'dull'];
-    const painIndicators = painKeywords.filter(keyword => 
-      lowerTranscript.includes(keyword)
-    );
+    // Enhanced pain detection with severity indicators
+    const painKeywords = [
+      'hurt', 'pain', 'ache', 'sore', 'sensitive', 'throb', 'sharp', 'dull',
+      'burning', 'stabbing', 'tender', 'inflamed', 'swollen', 'uncomfortable'
+    ];
+    
+    const painIndicators = painKeywords.filter(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+      return regex.test(transcript);
+    });
 
     return {
-      transcript,
-      confidence,
+      transcript: transcript.trim(),
+      confidence: Math.max(0.1, Math.min(1, confidence)), // Ensure valid range
       medicalTerms,
       anxietyLevel: Math.min(anxietyScore, 1),
       painIndicators
