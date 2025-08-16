@@ -28,6 +28,7 @@ import {
   Clock,
   X
 } from "lucide-react";
+import { PatientsSkeleton } from "@/components/PatientsSkeleton";
 
 function Patients() {
   const navigate = useNavigate();
@@ -58,53 +59,66 @@ function Patients() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
       fetchStats();
     }
-  }, [user]);
+  }, [user, currentTenant?.id, loading]);
 
   const fetchStats = async () => {
     try {
-      // Get total patients count
-      const { count: totalCount } = await supabase
-        .from('patients')
-        .select('*', { count: 'exact', head: true });
-
-      // Get active treatments count
-      const { count: treatmentCount } = await supabase
-        .from('appointments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'scheduled');
-
-      // Get overdue checkups (patients with no recent appointments)
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       
-      const { count: overdueCount } = await supabase
-        .from('patients')
-        .select('*', { count: 'exact', head: true })
-        .lt('last_visit', sixMonthsAgo.toISOString().split('T')[0]);
-
-      // Get appointments this month
       const thisMonth = new Date();
       const firstDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
       const lastDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 0);
 
-      const { count: monthlyCount } = await supabase
-        .from('appointments')
-        .select('*', { count: 'exact', head: true })
-        .gte('appointment_date', firstDay.toISOString())
-        .lte('appointment_date', lastDay.toISOString())
-        .eq('status', 'completed');
+      // Parallel fetch all stats with optimized queries
+      const [
+        totalPatientsResult,
+        activeTreatmentsResult, 
+        overduePatientsResult,
+        monthlyAppointmentsResult
+      ] = await Promise.all([
+        supabase
+          .from('patients')
+          .select('*', { count: 'exact', head: true })
+          .match(currentTenant?.id ? { tenant_id: currentTenant.id } : {}),
+        
+        supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'scheduled')
+          .match(currentTenant?.id ? { tenant_id: currentTenant.id } : {}),
+        
+        supabase
+          .from('patients')
+          .select('*', { count: 'exact', head: true })
+          .lt('last_visit', sixMonthsAgo.toISOString().split('T')[0])
+          .match(currentTenant?.id ? { tenant_id: currentTenant.id } : {}),
+        
+        supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true })
+          .gte('appointment_date', firstDay.toISOString())
+          .lte('appointment_date', lastDay.toISOString())
+          .eq('status', 'completed')
+          .match(currentTenant?.id ? { tenant_id: currentTenant.id } : {})
+      ]);
 
       setStats({
-        totalPatients: totalCount || 0,
-        activeTreatments: treatmentCount || 0,
-        overdueCheckups: overdueCount || 0,
-        appointmentsThisMonth: monthlyCount || 0
+        totalPatients: totalPatientsResult.count || 0,
+        activeTreatments: activeTreatmentsResult.count || 0,
+        overdueCheckups: overduePatientsResult.count || 0,
+        appointmentsThisMonth: monthlyAppointmentsResult.count || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patient statistics",
+        variant: "destructive",
+      });
     }
   };
 
@@ -349,14 +363,7 @@ function Patients() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/10 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading patients...</p>
-        </div>
-      </div>
-    );
+    return <PatientsSkeleton />;
   }
 
   return (
