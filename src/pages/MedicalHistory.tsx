@@ -31,6 +31,7 @@ import {
   Download,
   Eye
 } from "lucide-react";
+import { MedicalHistorySkeleton } from "@/components/MedicalHistorySkeleton";
 
 export default function MedicalHistory() {
   const navigate = useNavigate();
@@ -105,12 +106,32 @@ export default function MedicalHistory() {
 
   const fetchPatientData = async (patientId: string) => {
     try {
+      // Parallel fetch all patient data for better performance
       const [recordsData, medicationsData, allergiesData, conditionsData] = await Promise.all([
-        supabase.from('medical_records').select('*').eq('patient_id', patientId).order('visit_date', { ascending: false }),
-        supabase.from('medications').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }),
-        supabase.from('allergies').select('*').eq('patient_id', patientId),
-        supabase.from('medical_conditions').select('*').eq('patient_id', patientId)
+        supabase
+          .from('medical_records')
+          .select('*')
+          .eq('patient_id', patientId)
+          .order('visit_date', { ascending: false }),
+        supabase
+          .from('medications')
+          .select('*')
+          .eq('patient_id', patientId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('allergies')
+          .select('*')
+          .eq('patient_id', patientId),
+        supabase
+          .from('medical_conditions')
+          .select('*')
+          .eq('patient_id', patientId)
       ]);
+
+      if (recordsData.error) throw recordsData.error;
+      if (medicationsData.error) throw medicationsData.error;
+      if (allergiesData.error) throw allergiesData.error;
+      if (conditionsData.error) throw conditionsData.error;
 
       setMedicalRecords(recordsData.data || []);
       setMedications(medicationsData.data || []);
@@ -299,16 +320,7 @@ export default function MedicalHistory() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-            <p className="mt-4 text-muted-foreground">Loading medical records...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <MedicalHistorySkeleton />;
   }
 
   return (

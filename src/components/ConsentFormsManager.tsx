@@ -15,6 +15,7 @@ import {
   Clock,
   AlertCircle
 } from "lucide-react";
+import { ConsentFormsSkeleton } from "./ConsentFormsSkeleton";
 
 interface ConsentRecord {
   id: string;
@@ -27,6 +28,7 @@ interface ConsentRecord {
 }
 
 export const ConsentFormsManager: React.FC = () => {
+  const [loading, setLoading] = useState(true);
   const [consentRecords, setConsentRecords] = useState<ConsentRecord[]>([
     {
       id: "1",
@@ -58,6 +60,12 @@ export const ConsentFormsManager: React.FC = () => {
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Simulate loading for demo
+  useState(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  });
 
   const handleConsentSubmitted = (consentData: any) => {
     const newRecord: ConsentRecord = {
@@ -103,6 +111,10 @@ export const ConsentFormsManager: React.FC = () => {
         return 'outline';
     }
   };
+
+  if (loading) {
+    return <ConsentFormsSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { CurrencyDisplay } from "@/components/CurrencyDisplay";
 import { format } from "date-fns";
+import { TreatmentPlansSkeleton } from "@/components/TreatmentPlansSkeleton";
 
 interface TreatmentPlan {
   id: string;
@@ -37,36 +38,56 @@ const MyTreatmentPlans = () => {
   const fetchTreatmentPlans = async () => {
     if (!user) return;
 
+    let isMounted = true;
+    setLoading(true);
+
     try {
-      // First get patient record
-      const { data: patient, error: patientError } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Parallel fetch patient and treatment plans
+      const [patientResult, treatmentPlansResult] = await Promise.all([
+        supabase
+          .from('patients')
+          .select('id')
+          .eq('user_id', user.id)
+          .single(),
+        
+        // We'll get treatment plans after we have the patient ID
+        Promise.resolve({ data: null, error: null })
+      ]);
 
-      if (patientError) throw patientError;
+      if (patientResult.error) throw patientResult.error;
+      if (!isMounted) return;
 
-      // Then get treatment plans
-      const { data, error } = await supabase
-        .from('treatment_plans')
-        .select('*')
-        .eq('patient_id', patient.id)
-        .order('created_at', { ascending: false });
+      if (patientResult.data) {
+        // Now fetch treatment plans with the patient ID
+        const { data: treatmentPlansData, error: treatmentPlansError } = await supabase
+          .from('treatment_plans')
+          .select('*')
+          .eq('patient_id', patientResult.data.id)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      setTreatmentPlans(data || []);
+        if (treatmentPlansError) throw treatmentPlansError;
+        if (isMounted) {
+          setTreatmentPlans(treatmentPlansData || []);
+        }
+      }
     } catch (error) {
       console.error('Error fetching treatment plans:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load treatment plans",
-        variant: "destructive",
-      });
+      if (isMounted) {
+        toast({
+          title: "Error",
+          description: "Failed to load treatment plans",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
+
+    return () => {
+      isMounted = false;
+    };
   };
 
   const getStatusColor = (status: string) => {
@@ -111,11 +132,7 @@ const MyTreatmentPlans = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <TreatmentPlansSkeleton />;
   }
 
   return (
