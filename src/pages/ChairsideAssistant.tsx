@@ -402,24 +402,32 @@ const seedDemo = async () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {alerts.map((alert, index) => (
-            <Alert key={index} className={getSeverityColor(alert.severity)}>
-              <div className="flex items-start gap-3">
-                {getAlertIcon(alert.type)}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold">{alert.message}</span>
-                    <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
-                      {alert.severity}
-                    </Badge>
-                  </div>
-                  <AlertDescription>
-                    <strong>Recommendation:</strong> {alert.recommendation}
-                  </AlertDescription>
-                </div>
-              </div>
+          {alerts.length === 0 ? (
+            <Alert>
+              <AlertDescription>
+                {selectedPatient ? "No critical alerts for this patient." : "Select a patient to view alerts."}
+              </AlertDescription>
             </Alert>
-          ))}
+          ) : (
+            alerts.map((alert, index) => (
+              <Alert key={index} className={getSeverityColor(alert.severity)}>
+                <div className="flex items-start gap-3">
+                  {getAlertIcon(alert.type)}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold">{alert.message}</span>
+                      <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                    <AlertDescription>
+                      <strong>Recommendation:</strong> {alert.recommendation}
+                    </AlertDescription>
+                  </div>
+                </div>
+              </Alert>
+            ))
+          )}
         </CardContent>
       </Card>
 
