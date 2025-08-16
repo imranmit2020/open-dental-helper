@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as DateRangeCalendar } from "@/components/ui/calendar";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import { DashboardSkeleton } from "@/components/SkeletonLoader";
 
 const PracticeDashboard = () => {
   const [locationsOpen, setLocationsOpen] = useState(false);
@@ -39,9 +40,14 @@ const PracticeDashboard = () => {
   const [drillAppointments, setDrillAppointments] = useState<any[]>([]);
   const [drillLoading, setDrillLoading] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    let isMounted = true;
+    
     const load = async () => {
       try {
+        setLoading(true);
         const fromDay = new Date(dateRange.from.toDateString());
         const toDay = new Date(dateRange.to.toDateString());
         const toNext = new Date(toDay);
@@ -52,63 +58,63 @@ const PracticeDashboard = () => {
           .gte('period_start', fromDay.toISOString())
           .lt('period_start', toNext.toISOString())
           .order('period_start', { ascending: true });
+        
         if (error) throw error;
-        setAnalytics(data || []);
+        if (isMounted) {
+          setAnalytics(data || []);
+        }
       } catch (e: any) {
         console.error(e);
-        toast({ title: 'Failed to load analytics', description: e.message, variant: 'destructive' });
+        if (isMounted) {
+          toast({ title: 'Failed to load analytics', description: e.message, variant: 'destructive' });
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+    
     load();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [dateRange.from, dateRange.to]);
 
-  // Realtime updates for invoices and appointments
+  // Debounced realtime updates to prevent excessive queries
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const refreshAnalytics = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        try {
+          const fromDay = new Date(dateRange.from.toDateString());
+          const toDay = new Date(dateRange.to.toDateString());
+          const toNext = new Date(toDay);
+          toNext.setDate(toNext.getDate() + 1);
+          const { data } = await supabase
+            .from('practice_analytics')
+            .select('*')
+            .gte('period_start', fromDay.toISOString())
+            .lt('period_start', toNext.toISOString())
+            .order('period_start', { ascending: true });
+          setAnalytics(data || []);
+        } catch (error) {
+          console.error('Failed to refresh analytics:', error);
+        }
+      }, 1000); // 1 second debounce
+    };
+
     const channel = supabase
       .channel('practice-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => {
-        // Refresh analytics when invoices change
-        const from = dateRange.from;
-        const to = dateRange.to;
-        (async () => {
-          try {
-            const fromDay = new Date(from.toDateString());
-            const toDay = new Date(to.toDateString());
-            const toNext = new Date(toDay);
-            toNext.setDate(toNext.getDate() + 1);
-            const { data } = await supabase
-              .from('practice_analytics')
-              .select('*')
-              .gte('period_start', fromDay.toISOString())
-              .lt('period_start', toNext.toISOString())
-              .order('period_start', { ascending: true });
-            setAnalytics(data || []);
-          } catch {}
-        })();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-        // Same refresh on appointment changes
-        const from = dateRange.from;
-        const to = dateRange.to;
-        (async () => {
-          try {
-            const fromDay = new Date(from.toDateString());
-            const toDay = new Date(to.toDateString());
-            const toNext = new Date(toDay);
-            toNext.setDate(toNext.getDate() + 1);
-            const { data } = await supabase
-              .from('practice_analytics')
-              .select('*')
-              .gte('period_start', fromDay.toISOString())
-              .lt('period_start', toNext.toISOString())
-              .order('period_start', { ascending: true });
-            setAnalytics(data || []);
-          } catch {}
-        })();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, refreshAnalytics)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, refreshAnalytics)
       .subscribe();
 
     return () => {
+      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
   }, [dateRange.from, dateRange.to]);
@@ -270,6 +276,10 @@ const PracticeDashboard = () => {
       type: "emergency"
     }
   ];
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
