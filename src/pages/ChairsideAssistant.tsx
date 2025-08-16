@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PrescribeMedicationDialog, ScheduleFollowUpDialog, SecondOpinionDialog, UpdateAllergiesDialog } from "@/components/chairside/ActionDialogs";
 import { useAuth } from "@/hooks/useAuth";
+import ChairsideAssistantSkeleton from "@/components/ChairsideAssistantSkeleton";
 
 interface PatientAlert {
   type: 'allergy' | 'medication' | 'condition' | 'anesthesia' | 'risk';
@@ -155,6 +156,7 @@ export default function ChairsideAssistant() {
   const [anesthesiaRec, setAnesthesiaRec] = useState<AnesthesiaRecommendation | null>(null);
   const [riskFactors, setRiskFactors] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
   const [openPrescribe, setOpenPrescribe] = useState(false);
   const [openFollowUp, setOpenFollowUp] = useState(false);
   const [openSecondOpinion, setOpenSecondOpinion] = useState(false);
@@ -165,6 +167,8 @@ export default function ChairsideAssistant() {
 
 useEffect(() => {
   document.title = "Chairside AI Assistant – Patient Safety & Dosage";
+  const timer = setTimeout(() => setPageLoading(false), 1200);
+  return () => clearTimeout(timer);
 }, []);
 
 useEffect(() => {
@@ -277,6 +281,10 @@ const seedDemo = async () => {
       default: return <AlertTriangle className="w-5 h-5" />;
     }
   };
+
+  if (pageLoading) {
+    return <ChairsideAssistantSkeleton />;
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

@@ -15,6 +15,7 @@ import XRayOverlay, { DetectionBox } from "@/components/XRayOverlay";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Slider } from "@/components/ui/slider";
 import { jsPDF } from "jspdf";
+import XRayDiagnosticsSkeleton from "@/components/XRayDiagnosticsSkeleton";
 
 const LazyCBCTViewer = lazy(() => import("@/components/CBCTViewer"));
 interface XRayFinding {
@@ -62,6 +63,7 @@ export default function XRayDiagnostics() {
   const [boxes, setBoxes] = useState<DetectionBox[]>([]);
   const [imgSize, setImgSize] = useState<{w:number;h:number}>({w:0,h:0});
   const [slices, setSlices] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const vizImgRef = useRef<HTMLImageElement>(null);
@@ -75,6 +77,12 @@ const [overlayOpacity, setOverlayOpacity] = useState<number>(0.6);
 const [highlightedId, setHighlightedId] = useState<string | null>(null);
 const { logAction } = useAuditLog();
 const { logError } = useErrorLogger();
+
+  // Initialize loading
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Normalize incoming scores to a 0–10 scale and format with one decimal
   const formatTenScale = useCallback((val: number | null | undefined) => {

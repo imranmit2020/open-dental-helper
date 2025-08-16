@@ -11,6 +11,7 @@ import { usePatients } from "@/hooks/usePatients";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import AIVoiceNotesSkeleton from "@/components/AIVoiceNotesSkeleton";
 
 interface VoiceNote {
   id: string;
@@ -32,9 +33,12 @@ export default function AIVoiceNotes() {
   const [saving, setSaving] = useState(false);
   const [notes, setNotes] = useState<VoiceNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     document.title = "AI Voice Notes – Transcription & Storage";
+    const timer = setTimeout(() => setPageLoading(false), 1100);
+    return () => clearTimeout(timer);
   }, []);
 
   const selectedPatientName = useMemo(() => {
@@ -119,6 +123,10 @@ export default function AIVoiceNotes() {
       setSaving(false);
     }
   };
+
+  if (pageLoading) {
+    return <AIVoiceNotesSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

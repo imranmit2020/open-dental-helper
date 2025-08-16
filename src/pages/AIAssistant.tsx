@@ -10,6 +10,7 @@ import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { useTenant } from '@/contexts/TenantContext';
 import { Send, Bot, User, Loader2, Database, BarChart3, Users, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import AIAssistantSkeleton from '@/components/AIAssistantSkeleton';
 
 interface ChatMessage {
   id: string;
@@ -24,6 +25,7 @@ const AIAssistant = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [queryType, setQueryType] = useState<'data' | 'analytics' | 'general'>('general');
+  const [pageLoading, setPageLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { userRole, isSuperAdmin } = useRoleAccess();
@@ -36,6 +38,11 @@ const AIAssistant = () => {
     { text: "Revenue trends", type: 'analytics' as const, icon: BarChart3 },
     { text: "Overdue invoices", type: 'data' as const, icon: Database },
   ];
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPageLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -113,6 +120,10 @@ const AIAssistant = () => {
       handleSendMessage();
     }
   };
+
+  if (pageLoading) {
+    return <AIAssistantSkeleton />;
+  }
 
   return (
     <div className="h-full flex flex-col">

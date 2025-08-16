@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import AnnotationCanvas from '@/components/AnnotationCanvas';
 import BeforeAfterCompare from '@/components/BeforeAfterCompare';
+import ImageAnalysisSkeleton from '@/components/ImageAnalysisSkeleton';
 
 export const ImageAnalysis: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -27,10 +28,17 @@ export const ImageAnalysis: React.FC = () => {
   const [versionName, setVersionName] = useState<string>("");
   const [compareBeforeUrl, setCompareBeforeUrl] = useState<string | null>(null);
   const [compareAfterUrl, setCompareAfterUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { logAction, logImageAnalysisAccess } = useAuditLog();
+
+  // Initialize loading
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Audit logging on page access
   useEffect(() => {
@@ -446,6 +454,11 @@ export const ImageAnalysis: React.FC = () => {
       setSaving(false);
     }
   };
+  
+  if (loading) {
+    return <ImageAnalysisSkeleton />;
+  }
+  
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
