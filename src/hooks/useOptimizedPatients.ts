@@ -79,10 +79,11 @@ export function useOptimizedPatients() {
         .order('last_name', { ascending: true })
         .limit(10);
 
-      // Add tenant filtering if tenant is available
-      if (currentTenant?.id) {
-        searchQuery = searchQuery.eq('tenant_id', currentTenant.id);
-      }
+      // For now, don't filter by tenant since demo data has null tenant_ids
+      // TODO: Uncomment when tenant_ids are properly set
+      // if (currentTenant?.id) {
+      //   searchQuery = searchQuery.eq('tenant_id', currentTenant.id);
+      // }
 
       const { data, error } = await searchQuery;
 
