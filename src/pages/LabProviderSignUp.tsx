@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { supabase } from '@/integrations/supabase/client';
+import { labSupabase } from '@/integrations/lab-supabase/client';
+import { useLabAuth } from '@/hooks/useLabAuth';
 import { toast } from 'sonner';
 import { 
   FlaskConical, 
@@ -91,6 +92,7 @@ const qualityOptions = [
 
 export default function LabProviderSignUp() {
   const navigate = useNavigate();
+  const { signUp } = useLabAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     company_name: '',
@@ -176,60 +178,48 @@ export default function LabProviderSignUp() {
     setLoading(true);
     try {
       // First, create the user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/lab-provider-dashboard`,
-          data: {
-            first_name: formData.contact_person.split(' ')[0],
-            last_name: formData.contact_person.split(' ').slice(1).join(' '),
-            role: 'lab_provider'
-          }
-        }
-      });
+      const { error: authError } = await signUp(formData.email, formData.password);
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Create lab provider account
-        const { data: labAccount, error: labError } = await (supabase as any)
-          .from('lab_provider_accounts')
-          .insert({
-            company_name: formData.company_name,
-            registration_number: formData.registration_number,
-            contact_person: formData.contact_person,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            website: formData.website,
-            specialties: formData.specialties,
-            certifications: formData.certifications,
-            equipment_list: formData.equipment_list,
-            quality_standards: formData.quality_standards,
-            operating_hours: formData.operating_hours,
-            capacity_info: formData.capacity_info,
-            turnaround_guarantees: formData.turnaround_guarantees,
-            status: 'pending',
-            verification_status: 'unverified'
-          })
-          .select()
-          .single();
+      // Create lab provider account using the lab database
+      const { data: labAccount, error: labError } = await labSupabase
+        .from('lab_provider_accounts')
+        .insert({
+          company_name: formData.company_name,
+          contact_email: formData.email,
+          contact_phone: formData.phone,
+          address: formData.address,
+          specialties: formData.specialties,
+          certifications: formData.certifications,
+          equipment: formData.equipment_list,
+          quality_standards: formData.quality_standards,
+          capacity: formData.capacity_info.monthly_capacity,
+          turnaround_times: formData.turnaround_guarantees,
+          verification_status: 'unverified',
+          status: 'pending'
+        })
+        .select()
+        .single();
 
-        if (labError) throw labError;
+      if (labError) throw labError;
 
+      // Get current user to create relationship
+      const { data: { user } } = await labSupabase.auth.getUser();
+      
+      if (user && labAccount) {
         // Create lab provider user relationship
-        await (supabase as any)
+        await labSupabase
           .from('lab_provider_users')
           .insert({
             lab_provider_account_id: labAccount.id,
-            user_id: authData.user.id,
+            user_id: user.id,
             role: 'admin'
           });
-
-        toast.success('Registration successful! Please check your email to verify your account.');
-        navigate('/lab-provider-dashboard');
       }
+
+      toast.success('Registration successful! Please check your email to verify your account.');
+      navigate('/lab-provider-dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Registration failed');
