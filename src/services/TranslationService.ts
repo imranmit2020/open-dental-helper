@@ -26,40 +26,54 @@ export class TranslationService {
   // private medicalTerms = { ... };
 
   async translateText(text: string, targetLanguage: string, sourceLanguage?: string): Promise<TranslationResult> {
-    // TODO: Implement actual translation functionality
-    throw new Error('Translation feature is not yet implemented. Please check back later.');
-    
-    /*
     try {
-      // For demo purposes, we'll use a simple translation approach
-      // In a real implementation, you'd use Google Translate API or similar
-      
-      const detectedLang = sourceLanguage || await this.detectLanguage(text);
-      
-      if (detectedLang === targetLanguage) {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        'https://mkzfrqhwqrnsjsaflbuf.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1remZycWh3cXJuc2pzYWZsYnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2OTYwNjEsImV4cCI6MjA1MDI3MjA2MX0.CRNW-WDz8yzCzTF-KkOOHCVOqHSlBPj7Uu8b2MdjhGg'
+      );
+
+      if (!text?.trim()) {
+        throw new Error('Text is required for translation');
+      }
+
+      if (sourceLanguage === targetLanguage) {
         return {
           translatedText: text,
           confidence: 1.0,
-          detectedLanguage: detectedLang,
+          detectedLanguage: sourceLanguage || targetLanguage,
           medicalTermsPreserved: true
         };
       }
 
-      // Simulate translation with medical term preservation
-      let translatedText = await this.performTranslation(text, detectedLang, targetLanguage);
-      const medicalTermsPreserved = this.preserveMedicalTerms(translatedText, targetLanguage);
+      const { data, error } = await supabase.functions.invoke('real-time-translation', {
+        body: {
+          text: text.trim(),
+          targetLanguage,
+          sourceLanguage,
+          isMedical: false
+        }
+      });
+
+      if (error) {
+        console.error('Translation service error:', error);
+        throw new Error(`Translation failed: ${error.message}`);
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       return {
-        translatedText,
-        confidence: 0.85,
-        detectedLanguage: detectedLang,
-        medicalTermsPreserved
+        translatedText: data.translatedText || text,
+        confidence: data.confidence || 0.8,
+        detectedLanguage: data.detectedLanguage || sourceLanguage || 'en',
+        medicalTermsPreserved: data.medicalTermsPreserved !== false
       };
     } catch (error) {
       console.error('Translation error:', error);
-      throw error;
+      throw new Error(error instanceof Error ? error.message : 'Translation service unavailable');
     }
-    */
   }
 
   // TODO: Implement language detection
@@ -91,20 +105,45 @@ export class TranslationService {
   }
 
   async translateMedicalDocument(text: string, targetLanguage: string): Promise<TranslationResult> {
-    // TODO: Implement medical document translation
-    throw new Error('Medical document translation feature is not yet implemented. Please check back later.');
-    
-    /*
-    // Enhanced translation for medical documents with term preservation
-    const result = await this.translateText(text, targetLanguage);
-    
-    // Add medical context and cultural considerations
-    if (targetLanguage === 'es') {
-      result.translatedText = this.addSpanishMedicalContext(result.translatedText);
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        'https://mkzfrqhwqrnsjsaflbuf.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1remZycWh3cXJuc2pzYWZsYnVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2OTYwNjEsImV4cCI6MjA1MDI3MjA2MX0.CRNW-WDz8yzCzTF-KkOOHCVOqHSlBPj7Uu8b2MdjhGg'
+      );
+
+      if (!text?.trim()) {
+        throw new Error('Text is required for medical translation');
+      }
+
+      const { data, error } = await supabase.functions.invoke('real-time-translation', {
+        body: {
+          text: text.trim(),
+          targetLanguage,
+          sourceLanguage: undefined,
+          isMedical: true
+        }
+      });
+
+      if (error) {
+        console.error('Medical translation service error:', error);
+        throw new Error(`Medical translation failed: ${error.message}`);
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      return {
+        translatedText: data.translatedText || text,
+        confidence: data.confidence || 0.85,
+        detectedLanguage: data.detectedLanguage || 'en',
+        medicalTermsPreserved: data.medicalTermsPreserved !== false
+      };
+    } catch (error) {
+      console.error('Medical translation error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Medical translation service unavailable');
     }
-    
-    return result;
-    */
   }
 
   // TODO: Implement cultural context

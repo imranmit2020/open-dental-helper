@@ -26,7 +26,6 @@ export const Translation: React.FC = () => {
 
   const supportedLanguages = translationService.getSupportedLanguages();
 
-  // TODO: Translation functionality will be implemented later
   const handleTranslate = async () => {
     if (!sourceText.trim()) {
       toast({
@@ -37,14 +36,6 @@ export const Translation: React.FC = () => {
       return;
     }
 
-    // TODO: Implement translation functionality
-    toast({
-      title: "Feature Coming Soon",
-      description: "Translation feature will be implemented later",
-      variant: "destructive",
-    });
-
-    /*
     setIsTranslating(true);
     try {
       const result = await translationService.translateText(
@@ -62,16 +53,14 @@ export const Translation: React.FC = () => {
       console.error('Translation error:', error);
       toast({
         title: "Translation Failed",
-        description: "Unable to translate text. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to translate text. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsTranslating(false);
     }
-    */
   };
 
-  // TODO: Medical document translation will be implemented later
   const handleMedicalDocumentTranslate = async () => {
     if (!sourceText.trim()) {
       toast({
@@ -82,14 +71,6 @@ export const Translation: React.FC = () => {
       return;
     }
 
-    // TODO: Implement medical document translation
-    toast({
-      title: "Feature Coming Soon",
-      description: "Medical document translation feature will be implemented later",
-      variant: "destructive",
-    });
-
-    /*
     setIsTranslating(true);
     try {
       const result = await translationService.translateMedicalDocument(
@@ -106,13 +87,12 @@ export const Translation: React.FC = () => {
       console.error('Medical translation error:', error);
       toast({
         title: "Translation Failed",
-        description: "Unable to translate medical document. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to translate medical document. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsTranslating(false);
     }
-    */
   };
 
   const speakText = (text: string, language: string) => {
