@@ -193,6 +193,27 @@ useEffect(() => {
   fetchProfileName();
 }, [user?.id]);
 
+// Debounced search function
+const debouncedSearch = useCallback(async (query: string) => {
+  if (!query.trim()) {
+    setSearchResults([]);
+    setSearchLoading(false);
+    return;
+  }
+
+  setSearchLoading(true);
+  try {
+    const results = await searchPatients(query);
+    setSearchResults(results);
+  } catch (err) {
+    console.error('Error searching patients:', err);
+    toast.error("Failed to search patients");
+    setSearchResults([]);
+  } finally {
+    setSearchLoading(false);
+  }
+}, [searchPatients]);
+
 // Debounced search effect
 useEffect(() => {
   if (!searchValue.trim()) {
@@ -201,22 +222,12 @@ useEffect(() => {
     return;
   }
 
-  setSearchLoading(true);
-  const timer = setTimeout(async () => {
-    try {
-      const results = await searchPatients(searchValue);
-      setSearchResults(results);
-    } catch (err) {
-      console.error('Error searching patients:', err);
-      toast.error("Failed to search patients");
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
+  const timer = setTimeout(() => {
+    debouncedSearch(searchValue);
   }, 300);
 
   return () => clearTimeout(timer);
-}, [searchValue, searchPatients]);
+}, [searchValue, debouncedSearch]);
 
 const handlePatientSelect = (patient: OptimizedPatient) => {
   setSelectedPatient(patient.id);
