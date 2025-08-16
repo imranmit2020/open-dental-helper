@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -167,7 +167,7 @@ export default function ChairsideAssistant() {
 
 useEffect(() => {
   document.title = "Chairside AI Assistant – Patient Safety & Dosage";
-  const timer = setTimeout(() => setPageLoading(false), 1200);
+  const timer = setTimeout(() => setPageLoading(false), 800);
   return () => clearTimeout(timer);
 }, []);
 
@@ -183,7 +183,7 @@ useEffect(() => {
   fetchProfileName();
 }, [user?.id]);
 
-const loadPatients = async () => {
+const loadPatients = useCallback(async () => {
   setLoading(true);
   try {
     const { data, error } = await supabase
@@ -206,12 +206,19 @@ const loadPatients = async () => {
   } finally {
     setLoading(false);
   }
-};
+}, [selectedPatient]);
 
 useEffect(() => {
   loadPatients();
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
+
+const analysisResults = useMemo(() => {
+  if (!selectedPatient) return null;
+  
+  // This will be populated by the useEffect below
+  return { alerts, anesthesia: anesthesiaRec, risks: riskFactors };
+}, [selectedPatient, currentProcedure, alerts, anesthesiaRec, riskFactors]);
 
 useEffect(() => {
   const run = async () => {
@@ -219,9 +226,9 @@ useEffect(() => {
     setLoading(true);
     try {
       const [allergiesRes, medsRes, condsRes] = await Promise.all([
-        supabase.from('allergies').select('allergen, severity').eq('patient_id', selectedPatient),
-        supabase.from('medications').select('medication_name, status, notes').eq('patient_id', selectedPatient),
-        supabase.from('medical_conditions').select('condition_name, status').eq('patient_id', selectedPatient),
+        supabase.from('allergies').select('allergen, severity').eq('patient_id', selectedPatient).limit(20),
+        supabase.from('medications').select('medication_name, status, notes').eq('patient_id', selectedPatient).limit(20),
+        supabase.from('medical_conditions').select('condition_name, status').eq('patient_id', selectedPatient).limit(20),
       ]);
       if (allergiesRes.error) throw allergiesRes.error;
       if (medsRes.error) throw medsRes.error;
