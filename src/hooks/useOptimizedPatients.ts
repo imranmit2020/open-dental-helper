@@ -72,12 +72,19 @@ export function useOptimizedPatients() {
 
   const searchPatients = async (query: string): Promise<Patient[]> => {
     try {
-      const { data, error } = await supabase
+      let searchQuery = supabase
         .from('patients')
         .select('*')
         .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`)
         .order('last_name', { ascending: true })
         .limit(10);
+
+      // Add tenant filtering if tenant is available
+      if (currentTenant?.id) {
+        searchQuery = searchQuery.eq('tenant_id', currentTenant.id);
+      }
+
+      const { data, error } = await searchQuery;
 
       if (error) throw error;
       return data || [];
