@@ -415,8 +415,8 @@ export const AIWhiteboard = () => {
         </div>
 
         {/* Canvas Area with Real-time Cursors */}
-        <div className="relative border border-purple-500 rounded-lg overflow-hidden bg-slate-800">
-          <canvas ref={canvasRef} className="max-w-full" />
+        <div className="relative border border-purple-500 rounded-lg overflow-hidden bg-slate-800" style={{ width: '800px', height: '600px' }}>
+          <canvas ref={canvasRef} className="block" style={{ width: '100%', height: '100%' }} />
           
           {/* Real-time Collaborator Cursors */}
           {collaborators.map(collab => (
