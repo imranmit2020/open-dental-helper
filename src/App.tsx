@@ -105,6 +105,7 @@ const LabProviderDashboard = lazy(() => import("./pages/LabProviderDashboard"));
 const LabProviderSignUp = lazy(() => import("./pages/LabProviderSignUp"));
 const LabProviderAuth = lazy(() => import("./pages/LabProviderAuth"));
 const TechSupport = lazy(() => import('./pages/TechSupport'));
+const Collaboration = lazy(() => import('./pages/Collaboration'));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -380,6 +381,11 @@ function App() {
             <Route path="tech-support" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
                 <Suspense fallback={<PageLoader />}><TechSupport /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="collaboration" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><Collaboration /></Suspense>
               </ProtectedRoute>
             } />
           </Route>

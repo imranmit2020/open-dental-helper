@@ -265,6 +265,224 @@ export type Database = {
           },
         ]
       }
+      collaboration_channel_members: {
+        Row: {
+          channel_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "collaboration_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collaboration_channels: {
+        Row: {
+          corporation_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          last_activity: string
+          last_message: string | null
+          member_count: number
+          name: string
+          tenant_id: string | null
+          type: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          corporation_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          last_activity?: string
+          last_message?: string | null
+          member_count?: number
+          name: string
+          tenant_id?: string | null
+          type?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          corporation_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          last_activity?: string
+          last_message?: string | null
+          member_count?: number
+          name?: string
+          tenant_id?: string | null
+          type?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_channels_corporation_id_fkey"
+            columns: ["corporation_id"]
+            isOneToOne: false
+            referencedRelation: "corporations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaboration_channels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collaboration_messages: {
+        Row: {
+          attachments: string[] | null
+          channel_id: string
+          content: string
+          created_at: string
+          id: string
+          message_type: string
+          metadata: Json | null
+          sender_avatar: string | null
+          sender_id: string
+          sender_name: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          channel_id: string
+          content: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_avatar?: string | null
+          sender_id: string
+          sender_name: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: string[] | null
+          channel_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_avatar?: string | null
+          sender_id?: string
+          sender_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "collaboration_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collaboration_tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          channel_id: string | null
+          corporation_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          tenant_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          channel_id?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          tenant_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          channel_id?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          tenant_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_tasks_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "collaboration_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaboration_tasks_corporation_id_fkey"
+            columns: ["corporation_id"]
+            isOneToOne: false
+            referencedRelation: "corporations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaboration_tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_forms: {
         Row: {
           created_at: string

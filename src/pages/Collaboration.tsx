@@ -45,7 +45,7 @@ interface Message {
   channel_id: string;
   created_at: string;
   attachments?: string[];
-  message_type: 'text' | 'file' | 'task' | 'announcement';
+  message_type: string;
   metadata?: any;
 }
 
@@ -53,7 +53,7 @@ interface Channel {
   id: string;
   name: string;
   description?: string;
-  type: 'public' | 'private' | 'direct';
+  type: string;
   tenant_id?: string;
   corporation_id?: string;
   created_by: string;
@@ -67,8 +67,8 @@ interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: string;
+  priority: string;
   assigned_to: string;
   assigned_by: string;
   due_date?: string;
@@ -178,16 +178,16 @@ export default function Collaboration() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url, role')
+        .select('user_id, first_name, last_name, role')
         .not('role', 'eq', 'patient');
 
       if (error) throw error;
       
       const members: TeamMember[] = (data || []).map(profile => ({
         id: profile.user_id,
-        name: profile.display_name || 'Unknown User',
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User',
         role: profile.role,
-        avatar_url: profile.avatar_url,
+        avatar_url: undefined,
         status: 'offline',
         last_seen: new Date().toISOString()
       }));
@@ -263,9 +263,11 @@ export default function Collaboration() {
       const messageData = {
         content: newMessage.trim(),
         sender_id: user.id,
-        sender_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Unknown',
+        sender_name: user.user_metadata?.first_name ? 
+          `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim() :
+          user.email?.split('@')[0] || 'Unknown',
         channel_id: activeChannel.id,
-        message_type: 'text',
+        message_type: 'text' as const,
         created_at: new Date().toISOString()
       };
 
@@ -381,9 +383,11 @@ export default function Collaboration() {
       const messageData = {
         content: `File shared: ${file.name}`,
         sender_id: user.id,
-        sender_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Unknown',
+        sender_name: user.user_metadata?.first_name ? 
+          `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim() :
+          user.email?.split('@')[0] || 'Unknown',
         channel_id: activeChannel.id,
-        message_type: 'file',
+        message_type: 'file' as const,
         attachments: [data.publicUrl],
         metadata: { fileName: file.name, fileSize: file.size },
         created_at: new Date().toISOString()

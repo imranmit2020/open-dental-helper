@@ -558,10 +558,18 @@ export function AppSidebar() {
         {isStaffMember && (
           <SidebarGroup className="mt-auto">
             <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-              Support
+              Support & Collaboration
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Team Collaboration">
+                    <NavLink to="/collaboration" className={getNavCls}>
+                      <Users className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Team Collaboration</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Tech Support">
                     <NavLink to="/tech-support" className={getNavCls}>
