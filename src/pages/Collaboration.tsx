@@ -720,9 +720,8 @@ export default function Collaboration() {
           </TabsContent>
           
           <TabsContent value="chat" className="flex-1">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {activeChannel ? (
+            {/* Main Content */}
+            {activeChannel ? (
           <>
             {/* Header */}
             <div className="p-4 border-b bg-card">
@@ -870,6 +869,35 @@ export default function Collaboration() {
               </p>
             </div>
           </div>
+        )}
+          </TabsContent>
+          
+          <TabsContent value="tasks" className="flex-1 p-6">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Smart Task Management</h2>
+              <p className="text-muted-foreground">AI-powered task creation and management coming soon...</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="team" className="flex-1 p-6">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Team Management</h2>
+              <div className="grid gap-4">
+                {teamMembers.map(member => (
+                  <div key={member.id} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">{member.name}</h3>
+                        <p className="text-sm text-muted-foreground">{member.role}</p>
+                      </div>
+                      <Badge variant={member.status === 'online' ? 'default' : 'secondary'}>
+                        {member.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
