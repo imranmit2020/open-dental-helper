@@ -273,32 +273,33 @@ export default function PatientCharting() {
       .slice(0, 5);
   }, [allPatients]);
 
-  // Handle search with debouncing
-  useEffect(() => {
-    const handleSearch = async () => {
-      if (searchTerm.trim().length >= 2) {
-        console.log('Starting search for:', searchTerm);
-        setIsSearching(true);
-        try {
-          const results = await searchPatients(searchTerm.trim());
-          console.log('Search completed, results:', results.length);
-          setSearchResults(results);
-        } catch (error) {
-          console.error('Search error:', error);
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      } else {
-        console.log('Clearing search results');
+  // Memoize search function to prevent infinite loops
+  const handlePatientSearch = useCallback(async (query: string) => {
+    if (query.trim().length >= 2) {
+      console.log('Starting search for:', query);
+      setIsSearching(true);
+      try {
+        const results = await searchPatients(query.trim());
+        console.log('Search completed, results:', results.length);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Search error:', error);
         setSearchResults([]);
+      } finally {
         setIsSearching(false);
       }
-    };
+    } else {
+      console.log('Clearing search results');
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  }, [searchPatients]);
 
-    const timeoutId = setTimeout(handleSearch, 300); // Debounce search
+  // Handle search with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => handlePatientSearch(searchTerm), 300);
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, searchPatients]);
+  }, [searchTerm, handlePatientSearch]);
 
   // Get the patients to display (recent or search results)
   const displayPatients = useMemo(() => {

@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -70,7 +71,7 @@ export function useOptimizedPatients() {
     }
   });
 
-  const searchPatients = async (query: string): Promise<Patient[]> => {
+  const searchPatients = useCallback(async (query: string): Promise<Patient[]> => {
     try {
       console.log('Searching patients with query:', query);
       
@@ -99,7 +100,7 @@ export function useOptimizedPatients() {
       console.error('Error searching patients:', error);
       return [];
     }
-  };
+  }, [currentTenant?.id]);
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: [PATIENTS_QUERY_KEY, currentTenant?.id] });
 
