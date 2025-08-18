@@ -1095,6 +1095,42 @@ export default function AdminSQLQuery() {
                 </Card>
               )}
 
+              {selectedTable && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Table Templates</CardTitle>
+                    <CardDescription>
+                      Click any template to load it for {selectedTable}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {[
+                      { label: "Template 1", query: `SELECT * FROM ${selectedTable} LIMIT 10;`, color: "text-blue-600 font-bold" },
+                      { label: "Template 2", query: `SELECT COUNT(*) as total_count FROM ${selectedTable};`, color: "text-green-600 font-bold" },
+                      { label: "Template 3", query: `SELECT * FROM ${selectedTable} ORDER BY created_at DESC LIMIT 5;`, color: "text-purple-600 font-bold" },
+                      { label: "Template 4", query: `SELECT * FROM ${selectedTable} WHERE created_at >= NOW() - INTERVAL '7 days';`, color: "text-orange-600 font-bold" }
+                    ].map((template, index) => (
+                      <div key={index} className="space-y-1">
+                        <div className={`text-xs ${template.color}`}>
+                          {template.label}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-left justify-start h-auto py-2 px-3"
+                          onClick={() => setGeneratedQuery(template.query)}
+                          disabled={tableLoading}
+                        >
+                          <code className="text-xs text-left whitespace-pre-wrap">
+                            {template.query}
+                          </code>
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
