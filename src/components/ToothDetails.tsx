@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-  Circle, 
+  Target, 
   Calendar, 
   AlertTriangle, 
   CheckCircle, 
@@ -25,14 +25,14 @@ export function ToothDetails({ tooth, toothNumber }: ToothDetailsProps) {
       <Card className="professional-card">
         <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Circle className="h-5 w-5" />
+          <Target className="h-5 w-5" />
           Tooth {toothNumber}
         </CardTitle>
           <CardDescription>No records found for this tooth</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6 text-muted-foreground">
-            <Circle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>This tooth has no recorded conditions or treatments.</p>
           </div>
         </CardContent>
@@ -79,7 +79,7 @@ export function ToothDetails({ tooth, toothNumber }: ToothDetailsProps) {
     <Card className="professional-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Circle className="h-5 w-5" />
+          <Target className="h-5 w-5" />
           Tooth {tooth.number}
         </CardTitle>
         <CardDescription>{tooth.name}</CardDescription>

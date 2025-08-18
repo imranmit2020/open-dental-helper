@@ -33,7 +33,7 @@ import {
   Sparkles,
   Star,
   StarOff,
-  Circle
+  Target
 } from "lucide-react";
 
 interface ChartingModule {
@@ -72,7 +72,7 @@ const chartingModules: ChartingModule[] = [
     id: "tooth-charting",
     title: "Tooth Charting",
     description: "Interactive digital tooth charting and treatment tracking",
-    icon: Circle,
+    icon: Target,
     route: "/tooth-charting",
     color: "bg-blue-600",
     requiresPatient: true,

@@ -14,10 +14,10 @@ import { ToothDetails } from "@/components/ToothDetails";
 import { ChartingHistory } from "@/components/ChartingHistory";
 import { TreatmentPlanner } from "@/components/TreatmentPlanner";
 import { 
-  Circle, 
+  Target, 
   Calendar, 
   FileText, 
-  AlertTriangle, 
+  AlertTriangle,
   CheckCircle, 
   Clock,
   Save,
@@ -198,7 +198,7 @@ export default function ToothCharting() {
         <Card className="p-8 text-center">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 justify-center">
-              <Circle className="h-6 w-6" />
+              <Target className="h-6 w-6" />
               Tooth Charting
             </CardTitle>
             <CardDescription>
@@ -217,7 +217,7 @@ export default function ToothCharting() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold gradient-text flex items-center gap-3">
-              <Circle className="h-8 w-8" />
+              <Target className="h-8 w-8" />
               Tooth Charting
             </h1>
             <p className="text-muted-foreground">
@@ -302,7 +302,7 @@ export default function ToothCharting() {
             <Card className="professional-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Circle className="h-5 w-5" />
+                  <Target className="h-5 w-5" />
                   Tooth Diagram
                 </CardTitle>
                 <CardDescription>

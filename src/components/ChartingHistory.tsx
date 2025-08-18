@@ -13,7 +13,7 @@ import {
   User,
   Clock,
   FileText,
-  Circle
+  Target
 } from "lucide-react";
 import { format } from "date-fns";
 import type { ChartingEntry } from "@/types/dental";
@@ -123,7 +123,7 @@ export function ChartingHistory({ entries, onEditEntry }: ChartingHistoryProps) 
                       {/* Header */}
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <Circle className="h-4 w-4 text-primary" />
+                          <Target className="h-4 w-4 text-primary" />
                           <span className="font-medium">Tooth {entry.toothNumber}</span>
                         </div>
                         <Badge variant="outline" className={getSeverityColor(entry.severity)}>
