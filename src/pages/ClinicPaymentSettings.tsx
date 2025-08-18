@@ -553,12 +553,7 @@ const ClinicPaymentSettings = () => {
                       </div>
                        <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label htmlFor="coverage_percentage">
-                            Coverage (%)
-                            <span className="text-xs text-muted-foreground ml-1">
-                              - Percentage of treatment costs covered by insurance
-                            </span>
-                          </Label>
+                          <Label htmlFor="coverage_percentage">Coverage (%)</Label>
                           <Input
                             id="coverage_percentage"
                             name="coverage_percentage"
@@ -569,15 +564,6 @@ const ClinicPaymentSettings = () => {
                             defaultValue={editingInsurance?.coverage_percentage}
                             placeholder="80"
                           />
-                          <div className="text-xs text-muted-foreground mt-1 space-y-1">
-                            <p>Find this information from:</p>
-                            <ul className="list-disc list-inside ml-2 space-y-0.5">
-                              <li>Insurance verification calls</li>
-                              <li>Insurance company portals</li>
-                              <li>Patient's insurance card/benefits summary</li>
-                              <li>Previous claims with this insurer</li>
-                            </ul>
-                          </div>
                         </div>
                         <div>
                           <Label htmlFor="waiting_period_months">Waiting Period (Months)</Label>
