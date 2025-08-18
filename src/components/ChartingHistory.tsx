@@ -16,6 +16,7 @@ import {
   Target
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import type { ChartingEntry } from "@/types/dental";
 
 interface ChartingHistoryProps {
@@ -27,6 +28,10 @@ export function ChartingHistory({ entries, onEditEntry }: ChartingHistoryProps) 
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [conditionFilter, setConditionFilter] = useState("all");
+
+  const handleViewEntry = (entry: ChartingEntry) => {
+    toast.info(`Viewing detailed information for tooth ${entry.toothNumber} entry from ${format(entry.date, "MMM d, yyyy")}`);
+  };
 
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = 
@@ -180,6 +185,7 @@ export function ChartingHistory({ entries, onEditEntry }: ChartingHistoryProps) 
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
+                        onClick={() => handleViewEntry(entry)}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>

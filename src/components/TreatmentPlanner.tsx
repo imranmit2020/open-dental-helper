@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   FileText
 } from "lucide-react";
+import { toast } from "sonner";
 import type { ToothData, ChartingEntry } from "@/types/dental";
 
 interface TreatmentPlannerProps {
@@ -82,7 +83,10 @@ export function TreatmentPlanner({ toothData, chartingHistory, patientId }: Trea
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleAddPlan = () => {
-    if (!newPlan.toothNumber || !newPlan.procedure) return;
+    if (!newPlan.toothNumber || !newPlan.procedure) {
+      toast.error("Please fill in tooth number and procedure");
+      return;
+    }
 
     const plan: TreatmentPlan = {
       id: Date.now().toString(),
@@ -105,18 +109,32 @@ export function TreatmentPlanner({ toothData, chartingHistory, patientId }: Trea
       notes: ""
     });
     setShowAddForm(false);
+    toast.success(`Treatment plan added for tooth ${plan.toothNumber}: ${plan.procedure}`);
   };
 
   const handleDeletePlan = (planId: string) => {
     setTreatmentPlans(prev => prev.filter(plan => plan.id !== planId));
+    toast.success("Treatment plan deleted successfully");
+  };
+
+  const handleEditPlan = (planId: string) => {
+    const plan = treatmentPlans.find(p => p.id === planId);
+    if (plan) {
+      toast.info(`Editing treatment plan for tooth ${plan.toothNumber}: ${plan.procedure}`);
+      // In a real implementation, this would open an edit modal or form
+    }
   };
 
   const handleUpdateStatus = (planId: string, newStatus: TreatmentPlan["status"]) => {
+    const plan = treatmentPlans.find(p => p.id === planId);
     setTreatmentPlans(prev => 
       prev.map(plan => 
         plan.id === planId ? { ...plan, status: newStatus } : plan
       )
     );
+    if (plan) {
+      toast.success(`Treatment plan for tooth ${plan.toothNumber} updated to ${newStatus.replace("_", " ")}`);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -414,7 +432,12 @@ export function TreatmentPlanner({ toothData, chartingHistory, patientId }: Trea
                           </SelectContent>
                         </Select>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleEditPlan(plan.id)}
+                          >
                             <Edit className="h-3 w-3" />
                           </Button>
                           <Button 

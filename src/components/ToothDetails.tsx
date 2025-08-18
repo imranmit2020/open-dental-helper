@@ -12,6 +12,7 @@ import {
   Edit
 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import type { ToothData } from "@/types/dental";
 
 interface ToothDetailsProps {
@@ -20,6 +21,14 @@ interface ToothDetailsProps {
 }
 
 export function ToothDetails({ tooth, toothNumber }: ToothDetailsProps) {
+  const handleEditTooth = () => {
+    toast.success("Edit mode activated for tooth " + toothNumber);
+  };
+
+  const handleViewHistory = () => {
+    toast.info("Viewing complete history for tooth " + toothNumber);
+  };
+
   if (!tooth) {
     return (
       <Card className="professional-card">
@@ -154,11 +163,11 @@ export function ToothDetails({ tooth, toothNumber }: ToothDetailsProps) {
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          <Button variant="outline" size="sm" className="flex-1">
+          <Button variant="outline" size="sm" className="flex-1" onClick={handleEditTooth}>
             <Edit className="h-3 w-3 mr-1" />
             Edit
           </Button>
-          <Button variant="outline" size="sm" className="flex-1">
+          <Button variant="outline" size="sm" className="flex-1" onClick={handleViewHistory}>
             <FileText className="h-3 w-3 mr-1" />
             History
           </Button>
