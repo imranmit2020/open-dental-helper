@@ -332,7 +332,7 @@ export default function PatientCharting() {
     let route = module.route;
     if (module.requiresPatient && selectedPatient) {
       // Some routes might need patient ID in the URL
-      if (module.id === "medical-history" || module.id === "treatment-plans") {
+      if (module.id === "medical-history" || module.id === "treatment-plans" || module.id === "tooth-charting") {
         route = `${module.route}?patientId=${selectedPatient.id}`;
       }
     }
