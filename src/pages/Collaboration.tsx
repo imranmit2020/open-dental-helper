@@ -726,47 +726,47 @@ export default function Collaboration() {
       <div className="flex-1 flex flex-col bg-background">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
           <div className="border-b bg-card p-4">
-            <TabsList className="grid w-full grid-cols-6 gap-2 bg-muted p-1 rounded-lg">
+            <TabsList className="flex w-full gap-1 bg-muted p-1 rounded-lg overflow-x-auto">
               <TabsTrigger 
                 value="chat" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className="h-3 w-3" />
                 Chat
               </TabsTrigger>
               <TabsTrigger 
                 value="holographic" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <Video className="h-4 w-4" />
+                <Video className="h-3 w-3" />
                 Holographic
               </TabsTrigger>
               <TabsTrigger 
                 value="whiteboard" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <Palette className="h-4 w-4" />
+                <Palette className="h-3 w-3" />
                 Whiteboard
               </TabsTrigger>
               <TabsTrigger 
                 value="voice" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <Mic className="h-4 w-4" />
+                <Mic className="h-3 w-3" />
                 Voice
               </TabsTrigger>
               <TabsTrigger 
                 value="tasks" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <CheckSquare className="h-4 w-4" />
+                <CheckSquare className="h-3 w-3" />
                 Tasks
               </TabsTrigger>
               <TabsTrigger 
                 value="team" 
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm whitespace-nowrap"
               >
-                <Users className="h-4 w-4" />
+                <Users className="h-3 w-3" />
                 Team
               </TabsTrigger>
             </TabsList>
