@@ -81,6 +81,7 @@ export default function AdminDatabaseBackup() {
   const [scheduleFrequency, setScheduleFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [scheduleTime, setScheduleTime] = useState("02:00");
   const [scheduleType, setScheduleType] = useState<'full' | 'incremental'>('full');
+  const [scheduleStorageLocation, setScheduleStorageLocation] = useState<'supabase' | 'external' | 'local'>('supabase');
 
   useEffect(() => {
     loadBackupHistory();
@@ -676,6 +677,75 @@ export default function AdminDatabaseBackup() {
                       <SelectItem value="incremental">Incremental Backup</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Storage Location</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div 
+                      className={`p-2 border rounded-lg cursor-pointer transition-all ${
+                        scheduleStorageLocation === 'supabase' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setScheduleStorageLocation('supabase')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                          scheduleStorageLocation === 'supabase' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {scheduleStorageLocation === 'supabase' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Database className="h-3 w-3" />
+                          <span className="text-sm font-medium">Supabase Storage</span>
+                          <Badge variant="secondary" className="text-xs h-4">Default</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-2 border rounded-lg cursor-pointer transition-all ${
+                        scheduleStorageLocation === 'external' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setScheduleStorageLocation('external')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                          scheduleStorageLocation === 'external' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {scheduleStorageLocation === 'external' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Cloud className="h-3 w-3" />
+                          <span className="text-sm font-medium">External Cloud</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-2 border rounded-lg cursor-pointer transition-all ${
+                        scheduleStorageLocation === 'local' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setScheduleStorageLocation('local')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                          scheduleStorageLocation === 'local' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {scheduleStorageLocation === 'local' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Download className="h-3 w-3" />
+                          <span className="text-sm font-medium">Local Download</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <Button onClick={createSchedule} className="w-full">
