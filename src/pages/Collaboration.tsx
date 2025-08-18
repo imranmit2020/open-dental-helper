@@ -161,11 +161,20 @@ export default function Collaboration() {
         .select('*')
         .order('last_activity', { ascending: false });
 
-      if (error) throw error;
-      setChannels(data || []);
-      
-      if (data && data.length > 0 && !activeChannel) {
-        setActiveChannel(data[0]);
+      if (error) {
+        console.error('Error fetching channels:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setChannels(data);
+        if (!activeChannel) {
+          setActiveChannel(data[0]);
+        }
+      } else {
+        // No channels found, provide helpful message
+        setChannels([]);
+        setActiveChannel(null);
       }
     } catch (error) {
       console.error('Error fetching channels:', error);

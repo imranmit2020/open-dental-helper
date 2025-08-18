@@ -2815,6 +2815,22 @@ export type Database = {
           start_time: string
         }[]
       }
+      get_user_accessible_channels: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          corporation_id: string
+          created_by: string
+          description: string
+          id: string
+          last_activity: string
+          last_message: string
+          member_count: number
+          name: string
+          tenant_id: string
+          type: string
+          unread_count: number
+        }[]
+      }
       get_user_lab_provider_account_id: {
         Args: { _user_id: string }
         Returns: string
