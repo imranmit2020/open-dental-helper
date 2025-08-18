@@ -74,6 +74,7 @@ export default function AdminDatabaseBackup() {
   const [compression, setCompression] = useState(true);
   const [encryption, setEncryption] = useState(false);
   const [cloudStorage, setCloudStorage] = useState(false);
+  const [storageLocation, setStorageLocation] = useState<'supabase' | 'external' | 'local'>('supabase');
 
   // Schedule Configuration
   const [scheduleName, setScheduleName] = useState("");
@@ -399,6 +400,90 @@ export default function AdminDatabaseBackup() {
                       <SelectItem value="csv">CSV Files</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Storage Location</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        storageLocation === 'supabase' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setStorageLocation('supabase')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                          storageLocation === 'supabase' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {storageLocation === 'supabase' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Database className="h-4 w-4" />
+                            <span className="font-medium">Supabase Storage</span>
+                            <Badge variant="secondary" className="text-xs">Default</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Secure cloud storage with built-in versioning
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        storageLocation === 'external' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setStorageLocation('external')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                          storageLocation === 'external' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {storageLocation === 'external' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Cloud className="h-4 w-4" />
+                            <span className="font-medium">External Cloud</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            AWS S3, Google Cloud, or Azure Blob Storage
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        storageLocation === 'local' 
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => setStorageLocation('local')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                          storageLocation === 'local' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                        }`}>
+                          {storageLocation === 'local' && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Download className="h-4 w-4" />
+                            <span className="font-medium">Local Download</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Download directly to your device
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {backupType === 'selective' && (
