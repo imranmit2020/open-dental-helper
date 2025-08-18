@@ -78,6 +78,7 @@ const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 const DataMigration = lazy(() => import("./pages/DataMigration"));
 const ModuleFlows = lazy(() => import("./pages/ModuleFlows"));
 const PatientCharting = lazy(() => import("./pages/PatientCharting"));
+const ToothCharting = lazy(() => import("./pages/ToothCharting"));
 
 // New AI-powered modules
 const AIPatientAnalytics = lazy(() => import("./pages/AIPatientAnalytics"));
@@ -276,6 +277,11 @@ function App() {
             <Route path="patient-charting" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
                 <Suspense fallback={<PageLoader />}><PatientCharting /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="tooth-charting" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><ToothCharting /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="ai/patient-analytics" element={

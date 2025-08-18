@@ -32,7 +32,8 @@ import {
   Activity,
   Sparkles,
   Star,
-  StarOff
+  StarOff,
+  Circle
 } from "lucide-react";
 
 interface ChartingModule {
@@ -66,6 +67,16 @@ const chartingModules: ChartingModule[] = [
     color: "bg-green-500",
     requiresPatient: true,
     moduleKey: "medical_history"
+  },
+  {
+    id: "tooth-charting",
+    title: "Tooth Charting",
+    description: "Interactive digital tooth charting and treatment tracking",
+    icon: Circle,
+    route: "/tooth-charting",
+    color: "bg-blue-600",
+    requiresPatient: true,
+    moduleKey: "tooth_charting"
   },
   {
     id: "xray-diagnostics",

@@ -49,7 +49,8 @@ export type ModuleKey =
   | 'patient_consent_forms'
   | 'admin_navigation_permissions'
   | 'ai_assistant'
-  | 'lab_management';
+  | 'lab_management'
+  | 'tooth_charting';
 
 interface ModulePermissionRow {
   id: string;
