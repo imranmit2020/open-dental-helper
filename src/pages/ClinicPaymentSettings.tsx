@@ -569,9 +569,15 @@ const ClinicPaymentSettings = () => {
                             defaultValue={editingInsurance?.coverage_percentage}
                             placeholder="80"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            e.g., 80% means insurance covers 80% of covered procedures
-                          </p>
+                          <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                            <p>Find this information from:</p>
+                            <ul className="list-disc list-inside ml-2 space-y-0.5">
+                              <li>Insurance verification calls</li>
+                              <li>Insurance company portals</li>
+                              <li>Patient's insurance card/benefits summary</li>
+                              <li>Previous claims with this insurer</li>
+                            </ul>
+                          </div>
                         </div>
                         <div>
                           <Label htmlFor="waiting_period_months">Waiting Period (Months)</Label>
