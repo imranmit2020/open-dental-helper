@@ -254,7 +254,7 @@ const chartingModules: ChartingModule[] = [
 ];
 
 export default function PatientCharting() {
-  const { patients, loading, searchPatients } = useOptimizedPatients();
+  const { patients: allPatients, loading: initialLoading, searchPatients } = useOptimizedPatients();
   const { canAccessModule } = useModulePermissions();
   const { favorites, isFavorite, toggleFavorite } = useModuleFavorites();
   const [searchTerm, setSearchTerm] = useState("");
@@ -262,23 +262,47 @@ export default function PatientCharting() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [displayCount, setDisplayCount] = useState(20);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
 
-  // Memoized patient filtering for better performance
-  const filteredPatients = useMemo(() => {
-    let filtered = patients;
+  // Get recent 5 patients initially
+  const recentPatients = useMemo(() => {
+    return allPatients
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+      .slice(0, 5);
+  }, [allPatients]);
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(patient => 
-        patient.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  // Handle search with debouncing
+  useEffect(() => {
+    const handleSearch = async () => {
+      if (searchTerm.trim().length >= 2) {
+        setIsSearching(true);
+        try {
+          const results = await searchPatients(searchTerm);
+          setSearchResults(results);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    };
 
-    // Filter by status
+    const timeoutId = setTimeout(handleSearch, 300); // Debounce search
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, searchPatients]);
+
+  // Get the patients to display (recent or search results)
+  const displayPatients = useMemo(() => {
+    const basePatients = searchTerm.trim().length >= 2 ? searchResults : recentPatients;
+    let filtered = basePatients;
+
+    // Apply filters
     if (statusFilter !== "all") {
       filtered = filtered.filter(patient => {
         const status = getPatientStatus(patient);
@@ -286,13 +310,12 @@ export default function PatientCharting() {
       });
     }
 
-    // Filter by risk level
     if (riskFilter !== "all") {
       filtered = filtered.filter(patient => patient.risk_level === riskFilter);
     }
 
-    return filtered.slice(0, displayCount);
-  }, [patients, searchTerm, statusFilter, riskFilter, displayCount]);
+    return filtered;
+  }, [recentPatients, searchResults, searchTerm, statusFilter, riskFilter]);
 
   // Memoized status calculation to avoid repeated computation
   const getPatientStatus = useCallback((patient: any) => {
@@ -361,12 +384,8 @@ export default function PatientCharting() {
     return filtered;
   }, [canAccessModule, showFavoritesOnly, isFavorite]);
 
-  const loadMorePatients = useCallback(() => {
-    setDisplayCount(prev => prev + 20);
-  }, []);
-
   // Enhanced loading with skeleton for better UX
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -438,7 +457,10 @@ export default function PatientCharting() {
                 Select Patient
               </CardTitle>
               <CardDescription>
-                Choose a patient to access their charting modules
+                {searchTerm.trim().length >= 2 
+                  ? "Search results" 
+                  : "Recent 5 patients (search to find more)"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -446,11 +468,16 @@ export default function PatientCharting() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search patients..."
+                  placeholder="Search patients (min 2 chars)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
+                {isSearching && (
+                  <div className="absolute right-3 top-3">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  </div>
+                )}
               </div>
 
               {/* Filters */}
@@ -483,7 +510,7 @@ export default function PatientCharting() {
 
               {/* Patient List */}
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {filteredPatients.map((patient) => {
+                {displayPatients.map((patient) => {
                   const status = getPatientStatus(patient);
                   const isSelected = selectedPatient?.id === patient.id;
                   
@@ -533,23 +560,17 @@ export default function PatientCharting() {
                   );
                 })}
                 
-                {filteredPatients.length === 0 && (
+                
+                {displayPatients.length === 0 && !isSearching && (
                   <div className="text-center py-8 text-muted-foreground">
-                    No patients found
+                    {searchTerm.trim().length >= 2 ? "No patients found" : "No recent patients"}
                   </div>
                 )}
                 
-                {/* Load More Button */}
-                {patients.length > displayCount && filteredPatients.length >= displayCount && (
-                  <div className="text-center pt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={loadMorePatients}
-                      className="w-full"
-                    >
-                      Load More Patients ({patients.length - displayCount} remaining)
-                    </Button>
+                {isSearching && (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-sm text-muted-foreground mt-2">Searching patients...</p>
                   </div>
                 )}
               </div>
