@@ -46,6 +46,7 @@ export default function ToothCharting() {
   const [currentTreatment, setCurrentTreatment] = useState("");
   const [currentNotes, setCurrentNotes] = useState("");
   const [currentSeverity, setCurrentSeverity] = useState<"mild" | "moderate" | "severe">("mild");
+  const [showToothImages, setShowToothImages] = useState(true);
 
   useEffect(() => {
     if (patientId && patients.length > 0) {
@@ -319,12 +320,37 @@ export default function ToothCharting() {
                   Click on teeth for detailed analysis and smart charting
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-6 bg-gradient-to-br from-primary/5 to-secondary/5">
-                <ToothDiagram
-                  toothData={toothData}
-                  selectedTooth={selectedTooth}
-                  onToothSelect={handleToothSelect}
-                />
+              <CardContent className="p-0">
+                <Tabs value={showToothImages ? "images" : "simple"} onValueChange={(value) => setShowToothImages(value === "images")}>
+                  <div className="px-6 pt-4 pb-2 bg-gradient-subtle border-b">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="images" className="flex items-center gap-2">
+                        📷 Realistic Images
+                      </TabsTrigger>
+                      <TabsTrigger value="simple" className="flex items-center gap-2">
+                        📊 Simple View
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                  
+                  <TabsContent value="images" className="p-6 bg-gradient-to-br from-primary/5 to-secondary/5 m-0">
+                    <ToothDiagram
+                      toothData={toothData}
+                      selectedTooth={selectedTooth}
+                      onToothSelect={handleToothSelect}
+                      showImages={true}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="simple" className="p-6 bg-gradient-to-br from-muted/30 to-muted/10 m-0">
+                    <ToothDiagram
+                      toothData={toothData}
+                      selectedTooth={selectedTooth}
+                      onToothSelect={handleToothSelect}
+                      showImages={false}
+                    />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
             
