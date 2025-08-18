@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { ToothData, ChartingEntry } from "@/types/dental";
+import { AINotesGenerator } from "@/components/AINotesGenerator";
 
 interface TreatmentPlannerProps {
   toothData: Record<number, ToothData>;
@@ -341,12 +342,15 @@ export function TreatmentPlanner({ toothData, chartingHistory, patientId }: Trea
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Notes</Label>
-                  <Textarea
-                    placeholder="Additional notes..."
-                    value={newPlan.notes}
-                    onChange={(e) => setNewPlan(prev => ({ ...prev, notes: e.target.value }))}
-                    rows={2}
+                  <Label>Treatment Notes</Label>
+                  <AINotesGenerator
+                    procedure={newPlan.procedure}
+                    toothNumber={parseInt(newPlan.toothNumber) || 0}
+                    priority={newPlan.priority}
+                    notes={newPlan.notes}
+                    onNotesChange={(notes) => setNewPlan(prev => ({ ...prev, notes }))}
+                    patientId={patientId}
+                    chartingHistory={chartingHistory}
                   />
                 </div>
                 <div className="flex gap-2">
