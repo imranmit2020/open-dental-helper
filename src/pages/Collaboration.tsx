@@ -582,69 +582,39 @@ export default function Collaboration() {
             </Dialog>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6 bg-muted/50 border border-border rounded-lg p-1 mb-6">
-              <TabsTrigger value="chat" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Neural Chat
-              </TabsTrigger>
-              <TabsTrigger value="holographic" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Video className="h-4 w-4 mr-2" />
-                Holographic
-              </TabsTrigger>
-              <TabsTrigger value="whiteboard" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Palette className="h-4 w-4 mr-2" />
-                AI Canvas
-              </TabsTrigger>
-              <TabsTrigger value="voice" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Mic className="h-4 w-4 mr-2" />
-                Voice AI
-              </TabsTrigger>
-              <TabsTrigger value="tasks" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <CheckSquare className="h-4 w-4 mr-2" />
-                Smart Tasks
-              </TabsTrigger>
-              <TabsTrigger value="team" className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Users className="h-4 w-4 mr-2" />
-                Team
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
 
         <ScrollArea className="flex-1">
-          {activeTab === 'chat' && (
-            <div className="p-2">
-              <div className="space-y-2">
-                {channels.map((channel) => (
-                  <div
-                    key={channel.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      activeChannel?.id === channel.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
-                    onClick={() => setActiveChannel(channel)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Hash className="h-4 w-4" />
-                      <span className="font-medium">{channel.name}</span>
-                      {channel.unread_count > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {channel.unread_count}
-                        </Badge>
-                      )}
-                    </div>
-                    {channel.last_message && (
-                      <p className="text-sm text-muted-foreground mt-1 truncate">
-                        {channel.last_message}
-                      </p>
+          <div className="p-2">
+            <div className="space-y-2">
+              {channels.map((channel) => (
+                <div
+                  key={channel.id}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    activeChannel?.id === channel.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                  onClick={() => setActiveChannel(channel)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Hash className="h-4 w-4" />
+                    <span className="font-medium">{channel.name}</span>
+                    {channel.unread_count > 0 && (
+                      <Badge variant="destructive" className="text-xs">
+                        {channel.unread_count}
+                      </Badge>
                     )}
                   </div>
-                ))}
-              </div>
+                  {channel.last_message && (
+                    <p className="text-sm text-muted-foreground mt-1 truncate">
+                      {channel.last_message}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
           {activeTab === 'tasks' && (
             <div className="p-2 space-y-4">
