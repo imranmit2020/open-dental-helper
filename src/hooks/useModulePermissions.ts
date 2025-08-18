@@ -11,6 +11,7 @@ export type ModuleKey =
   | 'consent_forms'
   | 'treatment_plans'
   | 'insurance_billing'
+  | 'payment_settings'
   | 'schedule'
   | 'schedule_management'
   | 'ai_scheduling'

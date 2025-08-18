@@ -677,6 +677,60 @@ export type Database = {
           },
         ]
       }
+      insurance_plans: {
+        Row: {
+          annual_maximum: number | null
+          contact_email: string | null
+          contact_phone: string | null
+          coverage_percentage: number | null
+          created_at: string
+          deductible: number | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          plan_name: string
+          plan_type: string
+          provider_name: string
+          tenant_id: string
+          updated_at: string
+          waiting_period_months: number | null
+        }
+        Insert: {
+          annual_maximum?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          coverage_percentage?: number | null
+          created_at?: string
+          deductible?: number | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          plan_name: string
+          plan_type?: string
+          provider_name: string
+          tenant_id: string
+          updated_at?: string
+          waiting_period_months?: number | null
+        }
+        Update: {
+          annual_maximum?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          coverage_percentage?: number | null
+          created_at?: string
+          deductible?: number | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          plan_name?: string
+          plan_type?: string
+          provider_name?: string
+          tenant_id?: string
+          updated_at?: string
+          waiting_period_months?: number | null
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           description: string
@@ -1425,6 +1479,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_methods: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          maximum_amount: number | null
+          method_name: string
+          method_type: string
+          minimum_amount: number | null
+          notes: string | null
+          processing_fee_percentage: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          maximum_amount?: number | null
+          method_name: string
+          method_type?: string
+          minimum_amount?: number | null
+          notes?: string | null
+          processing_fee_percentage?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          maximum_amount?: number | null
+          method_name?: string
+          method_type?: string
+          minimum_amount?: number | null
+          notes?: string | null
+          processing_fee_percentage?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       practice_analytics: {
         Row: {

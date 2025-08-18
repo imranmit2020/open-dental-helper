@@ -42,6 +42,7 @@ const PracticeAnalytics = lazy(() => import("./pages/PracticeAnalytics"));
 const PracticeAnalyticsDetail = lazy(() => import("./pages/PracticeAnalyticsDetail"));
 const PredictiveAnalytics = lazy(() => import("./pages/PredictiveAnalytics").then(m => ({ default: m.PredictiveAnalytics })));
 const InsuranceBilling = lazy(() => import("./pages/InsuranceBilling"));
+const ClinicPaymentSettings = lazy(() => import("./pages/ClinicPaymentSettings"));
 const AIScheduling = lazy(() => import("./pages/AIScheduling"));
 const Teledentistry = lazy(() => import("./pages/Teledentistry"));
 const MultiPracticeAnalytics = lazy(() => import("./pages/MultiPracticeAnalytics"));
@@ -181,6 +182,7 @@ function App() {
             <Route path="ai/predictive-analytics" element={<Suspense fallback={<PageLoader />}><PredictiveAnalytics /></Suspense>} />
             <Route path="ai/predictive" element={<Suspense fallback={<PageLoader />}><PredictiveAnalytics /></Suspense>} />
             <Route path="insurance-billing" element={<Suspense fallback={<PageLoader />}><InsuranceBilling /></Suspense>} />
+            <Route path="clinic-payment-settings" element={<Suspense fallback={<PageLoader />}><ClinicPaymentSettings /></Suspense>} />
             <Route path="ai-scheduling" element={<Suspense fallback={<PageLoader />}><AIScheduling /></Suspense>} />
             <Route path="ai/scheduling" element={<Suspense fallback={<PageLoader />}><AIScheduling /></Suspense>} />
             <Route path="teledentistry" element={<Suspense fallback={<PageLoader />}><Teledentistry /></Suspense>} />
