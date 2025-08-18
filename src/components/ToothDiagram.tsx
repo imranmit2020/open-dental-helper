@@ -2,6 +2,12 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import type { ToothData } from "@/types/dental";
 
+// Import tooth images
+import toothIncisor from "@/assets/tooth-incisor.png";
+import toothCanine from "@/assets/tooth-canine.png";
+import toothPremolar from "@/assets/tooth-premolar.png";
+import toothMolar from "@/assets/tooth-molar.png";
+
 interface ToothDiagramProps {
   toothData: Record<number, ToothData>;
   selectedTooth: number | null;
@@ -29,142 +35,148 @@ export function ToothDiagram({ toothData, selectedTooth, onToothSelect }: ToothD
 
   const getToothColor = (status: string): string => {
     switch (status) {
-      case "healthy": return "fill-card stroke-border hover:fill-primary/10";
-      case "mild": return "fill-warning/20 stroke-warning hover:fill-warning/30";
-      case "moderate": return "fill-warning/40 stroke-warning hover:fill-warning/50";
-      case "severe": return "fill-destructive/40 stroke-destructive hover:fill-destructive/50";
-      case "treated": return "fill-success/40 stroke-success hover:fill-success/50";
-      case "in_progress": return "fill-info/40 stroke-info hover:fill-info/50";
-      case "missing": return "fill-muted stroke-muted-foreground opacity-50";
-      default: return "fill-card stroke-border hover:fill-primary/10";
+      case "healthy": return "brightness-100 contrast-100 saturate-100";
+      case "mild": return "brightness-90 contrast-110 saturate-110 hue-rotate-15";
+      case "moderate": return "brightness-80 contrast-120 saturate-120 hue-rotate-30";
+      case "severe": return "brightness-70 contrast-130 saturate-150 hue-rotate-[350deg]";
+      case "treated": return "brightness-95 contrast-105 saturate-105 hue-rotate-[120deg]";
+      case "in_progress": return "brightness-85 contrast-115 saturate-115 hue-rotate-[200deg]";
+      case "missing": return "brightness-50 contrast-50 saturate-0 opacity-30";
+      default: return "brightness-100 contrast-100 saturate-100";
     }
+  };
+
+  const getToothImage = (toothNumber: number): string => {
+    // Determine tooth type based on tooth number
+    const lastDigit = toothNumber % 10;
+    
+    if (lastDigit === 1 || lastDigit === 2) return toothIncisor; // Incisors
+    if (lastDigit === 3) return toothCanine; // Canines
+    if (lastDigit === 4 || lastDigit === 5) return toothPremolar; // Premolars
+    if (lastDigit === 6 || lastDigit === 7 || lastDigit === 8) return toothMolar; // Molars
+    
+    return toothIncisor; // Default
   };
 
   const renderTooth = (toothNumber: number, isSelected: boolean = false) => {
     const status = getToothStatus(toothNumber);
-    const colorClass = getToothColor(status);
+    const filterClass = getToothColor(status);
+    const toothImage = getToothImage(toothNumber);
     const isUpper = toothNumber < 30;
     
     return (
-      <g
+      <div
         key={toothNumber}
-        className="cursor-pointer transition-all duration-200"
+        className={cn(
+          "relative cursor-pointer transition-all duration-200 w-8 h-10 flex flex-col items-center",
+          "hover:scale-110 hover:z-10"
+        )}
         onClick={() => onToothSelect(toothNumber)}
       >
-        {/* Tooth Shape */}
-        <rect
-          x={0}
-          y={0}
-          width="32"
-          height={isUpper ? "40" : "35"}
-          rx="6"
-          ry="6"
-          className={cn(
-            colorClass,
-            "stroke-2 transition-all duration-200",
-            isSelected && "stroke-primary stroke-4 fill-primary/20",
-            status === "missing" && "stroke-dashed"
+        {/* Tooth Image */}
+        <div className="relative w-8 h-8 mb-1">
+          <img
+            src={toothImage}
+            alt={`Tooth ${toothNumber}`}
+            className={cn(
+              "w-full h-full object-contain transition-all duration-200",
+              filterClass,
+              isSelected && "brightness-110 contrast-130 scale-110",
+              status === "missing" && "grayscale opacity-30",
+              "hover:brightness-110"
+            )}
+          />
+          
+          {/* Selection Ring */}
+          {isSelected && (
+            <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse" />
           )}
-        />
+          
+          {/* Status Indicator */}
+          {status !== "healthy" && status !== "missing" && (
+            <div
+              className={cn(
+                "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background",
+                status === "severe" && "bg-destructive",
+                status === "moderate" && "bg-warning",
+                status === "mild" && "bg-warning",
+                status === "treated" && "bg-success",
+                status === "in_progress" && "bg-info"
+              )}
+            />
+          )}
+        </div>
         
         {/* Tooth Number */}
-        <text
-          x="16"
-          y={isUpper ? "25" : "22"}
-          textAnchor="middle"
+        <span
           className={cn(
-            "text-xs font-medium",
-            status === "missing" ? "fill-muted-foreground" : "fill-foreground",
-            isSelected && "fill-primary font-bold"
+            "text-[10px] font-medium text-center leading-none",
+            status === "missing" ? "text-muted-foreground" : "text-foreground",
+            isSelected && "text-primary font-bold"
           )}
         >
           {toothNumber}
-        </text>
-        
-        {/* Status Indicator */}
-        {status !== "healthy" && status !== "missing" && (
-          <circle
-            cx="26"
-            cy="6"
-            r="3"
-            className={cn(
-              "stroke-background stroke-1",
-              status === "severe" && "fill-destructive",
-              status === "moderate" && "fill-warning",
-              status === "mild" && "fill-warning",
-              status === "treated" && "fill-success",
-              status === "in_progress" && "fill-info"
-            )}
-          />
-        )}
-      </g>
+        </span>
+      </div>
     );
   };
 
-  const renderQuadrant = (teeth: number[], label: string, transform: string) => (
-    <g transform={transform}>
-      <text x="0" y="-10" className="text-sm font-medium fill-muted-foreground">
-        {label}
-      </text>
-      {teeth.map((tooth, index) => (
-        <g key={tooth} transform={`translate(${index * 45}, 0)`}>
-          {renderTooth(tooth, selectedTooth === tooth)}
-        </g>
-      ))}
-    </g>
+  const renderQuadrant = (teeth: number[], label: string) => (
+    <div className="flex flex-col items-center space-y-2">
+      <div className="text-sm font-medium text-muted-foreground">{label}</div>
+      <div className="flex space-x-1">
+        {teeth.map((tooth) => renderTooth(tooth, selectedTooth === tooth))}
+      </div>
+    </div>
   );
 
   return (
-    <div className="w-full overflow-auto">
-      <svg viewBox="0 0 800 400" className="w-full h-auto min-h-[400px]">
-        {/* Background */}
-        <rect width="800" height="400" fill="transparent" />
-        
+    <div className="w-full max-w-4xl mx-auto p-6">
+      <div className="grid grid-cols-2 gap-8">
         {/* Upper Teeth */}
-        {renderQuadrant(upperRightTeeth, "Upper Right", "translate(60, 80)")}
-        {renderQuadrant(upperLeftTeeth, "Upper Left", "translate(420, 80)")}
-        
-        {/* Center Line */}
-        <line
-          x1="400"
-          y1="60"
-          x2="400"
-          y2="340"
-          stroke="hsl(var(--border))"
-          strokeWidth="2"
-          strokeDasharray="5,5"
-          className="opacity-50"
-        />
+        <div className="space-y-4">
+          {renderQuadrant(upperRightTeeth, "Upper Right")}
+          {renderQuadrant(upperLeftTeeth, "Upper Left")}
+        </div>
         
         {/* Lower Teeth */}
-        {renderQuadrant(lowerLeftTeeth, "Lower Left", "translate(420, 260)")}
-        {renderQuadrant(lowerRightTeeth, "Lower Right", "translate(60, 260)")}
-        
-        {/* Legend */}
-        <g transform="translate(50, 350)">
-          <text x="0" y="0" className="text-sm font-medium fill-foreground">Legend:</text>
-          <g transform="translate(0, 15)">
-            <circle r="4" fill="hsl(var(--success) / 0.4)" className="stroke-success stroke-1" />
-            <text x="12" y="4" className="text-xs fill-muted-foreground">Treated</text>
-          </g>
-          <g transform="translate(80, 15)">
-            <circle r="4" fill="hsl(var(--info) / 0.4)" className="stroke-info stroke-1" />
-            <text x="12" y="4" className="text-xs fill-muted-foreground">In Progress</text>
-          </g>
-          <g transform="translate(180, 15)">
-            <circle r="4" fill="hsl(var(--warning) / 0.4)" className="stroke-warning stroke-1" />
-            <text x="12" y="4" className="text-xs fill-muted-foreground">Needs Treatment</text>
-          </g>
-          <g transform="translate(300, 15)">
-            <circle r="4" fill="hsl(var(--destructive) / 0.4)" className="stroke-destructive stroke-1" />
-            <text x="12" y="4" className="text-xs fill-muted-foreground">Severe</text>
-          </g>
-          <g transform="translate(380, 15)">
-            <circle r="4" fill="hsl(var(--muted))" className="stroke-muted-foreground stroke-1 opacity-50 stroke-dashed" />
-            <text x="12" y="4" className="text-xs fill-muted-foreground">Missing</text>
-          </g>
-        </g>
-      </svg>
+        <div className="space-y-4">
+          {renderQuadrant(lowerLeftTeeth, "Lower Left")}
+          {renderQuadrant(lowerRightTeeth, "Lower Right")}
+        </div>
+      </div>
+      
+      {/* Center Divider */}
+      <div className="relative">
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border opacity-50 transform -translate-x-1/2" />
+      </div>
+      
+      {/* Legend */}
+      <div className="mt-8 p-4 bg-muted/30 rounded-lg">
+        <h4 className="text-sm font-medium mb-3">Legend:</h4>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-success/40 rounded border border-success" />
+            <span>Treated</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-info/40 rounded border border-info" />
+            <span>In Progress</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-warning/40 rounded border border-warning" />
+            <span>Needs Treatment</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-destructive/40 rounded border border-destructive" />
+            <span>Severe</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-muted rounded border border-muted-foreground opacity-50" />
+            <span>Missing</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
