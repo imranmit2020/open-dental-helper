@@ -1,5 +1,8 @@
 project_id = "nqrwtihwuvyfucmbcsem"
 
+[functions.database-backup]
+verify_jwt = true
+
 [functions.kpi-daily-snapshot]
 verify_jwt = false
 

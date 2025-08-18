@@ -95,6 +95,7 @@ const EmployeeTimeTracking = lazy(() => import("./pages/EmployeeTimeTracking"));
 const EmployeeTimeAnalytics = lazy(() => import("./pages/EmployeeTimeAnalytics"));
 const AdminSecuritySettings = lazy(() => import("./pages/AdminSecuritySettings"));
 const AdminSQLQuery = lazy(() => import("./pages/AdminSQLQuery"));
+const AdminDatabaseBackup = lazy(() => import("./pages/AdminDatabaseBackup"));
 const ETLDeveloper = lazy(() => import("./pages/ETLDeveloper"));
 const GamifiedKidsApp = lazy(() => import("./pages/GamifiedKidsApp"));
 const ReferralNetwork = lazy(() => import("./pages/ReferralNetwork"));
@@ -269,6 +270,11 @@ function App() {
             <Route path="admin/sql-query" element={
               <ProtectedRoute requiredRoles={['admin']}>
                 <Suspense fallback={<PageLoader />}><AdminSQLQuery /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="admin/database-backup" element={
+              <ProtectedRoute requiredRoles={['admin']}>
+                <Suspense fallback={<PageLoader />}><AdminDatabaseBackup /></Suspense>
               </ProtectedRoute>
             } />
             <Route path="admin/etl-developer" element={
