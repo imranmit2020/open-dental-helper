@@ -36,7 +36,8 @@ import {
   Eye,
   Microscope,
   Sparkles,
-  FlaskConical
+  FlaskConical,
+  Headphones
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -548,6 +549,27 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Support - Show for all staff */}
+        {isStaffMember && (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
+              Support
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Tech Support">
+                    <NavLink to="/tech-support" className={getNavCls}>
+                      <Headphones className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Tech Support</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

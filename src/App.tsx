@@ -104,6 +104,7 @@ const LabManagement = lazy(() => import("./pages/LabManagement"));
 const LabProviderDashboard = lazy(() => import("./pages/LabProviderDashboard"));
 const LabProviderSignUp = lazy(() => import("./pages/LabProviderSignUp"));
 const LabProviderAuth = lazy(() => import("./pages/LabProviderAuth"));
+const TechSupport = lazy(() => import('./pages/TechSupport'));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -376,6 +377,11 @@ function App() {
               <Suspense fallback={<PageLoader />}><LabProviderDashboard /></Suspense>
             } />
             <Route path="employee-onboarding" element={<Suspense fallback={<PageLoader />}><EmployeeOnboarding /></Suspense>} />
+            <Route path="tech-support" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><TechSupport /></Suspense>
+              </ProtectedRoute>
+            } />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
