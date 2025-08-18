@@ -36,7 +36,7 @@ export const AIWhiteboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || fabricCanvas) return;
 
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 800,
@@ -44,9 +44,11 @@ export const AIWhiteboard = () => {
       backgroundColor: "#1f2937",
     });
 
-    // Enhanced drawing brush
-    canvas.freeDrawingBrush.color = activeColor;
-    canvas.freeDrawingBrush.width = brushSize[0];
+    // Ensure freeDrawingBrush is initialized before setting properties
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = activeColor;
+      canvas.freeDrawingBrush.width = brushSize[0];
+    }
 
     setFabricCanvas(canvas);
     
@@ -55,21 +57,24 @@ export const AIWhiteboard = () => {
       addAIInsight({
         id: '1',
         type: 'suggestion',
-        message: '🧠 AI Whiteboard ready! Try drawing - I\'ll provide smart suggestions.',
+        message: '🧠 AI Whiteboard ready! Start drawing - I\'ll provide smart suggestions.',
         position: { x: 50, y: 50 }
       });
     }, 1000);
 
     return () => {
-      canvas.dispose();
+      if (canvas) {
+        canvas.dispose();
+      }
     };
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   useEffect(() => {
     if (!fabricCanvas) return;
 
     fabricCanvas.isDrawingMode = activeTool === "draw" || activeTool === "eraser";
     
+    // Ensure freeDrawingBrush exists before setting properties
     if (fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = activeTool === "eraser" ? "#1f2937" : activeColor;
       fabricCanvas.freeDrawingBrush.width = activeTool === "eraser" ? brushSize[0] * 3 : brushSize[0];
@@ -188,88 +193,111 @@ export const AIWhiteboard = () => {
 
   const handleClear = () => {
     if (!fabricCanvas) return;
-    fabricCanvas.clear();
-    fabricCanvas.backgroundColor = "#1f2937";
-    fabricCanvas.renderAll();
-    setAiInsights([]);
-    toast({
-      title: "Canvas Cleared",
-      description: "🧠 AI is ready for your next masterpiece!",
-    });
+    try {
+      fabricCanvas.clear();
+      fabricCanvas.backgroundColor = "#1f2937";
+      fabricCanvas.renderAll();
+      setAiInsights([]);
+      toast({
+        title: "Canvas Cleared",
+        description: "🧠 AI is ready for your next masterpiece!",
+      });
+    } catch (error) {
+      console.error('Error clearing canvas:', error);
+    }
   };
 
   const generateAIContent = async () => {
     if (!fabricCanvas) return;
     
-    // Simulate AI generating content
-    const shapes = ['rectangle', 'circle', 'text'];
-    const shape = shapes[Math.floor(Math.random() * shapes.length)];
-    
-    setTimeout(() => {
-      if (shape === 'rectangle') {
-        const rect = new Rect({
-          left: Math.random() * 400,
-          top: Math.random() * 300,
-          fill: '#8b5cf6',
-          width: 80,
-          height: 60,
-          stroke: '#8b5cf6',
-          strokeWidth: 2,
-          opacity: 0.7
-        });
-        fabricCanvas.add(rect);
-      } else if (shape === 'circle') {
-        const circle = new Circle({
-          left: Math.random() * 400,
-          top: Math.random() * 300,
-          fill: '#06b6d4',
-          radius: 30,
-          opacity: 0.7
-        });
-        fabricCanvas.add(circle);
-      } else {
-        const text = new FabricText('AI Generated Ideas', {
-          left: Math.random() * 400,
-          top: Math.random() * 300,
-          fill: '#f59e0b',
-          fontSize: 16,
-          opacity: 0.8
-        });
-        fabricCanvas.add(text);
-      }
+    try {
+      // Simulate AI generating content
+      const shapes = ['rectangle', 'circle', 'text'];
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
       
-      addAIInsight({
-        id: Date.now().toString(),
-        type: 'suggestion',
-        message: '🤖 AI added some creative elements to inspire you!',
-        position: { x: 400, y: 100 }
-      });
-    }, 1000);
+      setTimeout(() => {
+        if (!fabricCanvas) return; // Double check canvas still exists
+        
+        try {
+          if (shape === 'rectangle') {
+            const rect = new Rect({
+              left: Math.random() * 400,
+              top: Math.random() * 300,
+              fill: '#8b5cf6',
+              width: 80,
+              height: 60,
+              stroke: '#8b5cf6',
+              strokeWidth: 2,
+              opacity: 0.7
+            });
+            fabricCanvas.add(rect);
+          } else if (shape === 'circle') {
+            const circle = new Circle({
+              left: Math.random() * 400,
+              top: Math.random() * 300,
+              fill: '#06b6d4',
+              radius: 30,
+              opacity: 0.7
+            });
+            fabricCanvas.add(circle);
+          } else {
+            const text = new FabricText('AI Generated Ideas', {
+              left: Math.random() * 400,
+              top: Math.random() * 300,
+              fill: '#f59e0b',
+              fontSize: 16,
+              opacity: 0.8
+            });
+            fabricCanvas.add(text);
+          }
+          
+          addAIInsight({
+            id: Date.now().toString(),
+            type: 'suggestion',
+            message: '🤖 AI added some creative elements to inspire you!',
+            position: { x: 400, y: 100 }
+          });
+        } catch (error) {
+          console.error('Error adding shape to canvas:', error);
+        }
+      }, 1000);
 
-    toast({
-      title: "🧠 AI Content Generation",
-      description: "Generating creative elements...",
-    });
+      toast({
+        title: "🧠 AI Content Generation",
+        description: "Generating creative elements...",
+      });
+    } catch (error) {
+      console.error('Error in generateAIContent:', error);
+    }
   };
 
   const exportCanvas = () => {
     if (!fabricCanvas) return;
     
-    const dataURL = fabricCanvas.toDataURL({
-      format: 'png',
-      quality: 1,
-      multiplier: 2
-    });
-    
-    const link = document.createElement('a');
-    link.download = `ai-whiteboard-${Date.now()}.png`;
-    link.href = dataURL;
-    link.click();
-    
-    toast({
-      title: "Canvas Exported",
-      description: "Your AI-enhanced masterpiece has been saved!",
-    });
+    try {
+      const dataURL = fabricCanvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 2
+      });
+      
+      const link = document.createElement('a');
+      link.download = `ai-whiteboard-${Date.now()}.png`;
+      link.href = dataURL;
+      link.click();
+      
+      toast({
+        title: "Canvas Exported",
+        description: "Your AI-enhanced masterpiece has been saved!",
+      });
+    } catch (error) {
+      console.error('Error exporting canvas:', error);
+      toast({
+        title: "Export Error",
+        description: "Failed to export canvas",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
