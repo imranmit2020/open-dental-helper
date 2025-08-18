@@ -725,58 +725,53 @@ export default function Collaboration() {
       {/* Main Content - Revolutionary Features */}
       <div className="flex-1 flex flex-col bg-background">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <div className="border-b bg-card p-1">
-            <TabsList className="flex w-full bg-muted p-0.5 rounded-md h-8">
+          <div className="border-b bg-card p-2">
+            <TabsList className="grid w-full grid-cols-6 bg-muted p-1 rounded-lg h-10 gap-1">
               <TabsTrigger 
                 value="chat" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <MessageSquare className="h-3 w-3" />
+                <span className="hidden md:inline">Chat</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="holographic" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <Video className="h-3 w-3" />
+                <span className="hidden md:inline">Holo</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="whiteboard" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <Palette className="h-3 w-3" />
+                <span className="hidden md:inline">Board</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="voice" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <Mic className="h-3 w-3" />
+                <span className="hidden md:inline">Voice</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="tasks" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <CheckSquare className="h-3 w-3" />
+                <span className="hidden md:inline">Tasks</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="team" 
-                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 <Users className="h-3 w-3" />
+                <span className="hidden md:inline">Team</span>
               </TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="holographic" className="flex-1 p-6">
-            <HolographicVideoCall />
-          </TabsContent>
-          
-          <TabsContent value="whiteboard" className="flex-1 p-6">
-            <AIWhiteboard />
-          </TabsContent>
-          
-          <TabsContent value="voice" className="flex-1 p-6">
-            <VoiceIntelligence />
-          </TabsContent>
-          
+
           <TabsContent value="chat" className="flex-1">
             {/* Main Content */}
             {activeChannel ? (
@@ -928,6 +923,18 @@ export default function Collaboration() {
             </div>
           </div>
         )}
+          </TabsContent>
+          
+          <TabsContent value="holographic" className="flex-1 p-6">
+            <HolographicVideoCall />
+          </TabsContent>
+          
+          <TabsContent value="whiteboard" className="flex-1 p-6">
+            <AIWhiteboard />
+          </TabsContent>
+          
+          <TabsContent value="voice" className="flex-1 p-6">
+            <VoiceIntelligence />
           </TabsContent>
           
           <TabsContent value="tasks" className="flex-1 p-6">
