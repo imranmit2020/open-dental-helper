@@ -866,18 +866,22 @@ export default function AdminSQLQuery() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {sampleQueries.map((sampleQuery, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-left justify-start h-auto py-2 px-3"
-                      onClick={() => setQuery(sampleQuery)}
-                      disabled={loading}
-                    >
-                      <code className="text-xs text-left whitespace-pre-wrap">
-                        {sampleQuery}
-                      </code>
-                    </Button>
+                    <div key={index} className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground">
+                        Template {index + 1}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-left justify-start h-auto py-2 px-3"
+                        onClick={() => setQuery(sampleQuery)}
+                        disabled={loading}
+                      >
+                        <code className="text-xs text-left whitespace-pre-wrap">
+                          {sampleQuery}
+                        </code>
+                      </Button>
+                    </div>
                   ))}
                 </CardContent>
               </Card>
