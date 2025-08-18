@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import { useModulePermissions, type ModuleKey } from "@/hooks/useModulePermissions";
 import { useModuleFavorites } from "@/hooks/useModuleFavorites";
@@ -257,14 +258,15 @@ export default function PatientCharting() {
   const { canAccessModule } = useModulePermissions();
   const { favorites, isFavorite, toggleFavorite } = useModuleFavorites();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPatients, setFilteredPatients] = useState(patients);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [displayCount, setDisplayCount] = useState(20);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Memoized patient filtering for better performance
+  const filteredPatients = useMemo(() => {
     let filtered = patients;
 
     // Filter by search term
@@ -289,10 +291,11 @@ export default function PatientCharting() {
       filtered = filtered.filter(patient => patient.risk_level === riskFilter);
     }
 
-    setFilteredPatients(filtered);
-  }, [patients, searchTerm, statusFilter, riskFilter]);
+    return filtered.slice(0, displayCount);
+  }, [patients, searchTerm, statusFilter, riskFilter, displayCount]);
 
-  const getPatientStatus = (patient: any) => {
+  // Memoized status calculation to avoid repeated computation
+  const getPatientStatus = useCallback((patient: any) => {
     if (!patient.last_visit) return "new";
     
     const lastVisit = new Date(patient.last_visit);
@@ -302,7 +305,7 @@ export default function PatientCharting() {
     if (daysSinceLastVisit <= 90) return "active";
     if (daysSinceLastVisit <= 180) return "due";
     return "overdue";
-  };
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -340,8 +343,8 @@ export default function PatientCharting() {
     navigate(route);
   };
 
-  // Filter modules based on permissions and favorites
-  const getFilteredModules = () => {
+  // Memoized module filtering for better performance
+  const filteredModules = useMemo(() => {
     let filtered = chartingModules.filter(module => {
       // Check module permissions if moduleKey exists
       if (module.moduleKey && !canAccessModule(module.moduleKey)) {
@@ -356,14 +359,59 @@ export default function PatientCharting() {
     }
 
     return filtered;
-  };
+  }, [canAccessModule, showFavoritesOnly, isFavorite]);
 
-  const filteredModules = getFilteredModules();
+  const loadMorePatients = useCallback(() => {
+    setDisplayCount(prev => prev + 20);
+  }, []);
 
+  // Enhanced loading with skeleton for better UX
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-10 flex-1" />
+                  <Skeleton className="h-10 flex-1" />
+                </div>
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-64" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(8)].map((_, i) => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -488,6 +536,20 @@ export default function PatientCharting() {
                 {filteredPatients.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     No patients found
+                  </div>
+                )}
+                
+                {/* Load More Button */}
+                {patients.length > displayCount && filteredPatients.length >= displayCount && (
+                  <div className="text-center pt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMorePatients}
+                      className="w-full"
+                    >
+                      Load More Patients ({patients.length - displayCount} remaining)
+                    </Button>
                   </div>
                 )}
               </div>
