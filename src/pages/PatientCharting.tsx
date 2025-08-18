@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import { useModulePermissions, type ModuleKey } from "@/hooks/useModulePermissions";
 import { useModuleFavorites } from "@/hooks/useModuleFavorites";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { 
   Users, 
@@ -254,7 +256,7 @@ const chartingModules: ChartingModule[] = [
 ];
 
 export default function PatientCharting() {
-  const { patients: allPatients, loading: initialLoading, searchPatients } = useOptimizedPatients();
+  const { patients: allPatients, loading: initialLoading } = useOptimizedPatients();
   const { canAccessModule } = useModulePermissions();
   const { favorites, isFavorite, toggleFavorite } = useModuleFavorites();
   const [searchTerm, setSearchTerm] = useState("");
@@ -264,6 +266,7 @@ export default function PatientCharting() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const { currentTenant } = useTenant();
   const navigate = useNavigate();
 
   // Get recent 5 patients initially
@@ -273,33 +276,48 @@ export default function PatientCharting() {
       .slice(0, 5);
   }, [allPatients]);
 
-  // Memoize search function to prevent infinite loops
-  const handlePatientSearch = useCallback(async (query: string) => {
-    if (query.trim().length >= 2) {
-      console.log('Starting search for:', query);
-      setIsSearching(true);
-      try {
-        const results = await searchPatients(query.trim());
-        console.log('Search completed, results:', results.length);
-        setSearchResults(results);
-      } catch (error) {
-        console.error('Search error:', error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    } else {
-      console.log('Clearing search results');
+  // Direct search implementation to avoid dependency loops
+  const performSearch = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
       setSearchResults([]);
       setIsSearching(false);
+      return;
     }
-  }, [searchPatients]);
 
-  // Handle search with debouncing
+    setIsSearching(true);
+    try {
+      let supabaseQuery = supabase
+        .from('patients')
+        .select('*');
+
+      // Add tenant filter if available
+      if (currentTenant?.id) {
+        supabaseQuery = supabaseQuery.eq('tenant_id', currentTenant.id);
+      }
+
+      const { data, error } = await supabaseQuery
+        .or(`first_name.ilike.%${query.trim()}%,last_name.ilike.%${query.trim()}%,email.ilike.%${query.trim()}%`)
+        .order('last_name', { ascending: true })
+        .limit(20);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [currentTenant?.id]);
+
+  // Handle search with debouncing - simplified dependencies
   useEffect(() => {
-    const timeoutId = setTimeout(() => handlePatientSearch(searchTerm), 300);
+    const timeoutId = setTimeout(() => {
+      performSearch(searchTerm);
+    }, 300);
+    
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, handlePatientSearch]);
+  }, [searchTerm, performSearch]);
 
   // Get the patients to display (recent or search results)
   const displayPatients = useMemo(() => {
