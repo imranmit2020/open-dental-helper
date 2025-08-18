@@ -655,66 +655,7 @@ const ClinicPaymentSettings = () => {
                       <Plus className="w-4 h-4 mr-2" />
                       Add Your First Method
                     </Button>
-                  </div>
-                )}
-                {paymentMethods.map((method) => (
-                  <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      {getPaymentMethodIcon(method.method_type)}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{method.method_name}</h4>
-                          <Badge variant={method.is_active ? "default" : "secondary"}>
-                            {method.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                          {method.method_type === 'cash' && (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              No Fees
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground space-x-4">
-                          {method.processing_fee_percentage > 0 && (
-                            <span>Fee: {method.processing_fee_percentage}%</span>
-                          )}
-                          {method.minimum_amount > 0 && (
-                            <span>Min: <CurrencyDisplay amount={method.minimum_amount} /></span>
-                          )}
-                          {method.maximum_amount && (
-                            <span>Max: <CurrencyDisplay amount={method.maximum_amount} /></span>
-                          )}
-                        </div>
-                        {method.notes && (
-                          <p className="text-sm text-muted-foreground mt-1">{method.notes}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingPayment(method);
-                          setIsPaymentDialogOpen(true);
-                        }}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeletePaymentMethod(method.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {paymentMethods.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No payment methods configured yet
-                  </div>
+                </div>
                 )}
               </div>
             </CardContent>
@@ -1033,72 +974,7 @@ const ClinicPaymentSettings = () => {
                       <Plus className="w-4 h-4 mr-2" />
                       Add Your First Plan
                     </Button>
-                  </div>
-                )}
-                {insurancePlans.map((plan) => (
-                  <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{plan.provider_name} - {plan.plan_name}</h4>
-                        <Badge variant={plan.is_active ? "default" : "secondary"}>
-                          {plan.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                        <Badge variant="outline">{plan.plan_type}</Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <span>Coverage: {plan.coverage_percentage}%</span>
-                        <span>Max: <CurrencyDisplay amount={plan.annual_maximum} /></span>
-                        <span>Deductible: <CurrencyDisplay amount={plan.deductible} /></span>
-                        {plan.waiting_period_months > 0 && (
-                          <span>Wait: {plan.waiting_period_months}mo</span>
-                        )}
-                      </div>
-                      {(plan.contact_phone || plan.contact_email) && (
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {plan.contact_phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {plan.contact_phone}
-                            </div>
-                          )}
-                          {plan.contact_email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {plan.contact_email}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {plan.notes && (
-                        <p className="text-sm text-muted-foreground">{plan.notes}</p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingInsurance(plan);
-                          setIsInsuranceDialogOpen(true);
-                        }}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteInsurancePlan(plan.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-
-                {insurancePlans.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No insurance plans configured yet
-                  </div>
+                </div>
                 )}
                 </div>
               </CardContent>
