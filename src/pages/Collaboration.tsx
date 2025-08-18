@@ -12,6 +12,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { HolographicVideoCall } from '@/components/collaboration/HolographicVideoCall';
+import { AIWhiteboard } from '@/components/collaboration/AIWhiteboard';
+import { VoiceIntelligence } from '@/components/collaboration/VoiceIntelligence';
 import { 
   MessageSquare, 
   Send, 
@@ -32,7 +37,14 @@ import {
   Star,
   Hash,
   Bell,
-  Settings
+  Settings,
+  Brain,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  Activity,
+  Bot,
+  Palette
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -571,9 +583,12 @@ export default function Collaboration() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="chat">Neural Chat</TabsTrigger>
+              <TabsTrigger value="holographic">Holographic</TabsTrigger>
+              <TabsTrigger value="whiteboard">AI Canvas</TabsTrigger>
+              <TabsTrigger value="voice">Voice AI</TabsTrigger>
+              <TabsTrigger value="tasks">Smart Tasks</TabsTrigger>
               <TabsTrigger value="team">Team</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -689,6 +704,22 @@ export default function Collaboration() {
         </ScrollArea>
       </div>
 
+      {/* Main Content - Revolutionary Features */}
+      <div className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsContent value="holographic" className="flex-1 p-6">
+            <HolographicVideoCall />
+          </TabsContent>
+          
+          <TabsContent value="whiteboard" className="flex-1 p-6">
+            <AIWhiteboard />
+          </TabsContent>
+          
+          <TabsContent value="voice" className="flex-1 p-6">
+            <VoiceIntelligence />
+          </TabsContent>
+          
+          <TabsContent value="chat" className="flex-1">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {activeChannel ? (
@@ -839,7 +870,8 @@ export default function Collaboration() {
               </p>
             </div>
           </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
