@@ -83,6 +83,18 @@ interface TeamMember {
   avatar_url?: string;
   status: 'online' | 'away' | 'busy' | 'offline';
   last_seen?: string;
+  expertise?: string[];
+  current_location?: string;
+  in_call?: boolean;
+}
+
+interface SmartWorkflow {
+  id: string;
+  name: string;
+  trigger: string;
+  actions: string[];
+  status: 'active' | 'inactive';
+  success_rate: number;
 }
 
 export default function Collaboration() {
@@ -102,13 +114,17 @@ export default function Collaboration() {
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
+  const [smartWorkflows, setSmartWorkflows] = useState<SmartWorkflow[]>([]);
+  const [smartSuggestions, setSmartSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchChannels();
-    fetchTeamMembers();
+    fetchTeamMembersData();
     fetchTasks();
+    fetchSmartWorkflows();
+    generateAISuggestions();
     setupRealtimeSubscriptions();
   }, [user]);
 
@@ -184,47 +200,33 @@ export default function Collaboration() {
     }
   };
 
-  const fetchTeamMembers = async () => {
-    // Simulate team member data with AI-powered insights
-    const mockMembers: TeamMember[] = [
-      {
-        id: '1',
-        name: 'Dr. Sarah Johnson',
-        role: 'Lead Dentist',
-        status: 'online',
-        expertise: ['Orthodontics', 'Oral Surgery', 'Patient Care'],
-        current_location: 'Clinic Room 3',
+  const fetchTeamMembersData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, role')
+        .not('role', 'eq', 'patient');
+
+      if (error) throw error;
+      
+      const members: TeamMember[] = (data || []).map(profile => ({
+        id: profile.user_id,
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User',
+        role: profile.role,
+        avatar_url: undefined,
+        status: 'offline',
+        last_seen: new Date().toISOString(),
+        expertise: ['General Practice'], // Default expertise
+        current_location: 'Clinic',
         in_call: false
-      },
-      {
-        id: '2',
-        name: 'Emily Rodriguez',
-        role: 'Dental Hygienist',
-        status: 'busy',
-        expertise: ['Preventive Care', 'Patient Education', 'X-Ray Analysis'],
-        current_location: 'Hygiene Room 1',
-        in_call: true
-      },
-      {
-        id: '3',
-        name: 'Mike Chen',
-        role: 'Practice Manager',
-        status: 'online',
-        expertise: ['Operations', 'Staff Management', 'Analytics'],
-        current_location: 'Office',
-        in_call: false
-      },
-      {
-        id: '4',
-        name: 'Dr. Alex Thompson',
-        role: 'Associate Dentist',
-        status: 'away',
-        expertise: ['General Dentistry', 'Cosmetic Procedures'],
-        current_location: 'Conference Room',
-        in_call: false
-      }
-    ];
-    setTeamMembers(mockMembers);
+      }));
+      
+      setTeamMembers(members);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchSmartWorkflows = async () => {
@@ -277,31 +279,6 @@ export default function Collaboration() {
     })));
   };
 
-  const fetchTeamMembers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name, role')
-        .not('role', 'eq', 'patient');
-
-      if (error) throw error;
-      
-      const members: TeamMember[] = (data || []).map(profile => ({
-        id: profile.user_id,
-        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown User',
-        role: profile.role,
-        avatar_url: undefined,
-        status: 'offline',
-        last_seen: new Date().toISOString()
-      }));
-      
-      setTeamMembers(members);
-    } catch (error) {
-      console.error('Error fetching team members:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const setupRealtimeSubscriptions = () => {
     const messageChannel = supabase
