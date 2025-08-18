@@ -277,9 +277,11 @@ export default function PatientCharting() {
   useEffect(() => {
     const handleSearch = async () => {
       if (searchTerm.trim().length >= 2) {
+        console.log('Starting search for:', searchTerm);
         setIsSearching(true);
         try {
-          const results = await searchPatients(searchTerm);
+          const results = await searchPatients(searchTerm.trim());
+          console.log('Search completed, results:', results.length);
           setSearchResults(results);
         } catch (error) {
           console.error('Search error:', error);
@@ -288,6 +290,7 @@ export default function PatientCharting() {
           setIsSearching(false);
         }
       } else {
+        console.log('Clearing search results');
         setSearchResults([]);
         setIsSearching(false);
       }
