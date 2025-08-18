@@ -949,6 +949,274 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_alerts: {
+        Row: {
+          ai_generated: boolean
+          alert_type: string
+          corporation_id: string | null
+          created_at: string
+          current_stock: number | null
+          id: string
+          is_read: boolean
+          item_id: string
+          message: string
+          priority: string
+          resolved_at: string | null
+          resolved_by: string | null
+          suggested_action: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean
+          alert_type: string
+          corporation_id?: string | null
+          created_at?: string
+          current_stock?: number | null
+          id?: string
+          is_read?: boolean
+          item_id: string
+          message: string
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          suggested_action?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean
+          alert_type?: string
+          corporation_id?: string | null
+          created_at?: string
+          current_stock?: number | null
+          id?: string
+          is_read?: boolean
+          item_id?: string
+          message?: string
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          suggested_action?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_alerts_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          parent_category_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_category_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_category_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_categories_parent_category_id_fkey"
+            columns: ["parent_category_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          ai_demand_forecast: Json | null
+          barcode: string | null
+          category_id: string | null
+          corporation_id: string | null
+          cost_per_unit: number
+          created_at: string
+          current_stock: number
+          description: string | null
+          expiration_tracking: boolean
+          id: string
+          is_active: boolean
+          is_consumable: boolean
+          location: string | null
+          maximum_stock_level: number
+          minimum_stock_level: number
+          name: string
+          reorder_point: number
+          reserved_stock: number
+          selling_price: number | null
+          sku: string
+          supplier_id: string | null
+          tenant_id: string | null
+          unit_of_measure: string
+          updated_at: string
+          usage_pattern: Json | null
+        }
+        Insert: {
+          ai_demand_forecast?: Json | null
+          barcode?: string | null
+          category_id?: string | null
+          corporation_id?: string | null
+          cost_per_unit?: number
+          created_at?: string
+          current_stock?: number
+          description?: string | null
+          expiration_tracking?: boolean
+          id?: string
+          is_active?: boolean
+          is_consumable?: boolean
+          location?: string | null
+          maximum_stock_level?: number
+          minimum_stock_level?: number
+          name: string
+          reorder_point?: number
+          reserved_stock?: number
+          selling_price?: number | null
+          sku: string
+          supplier_id?: string | null
+          tenant_id?: string | null
+          unit_of_measure?: string
+          updated_at?: string
+          usage_pattern?: Json | null
+        }
+        Update: {
+          ai_demand_forecast?: Json | null
+          barcode?: string | null
+          category_id?: string | null
+          corporation_id?: string | null
+          cost_per_unit?: number
+          created_at?: string
+          current_stock?: number
+          description?: string | null
+          expiration_tracking?: boolean
+          id?: string
+          is_active?: boolean
+          is_consumable?: boolean
+          location?: string | null
+          maximum_stock_level?: number
+          minimum_stock_level?: number
+          name?: string
+          reorder_point?: number
+          reserved_stock?: number
+          selling_price?: number | null
+          sku?: string
+          supplier_id?: string | null
+          tenant_id?: string | null
+          unit_of_measure?: string
+          updated_at?: string
+          usage_pattern?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_transactions: {
+        Row: {
+          batch_number: string | null
+          corporation_id: string | null
+          cost_per_unit: number | null
+          created_at: string
+          expiration_date: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          performed_by: string | null
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          supplier_id: string | null
+          tenant_id: string | null
+          total_cost: number | null
+          transaction_type: string
+        }
+        Insert: {
+          batch_number?: string | null
+          corporation_id?: string | null
+          cost_per_unit?: number | null
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          performed_by?: string | null
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          supplier_id?: string | null
+          tenant_id?: string | null
+          total_cost?: number | null
+          transaction_type: string
+        }
+        Update: {
+          batch_number?: string | null
+          corporation_id?: string | null
+          cost_per_unit?: number | null
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          performed_by?: string | null
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          supplier_id?: string | null
+          tenant_id?: string | null
+          total_cost?: number | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           description: string
@@ -1914,6 +2182,137 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_order_items: {
+        Row: {
+          batch_number: string | null
+          expiration_date: string | null
+          id: string
+          item_id: string
+          notes: string | null
+          purchase_order_id: string
+          quantity_ordered: number
+          quantity_received: number
+          total_cost: number
+          unit_cost: number
+        }
+        Insert: {
+          batch_number?: string | null
+          expiration_date?: string | null
+          id?: string
+          item_id: string
+          notes?: string | null
+          purchase_order_id: string
+          quantity_ordered: number
+          quantity_received?: number
+          total_cost: number
+          unit_cost: number
+        }
+        Update: {
+          batch_number?: string | null
+          expiration_date?: string | null
+          id?: string
+          item_id?: string
+          notes?: string | null
+          purchase_order_id?: string
+          quantity_ordered?: number
+          quantity_received?: number
+          total_cost?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          actual_delivery_date: string | null
+          approved_at: string | null
+          approved_by: string | null
+          corporation_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          shipping_cost: number
+          status: string
+          subtotal: number
+          supplier_id: string
+          tax_amount: number
+          tenant_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          shipping_cost?: number
+          status?: string
+          subtotal?: number
+          supplier_id: string
+          tax_amount?: number
+          tenant_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          shipping_cost?: number
+          status?: string
+          subtotal?: number
+          supplier_id?: string
+          tax_amount?: number
+          tenant_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_requests: {
         Row: {
           actual_response: string | null
@@ -2133,6 +2532,66 @@ export type Database = {
           revenue_generated?: number | null
           staff_member_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          corporation_id: string | null
+          created_at: string
+          delivery_time_days: number | null
+          email: string | null
+          id: string
+          is_active: boolean
+          minimum_order_amount: number | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          rating: number | null
+          tenant_id: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          minimum_order_amount?: number | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          tenant_id?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          corporation_id?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          minimum_order_amount?: number | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          tenant_id?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2787,6 +3246,10 @@ export type Database = {
       generate_employee_id_for_corporation: {
         Args: { _corp_id: string }
         Returns: string
+      }
+      generate_inventory_insights: {
+        Args: { _corporation_id?: string; _tenant_id?: string }
+        Returns: Json
       }
       get_corporation_revenue: {
         Args: { _end: string; _start: string }

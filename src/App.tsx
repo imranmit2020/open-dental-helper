@@ -106,6 +106,7 @@ const LabProviderSignUp = lazy(() => import("./pages/LabProviderSignUp"));
 const LabProviderAuth = lazy(() => import("./pages/LabProviderAuth"));
 const TechSupport = lazy(() => import('./pages/TechSupport'));
 const Collaboration = lazy(() => import('./pages/Collaboration'));
+const InventoryManagement = lazy(() => import('./pages/InventoryManagement'));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
