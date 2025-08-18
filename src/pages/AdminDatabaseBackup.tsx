@@ -83,6 +83,13 @@ export default function AdminDatabaseBackup() {
   const [scheduleType, setScheduleType] = useState<'full' | 'incremental'>('full');
   const [scheduleStorageLocation, setScheduleStorageLocation] = useState<'supabase' | 'external' | 'local'>('supabase');
 
+  // History Management
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'completed' | 'failed' | 'running'>('all');
+  const [historySearch, setHistorySearch] = useState("");
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+
   useEffect(() => {
     loadBackupHistory();
     loadSchedules();
@@ -299,6 +306,67 @@ export default function AdminDatabaseBackup() {
       title: "Schedule Deleted",
       description: "Backup schedule has been deleted successfully",
     });
+  };
+
+  const deleteSelectedJobs = () => {
+    setBackupJobs(prev => prev.filter(job => !selectedJobs.includes(job.id)));
+    setSelectedJobs([]);
+    toast({
+      title: "Backup Records Deleted",
+      description: `${selectedJobs.length} backup records have been deleted successfully`,
+    });
+  };
+
+  const toggleJobSelection = (jobId: string) => {
+    setSelectedJobs(prev => 
+      prev.includes(jobId) 
+        ? prev.filter(id => id !== jobId)
+        : [...prev, jobId]
+    );
+  };
+
+  const selectAllJobs = () => {
+    const filteredJobs = getFilteredJobs();
+    const allSelected = filteredJobs.every(job => selectedJobs.includes(job.id));
+    if (allSelected) {
+      setSelectedJobs([]);
+    } else {
+      setSelectedJobs(filteredJobs.map(job => job.id));
+    }
+  };
+
+  const getFilteredJobs = () => {
+    let filtered = backupJobs;
+
+    // Apply status filter
+    if (historyFilter !== 'all') {
+      filtered = filtered.filter(job => job.status === historyFilter);
+    }
+
+    // Apply search filter
+    if (historySearch.trim()) {
+      const search = historySearch.toLowerCase();
+      filtered = filtered.filter(job => 
+        job.type.toLowerCase().includes(search) ||
+        job.format.toLowerCase().includes(search) ||
+        job.tables.some(table => table.toLowerCase().includes(search)) ||
+        new Date(job.created_at).toLocaleDateString().includes(search)
+      );
+    }
+
+    return filtered;
+  };
+
+  const getPaginatedJobs = () => {
+    const filtered = getFilteredJobs();
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    const filtered = getFilteredJobs();
+    return Math.ceil(filtered.length / itemsPerPage);
   };
 
   const getStatusColor = (status: string) => {
@@ -798,45 +866,171 @@ export default function AdminDatabaseBackup() {
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Backup History</CardTitle>
-              <CardDescription>
-                View and manage your backup history
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Backup History</CardTitle>
+                  <CardDescription>
+                    View and manage your backup history
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedJobs.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={deleteSelectedJobs}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Delete ({selectedJobs.length})
+                    </Button>
+                  )}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {backupJobs.map((job) => (
-                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      {getStatusIcon(job.status)}
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {job.type.charAt(0).toUpperCase() + job.type.slice(1)} Backup
-                          </span>
-                          <Badge variant="outline">{job.format.toUpperCase()}</Badge>
-                          {job.compression && <Badge variant="outline">Compressed</Badge>}
-                          {job.encryption && <Badge variant="outline">Encrypted</Badge>}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(job.created_at).toLocaleString()} • {job.size}
-                          {job.duration && ` • ${job.duration}`}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Tables: {job.tables.join(', ')}
+              <div className="space-y-4">
+                {/* Filters and Search */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Search backups..."
+                      value={historySearch}
+                      onChange={(e) => setHistorySearch(e.target.value)}
+                      className="max-w-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={historyFilter} onValueChange={(value: any) => setHistoryFilter(value)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="failed">Failed</SelectItem>
+                        <SelectItem value="running">Running</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                      <SelectTrigger className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Select All Checkbox */}
+                {getPaginatedJobs().length > 0 && (
+                  <div className="flex items-center gap-2 py-2 border-b">
+                    <Checkbox
+                      checked={getPaginatedJobs().every(job => selectedJobs.includes(job.id))}
+                      onCheckedChange={selectAllJobs}
+                    />
+                    <Label className="text-sm text-muted-foreground">
+                      Select all on this page
+                    </Label>
+                  </div>
+                )}
+
+                {/* Backup Jobs List */}
+                <div className="space-y-3">
+                  {getPaginatedJobs().map((job) => (
+                    <div key={job.id} className="flex items-center gap-3 p-4 border rounded-lg">
+                      <Checkbox
+                        checked={selectedJobs.includes(job.id)}
+                        onCheckedChange={() => toggleJobSelection(job.id)}
+                      />
+                      <div className="flex items-center gap-4 flex-1">
+                        {getStatusIcon(job.status)}
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {job.type.charAt(0).toUpperCase() + job.type.slice(1)} Backup
+                            </span>
+                            <Badge variant="outline">{job.format.toUpperCase()}</Badge>
+                            {job.compression && <Badge variant="outline">Compressed</Badge>}
+                            {job.encryption && <Badge variant="outline">Encrypted</Badge>}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(job.created_at).toLocaleString()} • {job.size}
+                            {job.duration && ` • ${job.duration}`}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Tables: {job.tables.join(', ')}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(job.status)}>
+                          {job.status}
+                        </Badge>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {getTotalPages() > 1 && (
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, getFilteredJobs().length)} of {getFilteredJobs().length} results
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(job.status)}>
-                        {job.status}
-                      </Badge>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: getTotalPages() }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            variant={page === currentPage ? "default" : "outline"}
+                            size="sm"
+                            className="w-8 h-8 p-0"
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.min(getTotalPages(), currentPage + 1))}
+                        disabled={currentPage === getTotalPages()}
+                      >
+                        Next
                       </Button>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* No Results */}
+                {getFilteredJobs().length === 0 && (
+                  <div className="text-center py-8">
+                    <Archive className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="text-lg font-medium">No backup records found</div>
+                    <div className="text-sm text-muted-foreground">
+                      {historySearch || historyFilter !== 'all' 
+                        ? "Try adjusting your filters or search terms"
+                        : "Start creating backups to see them here"
+                      }
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
