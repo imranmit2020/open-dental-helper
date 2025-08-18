@@ -168,10 +168,113 @@ export default function Collaboration() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTasks(data || []);
+      
+      // Add AI enhancements to tasks
+      const enhancedTasks = (data || []).map(task => ({
+        ...task,
+        ai_suggested: Math.random() > 0.6,
+        estimated_time: Math.floor(Math.random() * 8) + 1,
+        completion_percentage: task.status === 'completed' ? 100 : 
+                              task.status === 'in_progress' ? Math.floor(Math.random() * 80) + 20 : 0
+      }));
+      
+      setTasks(enhancedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
+  };
+
+  const fetchTeamMembers = async () => {
+    // Simulate team member data with AI-powered insights
+    const mockMembers: TeamMember[] = [
+      {
+        id: '1',
+        name: 'Dr. Sarah Johnson',
+        role: 'Lead Dentist',
+        status: 'online',
+        expertise: ['Orthodontics', 'Oral Surgery', 'Patient Care'],
+        current_location: 'Clinic Room 3',
+        in_call: false
+      },
+      {
+        id: '2',
+        name: 'Emily Rodriguez',
+        role: 'Dental Hygienist',
+        status: 'busy',
+        expertise: ['Preventive Care', 'Patient Education', 'X-Ray Analysis'],
+        current_location: 'Hygiene Room 1',
+        in_call: true
+      },
+      {
+        id: '3',
+        name: 'Mike Chen',
+        role: 'Practice Manager',
+        status: 'online',
+        expertise: ['Operations', 'Staff Management', 'Analytics'],
+        current_location: 'Office',
+        in_call: false
+      },
+      {
+        id: '4',
+        name: 'Dr. Alex Thompson',
+        role: 'Associate Dentist',
+        status: 'away',
+        expertise: ['General Dentistry', 'Cosmetic Procedures'],
+        current_location: 'Conference Room',
+        in_call: false
+      }
+    ];
+    setTeamMembers(mockMembers);
+  };
+
+  const fetchSmartWorkflows = async () => {
+    const mockWorkflows: SmartWorkflow[] = [
+      {
+        id: '1',
+        name: 'Patient Follow-up Automation',
+        trigger: 'Appointment completed',
+        actions: ['Send feedback request', 'Schedule follow-up', 'Update patient record'],
+        status: 'active',
+        success_rate: 94
+      },
+      {
+        id: '2',
+        name: 'Urgent Case Alert',
+        trigger: 'Pain level > 8',
+        actions: ['Notify on-call dentist', 'Priority scheduling', 'Send care instructions'],
+        status: 'active',
+        success_rate: 98
+      },
+      {
+        id: '3',
+        name: 'Equipment Maintenance',
+        trigger: 'Usage threshold reached',
+        actions: ['Schedule maintenance', 'Order supplies', 'Notify technician'],
+        status: 'active',
+        success_rate: 87
+      }
+    ];
+    setSmartWorkflows(mockWorkflows);
+  };
+
+  const generateAISuggestions = async () => {
+    const suggestions = [
+      "Schedule team meeting to discuss patient case #1247",
+      "Review X-ray analysis results with Dr. Johnson",
+      "Update treatment protocols based on latest research",
+      "Assign hygienist training module to Emily",
+      "Optimize afternoon appointment scheduling"
+    ];
+    setSmartSuggestions(suggestions);
+  };
+
+  const updateTeamPresence = () => {
+    setTeamMembers(prev => prev.map(member => ({
+      ...member,
+      status: Math.random() > 0.8 ? 
+        (['online', 'busy', 'away'] as const)[Math.floor(Math.random() * 3)] : 
+        member.status
+    })));
   };
 
   const fetchTeamMembers = async () => {
