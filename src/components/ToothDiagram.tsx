@@ -63,60 +63,126 @@ export function ToothDiagram({ toothData, selectedTooth, onToothSelect }: ToothD
     const filterClass = getToothColor(status);
     const toothImage = getToothImage(toothNumber);
     const isUpper = toothNumber < 30;
+    const tooth = toothData[toothNumber];
     
     return (
       <div
         key={toothNumber}
         className={cn(
-          "relative cursor-pointer transition-all duration-200 w-8 h-10 flex flex-col items-center",
-          "hover:scale-110 hover:z-10"
+          "relative cursor-pointer group w-8 h-10 flex flex-col items-center",
+          "transition-all duration-500 ease-out transform-gpu",
+          "hover:scale-125 hover:z-20 hover:-translate-y-2",
+          "hover:drop-shadow-2xl hover:brightness-110"
         )}
         onClick={() => onToothSelect(toothNumber)}
+        onMouseEnter={() => {
+          // Add haptic feedback simulation
+          if (navigator.vibrate) navigator.vibrate(10);
+        }}
       >
-        {/* Tooth Image */}
-        <div className="relative w-8 h-8 mb-1">
+        {/* Glow Effect Background */}
+        <div className={cn(
+          "absolute inset-0 rounded-full transition-all duration-500",
+          "opacity-0 group-hover:opacity-100 blur-md scale-150",
+          status === "severe" && "bg-destructive/30",
+          status === "moderate" && "bg-warning/30", 
+          status === "mild" && "bg-warning/20",
+          status === "treated" && "bg-success/30",
+          status === "in_progress" && "bg-info/30",
+          status === "healthy" && "bg-primary/20"
+        )} />
+
+        {/* Tooth Image Container */}
+        <div className="relative w-8 h-8 mb-1 transform-gpu">
+          {/* Animated Border Ring */}
+          {isSelected && (
+            <div className="absolute inset-0 rounded-full">
+              <div className="absolute inset-0 rounded-full border-2 border-primary/60 animate-pulse" />
+              <div className="absolute inset-0 rounded-full border border-primary animate-ping" />
+            </div>
+          )}
+          
+          {/* Tooth Image with Advanced Effects */}
           <img
             src={toothImage}
             alt={`Tooth ${toothNumber}`}
             className={cn(
-              "w-full h-full object-contain transition-all duration-200",
+              "w-full h-full object-contain transition-all duration-500 transform-gpu",
               filterClass,
-              isSelected && "brightness-110 contrast-130 scale-110",
+              isSelected && "brightness-110 contrast-130 scale-110 rotate-2",
               status === "missing" && "grayscale opacity-30",
-              "hover:brightness-110"
+              "group-hover:brightness-110 group-hover:contrast-110",
+              "drop-shadow-sm group-hover:drop-shadow-lg"
             )}
           />
           
-          {/* Selection Ring */}
-          {isSelected && (
-            <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse" />
-          )}
-          
-          {/* Status Indicator */}
-          {status !== "healthy" && status !== "missing" && (
+          {/* Interactive Hotspots for Conditions */}
+          {tooth?.conditions.map((condition, index) => (
             <div
+              key={condition}
               className={cn(
-                "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background",
-                status === "severe" && "bg-destructive",
-                status === "moderate" && "bg-warning",
-                status === "mild" && "bg-warning",
-                status === "treated" && "bg-success",
-                status === "in_progress" && "bg-info"
+                "absolute w-2 h-2 rounded-full animate-pulse cursor-help",
+                "border border-background shadow-sm",
+                condition === "caries" && "bg-destructive top-1 right-1",
+                condition === "filling" && "bg-info top-1 left-1", 
+                condition === "crown" && "bg-warning bottom-1 right-1",
+                condition === "root_canal" && "bg-purple-500 bottom-1 left-1"
               )}
+              style={{
+                animationDelay: `${index * 200}ms`
+              }}
+              title={condition.replace("_", " ")}
             />
+          ))}
+          
+          {/* AI Risk Indicator */}
+          {tooth && (
+            <div className={cn(
+              "absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background",
+              "transition-all duration-300 transform-gpu",
+              "group-hover:scale-125 group-hover:rotate-12",
+              status === "severe" && "bg-destructive animate-bounce",
+              status === "moderate" && "bg-warning animate-pulse",
+              status === "mild" && "bg-warning/70",
+              status === "treated" && "bg-success animate-pulse",
+              status === "in_progress" && "bg-info animate-ping"
+            )} />
           )}
+
+          {/* 3D Depth Shadow */}
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1",
+            "w-6 h-1 bg-black/10 rounded-full blur-sm",
+            "transition-all duration-300 group-hover:w-8 group-hover:bg-black/20"
+          )} />
         </div>
         
-        {/* Tooth Number */}
+        {/* Smart Tooth Number with Animations */}
         <span
           className={cn(
-            "text-[10px] font-medium text-center leading-none",
+            "text-[10px] font-bold text-center leading-none transition-all duration-300",
+            "group-hover:text-primary group-hover:scale-110 group-hover:font-extrabold",
             status === "missing" ? "text-muted-foreground" : "text-foreground",
-            isSelected && "text-primary font-bold"
+            isSelected && "text-primary font-bold animate-pulse",
+            "drop-shadow-sm"
           )}
         >
           {toothNumber}
         </span>
+
+        {/* Condition Tooltip */}
+        {tooth && (
+          <div className={cn(
+            "absolute -top-12 left-1/2 transform -translate-x-1/2",
+            "bg-popover border rounded-md px-2 py-1 text-xs font-medium",
+            "opacity-0 group-hover:opacity-100 transition-all duration-300",
+            "pointer-events-none z-30 whitespace-nowrap shadow-lg",
+            "animate-fade-in"
+          )}>
+            {tooth.conditions[0]?.replace("_", " ") || "Healthy"}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-popover" />
+          </div>
+        )}
       </div>
     );
   };
