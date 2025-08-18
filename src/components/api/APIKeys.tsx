@@ -78,7 +78,8 @@ export function APIKeys({ searchTerm }: APIKeysProps) {
       
       const transformedData = data?.map(key => ({
         ...key,
-        permissions: Array.isArray(key.permissions) ? key.permissions : []
+        permissions: Array.isArray(key.permissions) ? key.permissions as string[] : [],
+        usage_count: key.usage_count || 0
       })) || [];
       
       setApiKeys(transformedData);
