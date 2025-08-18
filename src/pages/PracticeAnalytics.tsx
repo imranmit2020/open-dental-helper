@@ -32,8 +32,22 @@ import {
   LineChart,
   Database,
   Cpu,
-  Network
+  Network,
+  Layers,
+  Radar,
+  BarChart2
 } from "lucide-react";
+import HeatmapChart from "@/components/analytics/HeatmapChart";
+import GaugeChart from "@/components/analytics/GaugeChart";
+import SankeyChart from "@/components/analytics/SankeyChart";
+import TreemapChart from "@/components/analytics/TreemapChart";
+import WaterfallChart from "@/components/analytics/WaterfallChart";
+import RadialBarChart from "@/components/analytics/RadialBarChart";
+import AdvancedMetricsGrid from "@/components/analytics/AdvancedMetricsGrid";
+import RevenueTrendChart from "@/components/analytics/RevenueTrendChart";
+import AppointmentsTrendChart from "@/components/analytics/AppointmentsTrendChart";
+import TreatmentMixChart from "@/components/analytics/TreatmentMixChart";
+import StaffPerformanceChart from "@/components/analytics/StaffPerformanceChart";
 
 export default function PracticeAnalytics() {
   const { t } = useLanguage();
@@ -41,6 +55,9 @@ export default function PracticeAnalytics() {
   const [practiceData, setPracticeData] = useState<any[]>([]);
   const [aiInsightsData, setAiInsightsData] = useState<any[]>([]);
   const [staffData, setStaffData] = useState<any[]>([]);
+  const [appointmentsData, setAppointmentsData] = useState<any[]>([]);
+  const [invoicesData, setInvoicesData] = useState<any[]>([]);
+  const [patientsData, setPatientsData] = useState<any[]>([]);
   
   useEffect(() => {
     fetchLiveData();
@@ -48,15 +65,21 @@ export default function PracticeAnalytics() {
 
   const fetchLiveData = async () => {
     try {
-      const [practiceRes, insightsRes, staffRes] = await Promise.all([
+      const [practiceRes, insightsRes, staffRes, appointmentsRes, invoicesRes, patientsRes] = await Promise.all([
         supabase.from('practice_analytics').select('*'),
         supabase.from('ai_practice_insights').select('*'),
-        supabase.from('staff_performance').select('*')
+        supabase.from('staff_performance').select('*'),
+        supabase.from('appointments').select('*').limit(100),
+        supabase.from('invoices').select('*').limit(100),
+        supabase.from('patients').select('*').limit(100)
       ]);
 
       if (practiceRes.data) setPracticeData(practiceRes.data);
       if (insightsRes.data) setAiInsightsData(insightsRes.data);
       if (staffRes.data) setStaffData(staffRes.data);
+      if (appointmentsRes.data) setAppointmentsData(appointmentsRes.data);
+      if (invoicesRes.data) setInvoicesData(invoicesRes.data);
+      if (patientsRes.data) setPatientsData(patientsRes.data);
     } catch (error) {
       console.error('Error fetching practice data:', error);
     } finally {
@@ -162,6 +185,113 @@ export default function PracticeAnalytics() {
     { title: "Biomarker Success Indicators", value: "91.2%", description: "Personalized medicine integration" }
   ];
 
+  // Mock data for innovative charts
+  const heatmapData = [
+    { hour: 9, day: 'Monday', appointments: 8, revenue: 3200 },
+    { hour: 10, day: 'Monday', appointments: 12, revenue: 4800 },
+    { hour: 11, day: 'Monday', appointments: 15, revenue: 6000 },
+    { hour: 14, day: 'Monday', appointments: 10, revenue: 4000 },
+    { hour: 15, day: 'Monday', appointments: 13, revenue: 5200 },
+    { hour: 9, day: 'Tuesday', appointments: 7, revenue: 2800 },
+    { hour: 10, day: 'Tuesday', appointments: 14, revenue: 5600 },
+    { hour: 11, day: 'Tuesday', appointments: 16, revenue: 6400 },
+    { hour: 14, day: 'Tuesday', appointments: 12, revenue: 4800 },
+    { hour: 15, day: 'Tuesday', appointments: 11, revenue: 4400 },
+  ];
+
+  const sankeyNodes = [
+    { id: 'new_patients', label: 'New Patients', x: 50, y: 50, width: 120, height: 40, color: 'hsl(var(--primary))' },
+    { id: 'consultations', label: 'Consultations', x: 250, y: 30, width: 120, height: 40, color: 'hsl(var(--accent))' },
+    { id: 'treatments', label: 'Treatments', x: 250, y: 100, width: 120, height: 40, color: 'hsl(var(--secondary))' },
+    { id: 'revenue', label: 'Revenue', x: 450, y: 65, width: 120, height: 40, color: 'hsl(var(--success))' }
+  ];
+
+  const sankeyLinks = [
+    { source: 'new_patients', target: 'consultations', value: 85, color: 'hsl(var(--primary) / 0.6)' },
+    { source: 'new_patients', target: 'treatments', value: 65, color: 'hsl(var(--primary) / 0.6)' },
+    { source: 'consultations', target: 'revenue', value: 75, color: 'hsl(var(--accent) / 0.6)' },
+    { source: 'treatments', target: 'revenue', value: 85, color: 'hsl(var(--secondary) / 0.6)' }
+  ];
+
+  const treemapData = [
+    { name: 'Cleanings', size: 45000, revenue: 180000, patients: 450 },
+    { name: 'Fillings', size: 28000, revenue: 120000, patients: 280 },
+    { name: 'Crowns', size: 35000, revenue: 175000, patients: 175 },
+    { name: 'Root Canals', size: 15000, revenue: 90000, patients: 90 },
+    { name: 'Implants', size: 25000, revenue: 200000, patients: 80 },
+    { name: 'Orthodontics', size: 18000, revenue: 160000, patients: 120 }
+  ];
+
+  const waterfallData = [
+    { name: 'Base Revenue', value: 180000, type: 'positive' as const },
+    { name: 'New Patients', value: 45000, type: 'positive' as const },
+    { name: 'Upsells', value: 28000, type: 'positive' as const },
+    { name: 'No-shows', value: -12000, type: 'negative' as const },
+    { name: 'Cancellations', value: -8000, type: 'negative' as const },
+    { name: 'Net Revenue', value: 233000, type: 'total' as const }
+  ];
+
+  const radialBarData = [
+    { name: 'Patient Satisfaction', value: 96, fill: 'hsl(var(--success))' },
+    { name: 'Treatment Success', value: 94, fill: 'hsl(var(--primary))' },
+    { name: 'Staff Efficiency', value: 89, fill: 'hsl(var(--accent))' },
+    { name: 'Revenue Growth', value: 87, fill: 'hsl(var(--warning))' }
+  ];
+
+  const advancedMetrics = [
+    {
+      title: "AI Diagnostic Accuracy",
+      value: "99.7%",
+      change: "+2.3% this month",
+      trend: 'up' as const,
+      icon: Brain,
+      color: "text-purple-600",
+      gradient: "from-purple-500 to-indigo-600",
+      description: "ML-powered diagnostic accuracy improvement",
+      progress: 99.7,
+      target: 95,
+      status: 'excellent' as const
+    },
+    {
+      title: "Predictive Treatment Success",
+      value: "94.2%",
+      change: "+1.8% improvement",
+      trend: 'up' as const,
+      icon: Target,
+      color: "text-green-600",
+      gradient: "from-green-500 to-emerald-600",
+      description: "AI-predicted treatment outcome accuracy",
+      progress: 94.2,
+      target: 90,
+      status: 'excellent' as const
+    },
+    {
+      title: "Patient Risk Assessment",
+      value: "Ultra-Low",
+      change: "3 risk factors eliminated",
+      trend: 'up' as const,
+      icon: Shield,
+      color: "text-blue-600",
+      gradient: "from-blue-500 to-cyan-600",
+      description: "Real-time patient health risk monitoring",
+      progress: 97,
+      status: 'excellent' as const
+    },
+    {
+      title: "Revenue Optimization",
+      value: "$247K",
+      change: "+31.4% optimized",
+      trend: 'up' as const,
+      icon: Zap,
+      color: "text-yellow-600",
+      gradient: "from-yellow-500 to-orange-600",
+      description: "AI-driven revenue maximization algorithms",
+      progress: 89,
+      target: 85,
+      status: 'excellent' as const
+    }
+  ];
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Revolutionary Header */}
@@ -203,35 +333,8 @@ export default function PracticeAnalytics() {
         </div>
       </div>
 
-      {/* Revolutionary Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {revolutionaryMetrics.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <Card key={metric.title} className="professional-card hover-lift relative overflow-hidden group" style={{ animationDelay: `${index * 100}ms` }}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    {metric.title}
-                  </CardDescription>
-                  <div className={`p-2 rounded-lg bg-gradient-to-r ${metric.gradient}`}>
-                    <Icon className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-3xl font-bold gradient-text mb-2">{metric.value}</div>
-                <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-success" />
-                  {metric.change}
-                </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{metric.description}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Advanced Metrics Grid */}
+      <AdvancedMetricsGrid metrics={advancedMetrics} />
 
       {/* Revolutionary AI Insights */}
       <Card className="professional-card hover-lift">
@@ -288,97 +391,223 @@ export default function PracticeAnalytics() {
         </CardContent>
       </Card>
 
-      {/* Advanced Analytics Tabs */}
-      <Tabs defaultValue="behavior" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-muted p-1 rounded-xl">
-          <TabsTrigger value="behavior" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-            Patient Behavior
+      {/* Revolutionary Analytics Tabs */}
+      <Tabs defaultValue="heatmaps" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6 bg-muted p-1 rounded-xl">
+          <TabsTrigger value="heatmaps" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+            <Layers className="h-4 w-4 mr-2" />
+            Heatmaps
           </TabsTrigger>
-          <TabsTrigger value="biometric" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-            Biometric Analysis
+          <TabsTrigger value="flows" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+            <Network className="h-4 w-4 mr-2" />
+            Patient Flow
+          </TabsTrigger>
+          <TabsTrigger value="treemaps" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+            <BarChart2 className="h-4 w-4 mr-2" />
+            Service Mix
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+            <Radar className="h-4 w-4 mr-2" />
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="trends" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
+            <LineChart className="h-4 w-4 mr-2" />
+            Trends
           </TabsTrigger>
           <TabsTrigger value="quantum" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-            Quantum Metrics
-          </TabsTrigger>
-          <TabsTrigger value="predictions" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white">
-            Future Predictions
+            <Sparkles className="h-4 w-4 mr-2" />
+            Quantum
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="behavior" className="space-y-6">
+        <TabsContent value="heatmaps" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Layers className="h-6 w-6 text-primary" />
+                  Appointment Density Heatmap
+                </CardTitle>
+                <CardDescription>
+                  Visualize peak appointment times and optimize scheduling
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HeatmapChart data={heatmapData} />
+              </CardContent>
+            </Card>
+            
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Gauge className="h-6 w-6 text-primary" />
+                  Real-Time Performance Gauges
+                </CardTitle>
+                <CardDescription>
+                  Live performance metrics with dynamic thresholds
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <GaugeChart 
+                    value={94.2} 
+                    title="Chair Utilization" 
+                    target={85}
+                    color="hsl(var(--primary))"
+                  />
+                  <GaugeChart 
+                    value={87.8} 
+                    title="Treatment Acceptance" 
+                    target={80}
+                    color="hsl(var(--success))"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="flows" className="space-y-6">
           <Card className="professional-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <Eye className="h-6 w-6 text-primary" />
-                {t('analytics.patientBehavior', 'Advanced Patient Behavior Analytics')}
+                <Network className="h-6 w-6 text-primary" />
+                Patient Journey Flow Analysis
               </CardTitle>
               <CardDescription>
-                Deep learning analysis of patient interaction patterns and treatment responses
+                Visualize patient pathways from consultation to treatment completion
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {patientBehaviorAnalytics.map((item, index) => (
-                  <div key={index} className="p-4 bg-gradient-card rounded-xl border border-border/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-muted-foreground">{item.metric}</span>
-                      {item.trend === "up" ? (
-                        <ArrowUpRight className="h-4 w-4 text-success" />
-                      ) : (
-                        <ArrowDownRight className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                    <div className="text-2xl font-bold text-foreground mb-1">{item.value}</div>
-                    <div className="text-xs text-success flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      {item.change}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SankeyChart 
+                nodes={sankeyNodes} 
+                links={sankeyLinks} 
+                title="Patient Conversion Flow"
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="professional-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <BarChart3 className="h-6 w-6 text-primary" />
+                Revenue Waterfall Analysis
+              </CardTitle>
+              <CardDescription>
+                Track revenue components and identify optimization opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WaterfallChart data={waterfallData} />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="biometric" className="space-y-6">
-          <Card className="professional-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <Heart className="h-6 w-6 text-red-500" />
-                {t('analytics.biometricAnalysis', 'Real-Time Biometric Analysis')}
-              </CardTitle>
-              <CardDescription>
-                Revolutionary patient monitoring using wearable integration and vital sign analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {biometricData.map((item, index) => (
-                  <div key={index} className="p-6 bg-gradient-card rounded-xl border border-border/30">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-foreground">{item.name}</h3>
-                      <Badge className={
-                        item.status === "excellent" ? "bg-green-100 text-green-700" :
-                        item.status === "exceeding" ? "bg-purple-100 text-purple-700" :
-                        item.status === "improving" ? "bg-blue-100 text-blue-700" :
-                        "bg-yellow-100 text-yellow-700"
-                      }>
-                        {item.status}
-                      </Badge>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Current: {item.current}%</span>
-                        <span>Optimal: {item.optimal}%</span>
-                      </div>
-                      <Progress value={item.current} className="h-3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="treemaps" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <BarChart2 className="h-6 w-6 text-primary" />
+                  Service Revenue Distribution
+                </CardTitle>
+                <CardDescription>
+                  Hierarchical view of revenue by treatment type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TreemapChart data={treemapData} />
+              </CardContent>
+            </Card>
+
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <PieChart className="h-6 w-6 text-primary" />
+                  Treatment Mix Analysis
+                </CardTitle>
+                <CardDescription>
+                  Breakdown of treatments performed across the practice
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TreatmentMixChart appointments={appointmentsData} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
+
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Radar className="h-6 w-6 text-primary" />
+                  Multi-Dimensional Performance
+                </CardTitle>
+                <CardDescription>
+                  Comprehensive performance metrics in radial format
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadialBarChart data={radialBarData} />
+              </CardContent>
+            </Card>
+
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Users className="h-6 w-6 text-primary" />
+                  Staff Performance Comparison
+                </CardTitle>
+                <CardDescription>
+                  Analyze staff productivity and appointment outcomes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StaffPerformanceChart 
+                  appointments={appointmentsData} 
+                  dentists={staffData}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <DollarSign className="h-6 w-6 text-primary" />
+                  Revenue Trend Analysis
+                </CardTitle>
+                <CardDescription>
+                  Advanced revenue tracking with predictive forecasting
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RevenueTrendChart invoices={invoicesData} granularity="daily" />
+              </CardContent>
+            </Card>
+
+            <Card className="professional-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Calendar className="h-6 w-6 text-primary" />
+                  Appointment Volume Trends
+                </CardTitle>
+                <CardDescription>
+                  Track appointment patterns and seasonal variations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AppointmentsTrendChart appointments={appointmentsData} granularity="daily" />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
 
         <TabsContent value="quantum" className="space-y-6">
           <Card className="professional-card">
