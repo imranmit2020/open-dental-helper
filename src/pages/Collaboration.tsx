@@ -725,49 +725,43 @@ export default function Collaboration() {
       {/* Main Content - Revolutionary Features */}
       <div className="flex-1 flex flex-col bg-background">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <div className="border-b bg-card p-2">
-            <TabsList className="flex w-full bg-muted p-1 rounded-lg h-auto">
+          <div className="border-b bg-card p-1">
+            <TabsList className="flex w-full bg-muted p-0.5 rounded-md h-8">
               <TabsTrigger 
                 value="chat" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <MessageSquare className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Chat</span>
+                <MessageSquare className="h-3 w-3" />
               </TabsTrigger>
               <TabsTrigger 
                 value="holographic" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Video className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Holo</span>
+                <Video className="h-3 w-3" />
               </TabsTrigger>
               <TabsTrigger 
                 value="whiteboard" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Palette className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Board</span>
+                <Palette className="h-3 w-3" />
               </TabsTrigger>
               <TabsTrigger 
                 value="voice" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Mic className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Voice</span>
+                <Mic className="h-3 w-3" />
               </TabsTrigger>
               <TabsTrigger 
                 value="tasks" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <CheckSquare className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Tasks</span>
+                <CheckSquare className="h-3 w-3" />
               </TabsTrigger>
               <TabsTrigger 
                 value="team" 
-                className="flex-1 flex items-center justify-center gap-1 px-1 py-2 text-xs font-medium rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-0"
+                className="flex-1 flex items-center justify-center px-1 py-1 text-xs rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Users className="h-3 w-3 flex-shrink-0" />
-                <span className="hidden sm:inline truncate">Team</span>
+                <Users className="h-3 w-3" />
               </TabsTrigger>
             </TabsList>
           </div>
