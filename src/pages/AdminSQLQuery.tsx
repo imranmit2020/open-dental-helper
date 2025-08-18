@@ -865,24 +865,33 @@ export default function AdminSQLQuery() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {sampleQueries.map((sampleQuery, index) => (
-                    <div key={index} className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground">
-                        Template {index + 1}
+                  {sampleQueries.map((sampleQuery, index) => {
+                    const colors = [
+                      "text-blue-600 font-bold",
+                      "text-green-600 font-bold", 
+                      "text-purple-600 font-bold",
+                      "text-orange-600 font-bold"
+                    ];
+                    
+                    return (
+                      <div key={index} className="space-y-1">
+                        <div className={`text-xs ${colors[index]}`}>
+                          Template {index + 1}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-left justify-start h-auto py-2 px-3"
+                          onClick={() => setQuery(sampleQuery)}
+                          disabled={loading}
+                        >
+                          <code className="text-xs text-left whitespace-pre-wrap">
+                            {sampleQuery}
+                          </code>
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-left justify-start h-auto py-2 px-3"
-                        onClick={() => setQuery(sampleQuery)}
-                        disabled={loading}
-                      >
-                        <code className="text-xs text-left whitespace-pre-wrap">
-                          {sampleQuery}
-                        </code>
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </CardContent>
               </Card>
 
