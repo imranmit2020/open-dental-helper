@@ -107,6 +107,7 @@ const LabProviderAuth = lazy(() => import("./pages/LabProviderAuth"));
 const TechSupport = lazy(() => import('./pages/TechSupport'));
 const Collaboration = lazy(() => import('./pages/Collaboration'));
 const InventoryManagement = lazy(() => import('./pages/InventoryManagement'));
+const APIIntegrations = lazy(() => import('./pages/APIIntegrations'));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -392,6 +393,11 @@ function App() {
             <Route path="inventory" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
                 <Suspense fallback={<PageLoader />}><InventoryManagement /></Suspense>
+              </ProtectedRoute>
+            } />
+            <Route path="api-integrations" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+                <Suspense fallback={<PageLoader />}><APIIntegrations /></Suspense>
               </ProtectedRoute>
             } />
           </Route>
