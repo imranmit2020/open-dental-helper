@@ -140,6 +140,45 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
       if (error) {
         // Check for duplicate patient constraint violation
         if (error.code === '23505' && error.message.includes('unique_patient_per_clinic')) {
+          // Fetch existing patient data for confirmation dialog
+          const { data: existingData } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('email', data.email)
+            .eq('tenant_id', currentTenant?.id)
+            .single();
+          
+          setExistingPatient(existingData);
+          setDuplicateAlertOpen(true);
+          return;
+        }
+        throw error;
+      }
+
+      // If medical history is provided, store it in medical_records table
+      if (data.medicalHistory && data.medicalHistory.trim()) {
+        const { error: medicalRecordError } = await supabase
+          .from('medical_records')
+          .insert({
+            patient_id: patientData.id,
+            dentist_id: user.id,
+            record_type: 'medical_history',
+            title: 'Initial Medical History',
+            description: data.medicalHistory,
+            visit_date: new Date().toISOString().split('T')[0],
+            status: 'active',
+            tenant_id: currentTenant?.id || null
+          });
+
+        if (medicalRecordError) {
+          console.error('Failed to save medical history:', medicalRecordError);
+          // Don't fail the entire patient creation for medical history error
+        }
+      }
+
+      if (error) {
+        // Check for duplicate patient constraint violation
+        if (error.code === '23505' && error.message.includes('unique_patient_per_clinic')) {
           // Try to find the existing patient for display
           const { data: existing } = await supabase
             .from('patients')
