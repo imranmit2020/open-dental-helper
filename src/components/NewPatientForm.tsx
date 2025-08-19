@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenant } from "@/contexts/TenantContext";
+import { useInsurancePlans } from "@/hooks/useInsurancePlans";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -52,6 +53,7 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
   const { toast } = useToast();
   const { user } = useAuth();
   const { currentTenant } = useTenant();
+  const { plans: insurancePlans, loading: insurancePlansLoading } = useInsurancePlans();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -380,11 +382,17 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="delta-dental">Delta Dental</SelectItem>
-                          <SelectItem value="metlife">MetLife</SelectItem>
-                          <SelectItem value="cigna">Cigna</SelectItem>
-                          <SelectItem value="aetna">Aetna</SelectItem>
-                          <SelectItem value="blue-cross">Blue Cross Blue Shield</SelectItem>
+                          {insurancePlansLoading ? (
+                            <SelectItem value="" disabled>Loading insurance plans...</SelectItem>
+                          ) : insurancePlans.length > 0 ? (
+                            insurancePlans.map((plan) => (
+                              <SelectItem key={plan.id} value={plan.id}>
+                                {plan.provider_name} - {plan.plan_name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>No insurance plans configured</SelectItem>
+                          )}
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
