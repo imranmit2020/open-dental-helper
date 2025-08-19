@@ -414,8 +414,8 @@ function App() {
                 <Suspense fallback={<PageLoader />}><Collaboration /></Suspense>
               </ProtectedRoute>
             } />
-            <Route path="inventory" element={
-              <ProtectedRoute requiredRoles={['admin', 'dentist', 'hygienist', 'staff']}>
+            <Route path="inventory-management" element={
+              <ProtectedRoute requiredRoles={['admin', 'dentist', 'staff']}>
                 <Suspense fallback={<PageLoader />}><InventoryManagement /></Suspense>
               </ProtectedRoute>
             } />
