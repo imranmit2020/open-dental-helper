@@ -297,16 +297,16 @@ export default function PatientProfile() {
                        Active
                      </Badge>
                    </div>
-                   <div className="flex items-center gap-6 text-muted-foreground">
-                     <span className="flex items-center gap-2">
-                       <Calendar className="h-4 w-4" />
-                       Age {getAge(patient.date_of_birth)}
-                     </span>
-                     <span className="flex items-center gap-2">
-                       <Clock className="h-4 w-4" />
-                       Next: {getNextAppointment()}
-                     </span>
-                   </div>
+                    <div className="flex items-center gap-6 text-muted-foreground">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Age {getAge(patient.date_of_birth)} • {patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : 'Gender not specified'}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Next: {getNextAppointment()}
+                      </span>
+                    </div>
                    <div className="flex items-center gap-6 text-muted-foreground">
                      <span className="flex items-center gap-2">
                        <Mail className="h-4 w-4" />
