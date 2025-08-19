@@ -164,7 +164,7 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
           .from('medical_records')
           .insert({
             patient_id: patientData.id,
-            dentist_id: user.id,
+            dentist_id: null, // Set to null to avoid foreign key constraint
             record_type: 'medical_history',
             title: 'Initial Medical History',
             description: data.medicalHistory,
