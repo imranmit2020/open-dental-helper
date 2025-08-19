@@ -157,7 +157,10 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
 
       // If medical history is provided, store it in medical_records table
       if (data.medicalHistory && data.medicalHistory.trim()) {
-        const { error: medicalRecordError } = await supabase
+        console.log('Attempting to save medical history for patient:', patientData.id);
+        console.log('Medical history content:', data.medicalHistory);
+        
+        const { data: recordData, error: medicalRecordError } = await supabase
           .from('medical_records')
           .insert({
             patient_id: patientData.id,
@@ -167,12 +170,17 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
             description: data.medicalHistory,
             visit_date: new Date().toISOString().split('T')[0],
             status: 'active'
-          });
+          })
+          .select();
 
         if (medicalRecordError) {
           console.error('Failed to save medical history:', medicalRecordError);
           // Don't fail the entire patient creation for medical history error
+        } else {
+          console.log('Medical history saved successfully:', recordData);
         }
+      } else {
+        console.log('No medical history provided to save');
       }
 
       if (error) {

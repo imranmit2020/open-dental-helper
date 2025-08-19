@@ -137,6 +137,11 @@ export default function MedicalHistory() {
       setMedications(medicationsData.data || []);
       setAllergies(allergiesData.data || []);
       setMedicalConditions(conditionsData.data || []);
+      
+      // Debug logging
+      console.log('Medical records fetched for patient:', patientId);
+      console.log('Number of medical records:', recordsData.data?.length || 0);
+      console.log('Medical records data:', recordsData.data);
     } catch (error) {
       console.error('Error fetching patient data:', error);
       toast({
