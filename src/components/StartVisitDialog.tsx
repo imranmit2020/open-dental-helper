@@ -53,15 +53,16 @@ interface StartVisitDialogProps {
   };
   onVisitStarted?: () => void;
   trigger?: React.ReactNode;
+  defaultTab?: string;
 }
 
-export default function StartVisitDialog({ appointment, onVisitStarted, trigger }: StartVisitDialogProps) {
+export default function StartVisitDialog({ appointment, onVisitStarted, trigger, defaultTab = "overview" }: StartVisitDialogProps) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const [sendingConsent, setSendingConsent] = useState(false);
   const [consentSent, setConsentSent] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [selectedTreatments, setSelectedTreatments] = useState<string[]>([]);
   const [prescriptions, setPrescriptions] = useState<Array<{medication: string, dosage: string, instructions: string}>>([]);
   const [generatingInstructions, setGeneratingInstructions] = useState(false);

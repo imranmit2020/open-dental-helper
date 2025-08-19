@@ -18,7 +18,8 @@ import {
   ChevronRight,
   User,
   MapPin,
-  Phone
+  Phone,
+  CheckCircle
 } from "lucide-react";
 import NewAppointmentForm from "@/components/NewAppointmentForm";
 import BlockTimeForm from "@/components/BlockTimeForm";
@@ -439,6 +440,17 @@ export default function Schedule() {
                             trigger={
                               <Button variant="outline" size="sm">
                                 Start Visit
+                              </Button>
+                            }
+                          />
+                          <StartVisitDialog 
+                            appointment={appointment}
+                            onVisitStarted={refetch}
+                            defaultTab="complete"
+                            trigger={
+                              <Button variant="outline" size="sm" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700">
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Complete Visit
                               </Button>
                             }
                           />
