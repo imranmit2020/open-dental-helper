@@ -5,12 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, Plus, AlertTriangle, ShoppingCart, BarChart3, Truck, Users, Archive } from 'lucide-react';
+import { Package, Plus, AlertTriangle, ShoppingCart, BarChart3, Truck, Users, Archive, Brain, Microscope, Mic, Shield } from 'lucide-react';
 import { InventoryDashboard } from '@/components/inventory/InventoryDashboard';
 import { InventoryItems } from '@/components/inventory/InventoryItems';
 import { PurchaseOrders } from '@/components/inventory/PurchaseOrders';
 import { Suppliers } from '@/components/inventory/Suppliers';
 import { InventoryAnalytics } from '@/components/inventory/InventoryAnalytics';
+import { AIInventoryOracle } from '@/components/inventory/AIInventoryOracle';
+import { SmartLabOrders } from '@/components/inventory/SmartLabOrders';
+import { VoiceInventoryAssistant } from '@/components/inventory/VoiceInventoryAssistant';
+import { BlockchainSupplyChain } from '@/components/inventory/BlockchainSupplyChain';
 import { InventoryAlerts } from '@/components/inventory/InventoryAlerts';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -56,6 +60,30 @@ export default function InventoryManagement() {
       label: 'Analytics',
       icon: BarChart3,
       component: <InventoryAnalytics />
+    },
+    {
+      id: 'ai-oracle',
+      label: 'AI Oracle',
+      icon: Brain,
+      component: <AIInventoryOracle />
+    },
+    {
+      id: 'lab-orders',
+      label: 'Lab Orders',
+      icon: Microscope,
+      component: <SmartLabOrders />
+    },
+    {
+      id: 'voice-assistant',
+      label: 'Voice Assistant',
+      icon: Mic,
+      component: <VoiceInventoryAssistant />
+    },
+    {
+      id: 'blockchain',
+      label: 'Blockchain',
+      icon: Shield,
+      component: <BlockchainSupplyChain />
     }
   ];
 
@@ -112,7 +140,7 @@ export default function InventoryManagement() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full h-auto p-1 bg-card/50 backdrop-blur-sm border-primary/10">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 w-full h-auto p-1 bg-card/50 backdrop-blur-sm border-primary/10">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
