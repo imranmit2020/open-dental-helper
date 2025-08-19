@@ -408,7 +408,12 @@ export default function PatientProfile() {
                     <Stethoscope className="h-5 w-5 text-primary" />
                     Treatment History
                   </CardTitle>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => window.open(`/patients/${id}/medical-history`, '_blank')}
+                    className="hover:bg-primary/10"
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
