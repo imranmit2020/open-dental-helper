@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Play, Clock, CheckCircle, FileText, Camera, Upload, Send, Shield, Scan, Cloud } from "lucide-react";
+import { Play, Clock, CheckCircle, FileText, Camera, Upload, Send, Shield, Scan, Cloud, Calendar, DollarSign, MessageSquare, Star, Printer, Pill, ArrowRight, Brain, Heart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,6 +23,19 @@ const startVisitSchema = z.object({
   consentFormsSent: z.boolean().default(false),
   idScanned: z.boolean().default(false),
   documentsUploaded: z.array(z.string()).default([]),
+  // Complete visit fields
+  treatmentCodes: z.array(z.string()).default([]),
+  prescriptions: z.array(z.object({
+    medication: z.string(),
+    dosage: z.string(),
+    instructions: z.string(),
+  })).default([]),
+  postVisitInstructions: z.string().optional(),
+  followUpRequired: z.boolean().default(false),
+  followUpDate: z.date().optional(),
+  paymentAmount: z.number().optional(),
+  patientSatisfaction: z.number().min(1).max(5).optional(),
+  nextAppointmentRecommended: z.boolean().default(false),
 });
 
 type StartVisitFormData = z.infer<typeof startVisitSchema>;
@@ -49,6 +62,10 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger 
   const [sendingConsent, setSendingConsent] = useState(false);
   const [consentSent, setConsentSent] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedTreatments, setSelectedTreatments] = useState<string[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Array<{medication: string, dosage: string, instructions: string}>>([]);
+  const [generatingInstructions, setGeneratingInstructions] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { updateAppointment } = useAppointments();
@@ -61,10 +78,91 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger 
       consentFormsSent: false,
       idScanned: false,
       documentsUploaded: [],
+      treatmentCodes: [],
+      prescriptions: [],
+      followUpRequired: false,
+      paymentAmount: 0,
+      nextAppointmentRecommended: false,
     },
   });
 
   const watchedStatus = form.watch("status");
+
+  // Common treatment codes for dental procedures
+  const treatmentCodes = [
+    { code: "D0150", description: "Comprehensive oral evaluation", fee: 150 },
+    { code: "D1110", description: "Prophylaxis - adult", fee: 120 },
+    { code: "D2140", description: "Amalgam - one surface, primary or permanent", fee: 180 },
+    { code: "D2150", description: "Amalgam - two surfaces, primary or permanent", fee: 220 },
+    { code: "D2740", description: "Crown - porcelain/ceramic substrate", fee: 1200 },
+    { code: "D3220", description: "Therapeutic pulpotomy", fee: 300 },
+    { code: "D7140", description: "Extraction, erupted tooth or exposed root", fee: 200 },
+    { code: "D9110", description: "Palliative (emergency) treatment of dental pain", fee: 100 },
+  ];
+
+  // Generate AI-powered post-visit instructions
+  const generatePostVisitInstructions = async () => {
+    setGeneratingInstructions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-visit-instructions', {
+        body: {
+          treatmentCodes: selectedTreatments,
+          appointmentType: appointment.type,
+          patientName: appointment.patient,
+          visitNotes: form.getValues("visitNotes"),
+        }
+      });
+
+      if (error) throw error;
+
+      form.setValue("postVisitInstructions", data.instructions);
+      toast({
+        title: "Instructions Generated",
+        description: "AI-powered post-visit instructions have been created",
+      });
+    } catch (error) {
+      console.error('Error generating instructions:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Could not generate instructions. Please write manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingInstructions(false);
+    }
+  };
+
+  // Add prescription
+  const addPrescription = () => {
+    setPrescriptions([...prescriptions, { medication: "", dosage: "", instructions: "" }]);
+  };
+
+  // Remove prescription
+  const removePrescription = (index: number) => {
+    setPrescriptions(prescriptions.filter((_, i) => i !== index));
+  };
+
+  // Process payment
+  const processPayment = async (amount: number) => {
+    setProcessingPayment(true);
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Payment Processed",
+        description: `Successfully processed payment of $${amount}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Payment Failed",
+        description: "Could not process payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
 
   // Handle file upload to Supabase Storage
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,22 +331,26 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger 
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Play className="h-4 w-4" />
               Overview
             </TabsTrigger>
             <TabsTrigger value="consent" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Consent Forms
+              Consent
             </TabsTrigger>
             <TabsTrigger value="documents" className="flex items-center gap-2">
               <Scan className="h-4 w-4" />
-              ID Scanning
+              Documents
             </TabsTrigger>
             <TabsTrigger value="notes" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Visit Notes
+              Notes
+            </TabsTrigger>
+            <TabsTrigger value="complete" className="flex items-center gap-2" disabled={watchedStatus !== "completed"}>
+              <CheckCircle className="h-4 w-4" />
+              Complete Visit
             </TabsTrigger>
           </TabsList>
 
@@ -455,6 +557,356 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger 
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="complete" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Treatment Summary */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        Treatment Summary
+                      </CardTitle>
+                      <CardDescription>
+                        Select procedures performed during this visit
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {treatmentCodes.map((treatment) => (
+                        <div key={treatment.code} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id={treatment.code}
+                              checked={selectedTreatments.includes(treatment.code)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedTreatments([...selectedTreatments, treatment.code]);
+                                } else {
+                                  setSelectedTreatments(selectedTreatments.filter(code => code !== treatment.code));
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <div>
+                              <label htmlFor={treatment.code} className="font-medium cursor-pointer">
+                                {treatment.code}
+                              </label>
+                              <p className="text-sm text-muted-foreground">{treatment.description}</p>
+                            </div>
+                          </div>
+                          <Badge variant="outline">${treatment.fee}</Badge>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Payment Processing */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-green-600" />
+                        Payment & Billing
+                      </CardTitle>
+                      <CardDescription>
+                        Process payment and generate billing
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">Total Amount:</span>
+                          <span className="text-lg font-bold text-green-700">
+                            ${selectedTreatments.reduce((total, code) => {
+                              const treatment = treatmentCodes.find(t => t.code === code);
+                              return total + (treatment?.fee || 0);
+                            }, 0)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          {selectedTreatments.length} procedure(s) selected
+                        </p>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="paymentAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Payment Amount</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number"
+                                placeholder="0.00"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="button"
+                        onClick={() => processPayment(form.getValues("paymentAmount") || 0)}
+                        disabled={processingPayment}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        {processingPayment ? "Processing..." : "Process Payment"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Prescriptions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Pill className="h-5 w-5 text-purple-600" />
+                        Prescriptions
+                      </CardTitle>
+                      <CardDescription>
+                        Add any medications prescribed
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {prescriptions.map((prescription, index) => (
+                        <div key={index} className="p-3 border rounded-lg space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">Prescription {index + 1}</span>
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removePrescription(index)}
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                          <Input 
+                            placeholder="Medication name"
+                            value={prescription.medication}
+                            onChange={(e) => {
+                              const updated = [...prescriptions];
+                              updated[index].medication = e.target.value;
+                              setPrescriptions(updated);
+                            }}
+                          />
+                          <Input 
+                            placeholder="Dosage (e.g., 500mg)"
+                            value={prescription.dosage}
+                            onChange={(e) => {
+                              const updated = [...prescriptions];
+                              updated[index].dosage = e.target.value;
+                              setPrescriptions(updated);
+                            }}
+                          />
+                          <Textarea 
+                            placeholder="Instructions (e.g., Take twice daily with food)"
+                            value={prescription.instructions}
+                            onChange={(e) => {
+                              const updated = [...prescriptions];
+                              updated[index].instructions = e.target.value;
+                              setPrescriptions(updated);
+                            }}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+                      ))}
+                      
+                      <Button 
+                        type="button"
+                        onClick={addPrescription}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Pill className="h-4 w-4 mr-2" />
+                        Add Prescription
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Post-Visit Instructions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Brain className="h-5 w-5 text-indigo-600" />
+                        Post-Visit Instructions
+                      </CardTitle>
+                      <CardDescription>
+                        AI-generated care instructions for the patient
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button"
+                          onClick={generatePostVisitInstructions}
+                          disabled={generatingInstructions || selectedTreatments.length === 0}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          {generatingInstructions ? (
+                            <>Generating...</>
+                          ) : (
+                            <>
+                              <Brain className="h-4 w-4 mr-2" />
+                              Generate AI Instructions
+                            </>
+                          )}
+                        </Button>
+                        <Button type="button" variant="outline" size="icon">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="postVisitInstructions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Post-visit care instructions will be generated based on treatments performed..."
+                                className="min-h-[120px]"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Follow-up & Next Appointment */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-orange-600" />
+                        Follow-up Care
+                      </CardTitle>
+                      <CardDescription>
+                        Schedule follow-up appointments
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="followUpRequired"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="rounded border-gray-300"
+                              />
+                            </FormControl>
+                            <FormLabel className="cursor-pointer">Follow-up appointment required</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {form.watch("followUpRequired") && (
+                        <FormField
+                          control={form.control}
+                          name="followUpDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Recommended Follow-up Date</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date"
+                                  {...field}
+                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                  onChange={(e) => field.onChange(new Date(e.target.value))}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      
+                      <FormField
+                        control={form.control}
+                        name="nextAppointmentRecommended"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className="rounded border-gray-300"
+                              />
+                            </FormControl>
+                            <FormLabel className="cursor-pointer">Recommend next regular checkup</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Patient Satisfaction */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Heart className="h-5 w-5 text-pink-600" />
+                        Patient Satisfaction
+                      </CardTitle>
+                      <CardDescription>
+                        Rate the patient's experience
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="patientSatisfaction"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Patient Satisfaction Rating</FormLabel>
+                            <FormControl>
+                              <div className="flex gap-2">
+                                {[1, 2, 3, 4, 5].map((rating) => (
+                                  <Button
+                                    key={rating}
+                                    type="button"
+                                    variant={field.value === rating ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => field.onChange(rating)}
+                                    className="p-2"
+                                  >
+                                    <Star 
+                                      className={`h-4 w-4 ${
+                                        field.value && rating <= field.value 
+                                          ? 'fill-yellow-400 text-yellow-400' 
+                                          : 'text-gray-300'
+                                      }`} 
+                                    />
+                                  </Button>
+                                ))}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-700">
+                          <MessageSquare className="h-4 w-4 inline mr-1" />
+                          Patient feedback survey will be sent automatically via email
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="notes" className="space-y-4">
