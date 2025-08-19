@@ -317,18 +317,33 @@ export default function PatientProfile() {
                        {patient.phone || 'No phone'}
                      </span>
                    </div>
-                   <div className="flex items-center gap-6 text-muted-foreground">
-                     <span className="flex items-center gap-2">
-                       Risk Level: <Badge variant="outline" className={`${getStatusColor(patient.risk_level)} text-xs`}>
-                         {patient.risk_level}
-                       </Badge>
-                     </span>
-                     {patient.last_visit && (
-                       <span className="flex items-center gap-2">
-                         Last Visit: {new Date(patient.last_visit).toLocaleDateString()}
-                       </span>
-                     )}
-                   </div>
+                    <div className="flex items-center gap-6 text-muted-foreground">
+                      <span className="flex items-center gap-2">
+                        Risk Level: <Badge variant="outline" className={`${getStatusColor(patient.risk_level)} text-xs`}>
+                          {patient.risk_level}
+                        </Badge>
+                      </span>
+                      {patient.last_visit && (
+                        <span className="flex items-center gap-2">
+                          Last Visit: {new Date(patient.last_visit).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    {/* Additional Patient Details */}
+                    {patient.address && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="flex items-center gap-2">
+                          📍 Address: {patient.address}
+                        </span>
+                      </div>
+                    )}
+                    {patient.emergency_contact && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="flex items-center gap-2">
+                          🚨 Emergency Contact: {patient.emergency_contact}
+                        </span>
+                      </div>
+                    )}
                  </div>
             </div>
 
