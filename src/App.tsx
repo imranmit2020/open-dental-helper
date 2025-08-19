@@ -88,6 +88,7 @@ const PredictiveTreatment = lazy(() => import("./pages/PredictiveTreatment"));
 const DentalModeling3D = lazy(() => import("./pages/DentalModeling3D"));
 const PatientJourney = lazy(() => import("./pages/PatientJourney"));
 const RealtimeMonitoring = lazy(() => import("./pages/RealtimeMonitoring"));
+const RealtimeSystemsDashboard = lazy(() => import("./pages/RealtimeSystemsDashboard"));
 const ARTreatmentPreview = lazy(() => import("./pages/ARTreatmentPreview"));
 const MicroscopicAnalysis = lazy(() => import("./pages/MicroscopicAnalysis"));
 const ModuleAnalysisReport = lazy(() => import("./pages/ModuleAnalysisReport"));
@@ -321,11 +322,16 @@ function App() {
                 <Suspense fallback={<PageLoader />}><PatientJourney /></Suspense>
               </ProtectedRoute>
             } />
-            <Route path="real-time-monitoring" element={
-              <ProtectedRoute requiredRoles={['admin', 'dentist']}>
-                <Suspense fallback={<PageLoader />}><RealtimeMonitoring /></Suspense>
-              </ProtectedRoute>
-            } />
+             <Route path="real-time-monitoring" element={
+               <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                 <Suspense fallback={<PageLoader />}><RealtimeMonitoring /></Suspense>
+               </ProtectedRoute>
+             } />
+             <Route path="realtime-systems" element={
+               <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                 <Suspense fallback={<PageLoader />}><RealtimeSystemsDashboard /></Suspense>
+               </ProtectedRoute>
+             } />
             <Route path="ar-treatment-preview" element={
               <ProtectedRoute requiredRoles={['admin', 'dentist']}>
                 <Suspense fallback={<PageLoader />}><ARTreatmentPreview /></Suspense>
