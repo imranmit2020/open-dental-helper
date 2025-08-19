@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Play, Clock, CheckCircle, FileText, Camera, Upload, Send, Shield, Scan, Cloud, Calendar, DollarSign, MessageSquare, Star, Printer, Pill, ArrowRight, Brain, Heart } from "lucide-react";
+import { Play, Clock, CheckCircle, FileText, Camera, Upload, Send, Shield, Scan, Cloud, Calendar, DollarSign, MessageSquare, Star, Printer, Pill, ArrowRight, Brain, Heart, Mic, Volume2, ThumbsUp, Plus, Trash2, Loader2, FileCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAppointments } from "@/hooks/useAppointments";
 import { supabase } from "@/integrations/supabase/client";
+import GenerateInvoiceDialog from "@/components/GenerateInvoiceDialog";
+import { AINotesGenerator } from "@/components/AINotesGenerator";
+import VoiceRecorder from "@/components/VoiceRecorder";
+import ReviewRequestDialog from "@/components/ReviewRequestDialog";
 
 const startVisitSchema = z.object({
   visitNotes: z.string().optional(),
@@ -562,15 +566,15 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
 
               <TabsContent value="complete" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Treatment Summary */}
+                  {/* Treatment Summary & AI Notes */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5 text-blue-600" />
-                        Treatment Summary
+                        Treatment Summary & Notes
                       </CardTitle>
                       <CardDescription>
-                        Select procedures performed during this visit
+                        Select procedures and add intelligent notes
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -600,25 +604,184 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
                           <Badge variant="outline">${treatment.fee}</Badge>
                         </div>
                       ))}
+                      
+                      {selectedTreatments.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2">Smart Treatment Notes</h4>
+                          <AINotesGenerator
+                            procedure={selectedTreatments.join(", ")}
+                            toothNumber={0}
+                            priority="normal"
+                            notes={form.getValues("visitNotes") || ""}
+                            onNotesChange={(notes) => form.setValue("visitNotes", notes)}
+                            patientId={appointment.patient_id}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
-                  {/* Payment Processing */}
+                  {/* Voice Notes & Instructions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Mic className="h-5 w-5 text-purple-600" />
+                        Voice Notes & Instructions
+                      </CardTitle>
+                      <CardDescription>
+                        Voice-to-text notes and AI instructions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-3 border rounded-lg">
+                        <h5 className="text-sm font-medium mb-2">Voice Notes</h5>
+                        <VoiceRecorder
+                          onTranscription={(text) => {
+                            const currentNotes = form.getValues("visitNotes") || "";
+                            form.setValue("visitNotes", currentNotes + (currentNotes ? "\n" : "") + text);
+                          }}
+                          placeholder="Click microphone to record visit notes"
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button"
+                          onClick={generatePostVisitInstructions}
+                          disabled={generatingInstructions || selectedTreatments.length === 0}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          {generatingInstructions ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Brain className="h-4 w-4 mr-2" />
+                          )}
+                          {generatingInstructions ? "Generating..." : "AI Instructions"}
+                        </Button>
+                        <Button type="button" variant="outline" size="icon">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="postVisitInstructions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="AI-generated post-visit instructions..."
+                                className="min-h-[100px]"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Enhanced Prescriptions */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Pill className="h-5 w-5 text-purple-600" />
+                        Prescriptions & Medications
+                      </CardTitle>
+                      <CardDescription>
+                        Comprehensive prescription management
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {prescriptions.map((prescription, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-3 bg-gradient-to-r from-purple-50 to-pink-50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-purple-700">Prescription {index + 1}</span>
+                            <Button 
+                              type="button"
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removePrescription(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <Input 
+                            placeholder="Medication name (e.g., Amoxicillin)"
+                            value={prescription.medication}
+                            onChange={(e) => {
+                              const updated = [...prescriptions];
+                              updated[index].medication = e.target.value;
+                              setPrescriptions(updated);
+                            }}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input 
+                              placeholder="Dosage (500mg)"
+                              value={prescription.dosage}
+                              onChange={(e) => {
+                                const updated = [...prescriptions];
+                                updated[index].dosage = e.target.value;
+                                setPrescriptions(updated);
+                              }}
+                            />
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Frequency" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="once">Once daily</SelectItem>
+                                <SelectItem value="twice">Twice daily</SelectItem>
+                                <SelectItem value="three">Three times daily</SelectItem>
+                                <SelectItem value="four">Four times daily</SelectItem>
+                                <SelectItem value="asneeded">As needed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Textarea 
+                            placeholder="Detailed instructions and warnings..."
+                            value={prescription.instructions}
+                            onChange={(e) => {
+                              const updated = [...prescriptions];
+                              updated[index].instructions = e.target.value;
+                              setPrescriptions(updated);
+                            }}
+                            className="min-h-[60px]"
+                          />
+                        </div>
+                      ))}
+                      
+                      <Button 
+                        type="button"
+                        onClick={addPrescription}
+                        variant="outline"
+                        className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Prescription
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Payment & Invoice Generation */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <DollarSign className="h-5 w-5 text-green-600" />
-                        Payment & Billing
+                        Payment & Invoice
                       </CardTitle>
                       <CardDescription>
-                        Process payment and generate billing
+                        Process payment and generate professional invoice
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">Total Amount:</span>
-                          <span className="text-lg font-bold text-green-700">
+                          <span className="text-xl font-bold text-green-700">
                             ${selectedTreatments.reduce((total, code) => {
                               const treatment = treatmentCodes.find(t => t.code === code);
                               return total + (treatment?.fee || 0);
@@ -648,137 +811,33 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
                         )}
                       />
                       
-                      <Button 
-                        type="button"
-                        onClick={() => processPayment(form.getValues("paymentAmount") || 0)}
-                        disabled={processingPayment}
-                        className="w-full"
-                        variant="outline"
-                      >
-                        {processingPayment ? "Processing..." : "Process Payment"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Prescriptions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Pill className="h-5 w-5 text-purple-600" />
-                        Prescriptions
-                      </CardTitle>
-                      <CardDescription>
-                        Add any medications prescribed
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {prescriptions.map((prescription, index) => (
-                        <div key={index} className="p-3 border rounded-lg space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Prescription {index + 1}</span>
-                            <Button 
-                              type="button"
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removePrescription(index)}
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                          <Input 
-                            placeholder="Medication name"
-                            value={prescription.medication}
-                            onChange={(e) => {
-                              const updated = [...prescriptions];
-                              updated[index].medication = e.target.value;
-                              setPrescriptions(updated);
-                            }}
-                          />
-                          <Input 
-                            placeholder="Dosage (e.g., 500mg)"
-                            value={prescription.dosage}
-                            onChange={(e) => {
-                              const updated = [...prescriptions];
-                              updated[index].dosage = e.target.value;
-                              setPrescriptions(updated);
-                            }}
-                          />
-                          <Textarea 
-                            placeholder="Instructions (e.g., Take twice daily with food)"
-                            value={prescription.instructions}
-                            onChange={(e) => {
-                              const updated = [...prescriptions];
-                              updated[index].instructions = e.target.value;
-                              setPrescriptions(updated);
-                            }}
-                            className="min-h-[60px]"
-                          />
-                        </div>
-                      ))}
-                      
-                      <Button 
-                        type="button"
-                        onClick={addPrescription}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Pill className="h-4 w-4 mr-2" />
-                        Add Prescription
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Post-Visit Instructions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Brain className="h-5 w-5 text-indigo-600" />
-                        Post-Visit Instructions
-                      </CardTitle>
-                      <CardDescription>
-                        AI-generated care instructions for the patient
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button 
                           type="button"
-                          onClick={generatePostVisitInstructions}
-                          disabled={generatingInstructions || selectedTreatments.length === 0}
+                          onClick={() => processPayment(form.getValues("paymentAmount") || 0)}
+                          disabled={processingPayment}
                           variant="outline"
-                          className="flex-1"
+                          className="border-green-200 text-green-700 hover:bg-green-50"
                         >
-                          {generatingInstructions ? (
-                            <>Generating...</>
+                          {processingPayment ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
-                            <>
-                              <Brain className="h-4 w-4 mr-2" />
-                              Generate AI Instructions
-                            </>
+                            <DollarSign className="h-4 w-4 mr-2" />
                           )}
+                          {processingPayment ? "Processing..." : "Process Payment"}
                         </Button>
-                        <Button type="button" variant="outline" size="icon">
-                          <Printer className="h-4 w-4" />
-                        </Button>
+                        
+                        <GenerateInvoiceDialog
+                          patientId={appointment.patient_id || ""}
+                          patientName={appointment.patient}
+                          trigger={
+                            <Button variant="outline" className="w-full">
+                              <FileCheck className="h-4 w-4 mr-2" />
+                              Generate Invoice
+                            </Button>
+                          }
+                        />
                       </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="postVisitInstructions"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Post-visit care instructions will be generated based on treatments performed..."
-                                className="min-h-[120px]"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
                     </CardContent>
                   </Card>
                 </div>
@@ -789,10 +848,10 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-orange-600" />
-                        Follow-up Care
+                        Follow-up Care & Scheduling
                       </CardTitle>
                       <CardDescription>
-                        Schedule follow-up appointments
+                        Smart follow-up recommendations
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -847,22 +906,29 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
                                 className="rounded border-gray-300"
                               />
                             </FormControl>
-                            <FormLabel className="cursor-pointer">Recommend next regular checkup</FormLabel>
+                            <FormLabel className="cursor-pointer">Recommend regular checkup (6 months)</FormLabel>
                           </FormItem>
                         )}
                       />
+
+                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <p className="text-sm text-orange-700">
+                          <Calendar className="h-4 w-4 inline mr-1" />
+                          Smart scheduling will suggest optimal appointment times based on patient preferences
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  {/* Patient Satisfaction */}
+                  {/* Patient Satisfaction & Reviews */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Heart className="h-5 w-5 text-pink-600" />
-                        Patient Satisfaction
+                        <ThumbsUp className="h-5 w-5 text-pink-600" />
+                        Patient Experience & Reviews
                       </CardTitle>
                       <CardDescription>
-                        Rate the patient's experience
+                        Rate experience and request reviews
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -899,15 +965,59 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger,
                         )}
                       />
                       
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-700">
-                          <MessageSquare className="h-4 w-4 inline mr-1" />
-                          Patient feedback survey will be sent automatically via email
-                        </p>
+                      <div className="space-y-2">
+                        <ReviewRequestDialog
+                          trigger={
+                            <Button variant="outline" className="w-full border-pink-200 text-pink-700 hover:bg-pink-50">
+                              <Star className="h-4 w-4 mr-2" />
+                              Request Review
+                            </Button>
+                          }
+                        />
+                        
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-700">
+                            <MessageSquare className="h-4 w-4 inline mr-1" />
+                            Automated feedback survey will be sent via email/SMS
+                          </p>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Quick Actions Bar */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-red-600" />
+                      Quick Actions & Smart Features
+                    </CardTitle>
+                    <CardDescription>
+                      Complete visit with intelligent automation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <Button variant="outline" className="h-auto p-3 flex flex-col items-center gap-2">
+                        <Volume2 className="h-5 w-5 text-blue-600" />
+                        <span className="text-xs">Text-to-Speech</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto p-3 flex flex-col items-center gap-2">
+                        <Printer className="h-5 w-5 text-green-600" />
+                        <span className="text-xs">Print Summary</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto p-3 flex flex-col items-center gap-2">
+                        <Send className="h-5 w-5 text-purple-600" />
+                        <span className="text-xs">Email Patient</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto p-3 flex flex-col items-center gap-2">
+                        <Brain className="h-5 w-5 text-indigo-600" />
+                        <span className="text-xs">AI Summary</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="notes" className="space-y-4">
