@@ -414,23 +414,25 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Insurance Provider</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={insurancePlansLoading}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select insurance provider" />
+                            <SelectValue placeholder={
+                              insurancePlansLoading 
+                                ? "Loading insurance plans..." 
+                                : insurancePlans.length === 0 
+                                  ? "No insurance plans configured" 
+                                  : "Select insurance provider"
+                            } />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {insurancePlansLoading ? (
-                            <SelectItem value="" disabled>Loading insurance plans...</SelectItem>
-                          ) : insurancePlans.length > 0 ? (
+                          {!insurancePlansLoading && insurancePlans.length > 0 && (
                             insurancePlans.map((plan) => (
                               <SelectItem key={plan.id} value={plan.id}>
                                 {plan.provider_name} - {plan.plan_name}
                               </SelectItem>
                             ))
-                          ) : (
-                            <SelectItem value="" disabled>No insurance plans configured</SelectItem>
                           )}
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
