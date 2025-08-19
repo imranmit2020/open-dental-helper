@@ -348,7 +348,7 @@ export default function StartVisitDialog({ appointment, onVisitStarted, trigger 
               <FileText className="h-4 w-4" />
               Notes
             </TabsTrigger>
-            <TabsTrigger value="complete" className="flex items-center gap-2" disabled={watchedStatus !== "completed"}>
+            <TabsTrigger value="complete" className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Complete Visit
             </TabsTrigger>
