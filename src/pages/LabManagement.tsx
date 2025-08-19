@@ -27,9 +27,19 @@ import {
   MapPin,
   Camera,
   Send,
-  ArrowRight
+  ArrowRight,
+  Brain,
+  Microscope,
+  Blocks,
+  Mic,
+  Zap,
+  Activity
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { AILabQualityCenter } from '@/components/lab/AILabQualityCenter';
+import { SmartLabIoTDashboard } from '@/components/lab/SmartLabIoTDashboard';
+import { LabBlockchainTracker } from '@/components/lab/LabBlockchainTracker';
+import { VoiceLabAssistant } from '@/components/lab/VoiceLabAssistant';
 
 interface LabOrder {
   id: string;
@@ -232,16 +242,21 @@ export default function LabManagement() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Lab Management
-            </h1>
-            <p className="text-muted-foreground">Manage lab orders with real-time tracking</p>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-primary rounded-xl shadow-elegant">
+              <Microscope className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                Innovative Lab Management
+              </h1>
+              <p className="text-muted-foreground text-lg">AI-powered lab operations with blockchain traceability</p>
+            </div>
           </div>
           
           <Dialog open={newOrderDialogOpen} onOpenChange={setNewOrderDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+              <Button className="bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300">
                 <Plus className="h-4 w-4 mr-2" />
                 New Lab Order
               </Button>
@@ -261,6 +276,33 @@ export default function LabManagement() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Innovative Features Tabs */}
+        <Tabs defaultValue="traditional" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto p-1 bg-card/50 backdrop-blur-sm border-primary/10">
+            <TabsTrigger value="traditional" className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Package className="w-5 h-5" />
+              <span className="text-sm font-medium">Traditional Lab</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-quality" className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Brain className="w-5 h-5" />
+              <span className="text-sm font-medium">AI Quality</span>
+            </TabsTrigger>
+            <TabsTrigger value="iot-dashboard" className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Zap className="w-5 h-5" />
+              <span className="text-sm font-medium">IoT Control</span>
+            </TabsTrigger>
+            <TabsTrigger value="blockchain" className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Blocks className="w-5 h-5" />
+              <span className="text-sm font-medium">Blockchain</span>
+            </TabsTrigger>
+            <TabsTrigger value="voice-assistant" className="flex flex-col gap-2 py-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Mic className="w-5 h-5" />
+              <span className="text-sm font-medium">Voice AI</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="traditional" className="space-y-6">
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -464,16 +506,25 @@ export default function LabManagement() {
             </CardContent>
           </Card>
         )}
+          </TabsContent>
 
-        {/* Order Detail Dialog */}
-        {selectedOrder && (
-          <OrderDetailDialog
-            order={selectedOrder}
-            tracking={trackingData[selectedOrder.id] || []}
-            onClose={() => setSelectedOrder(null)}
-            onRefresh={fetchData}
-          />
-        )}
+          <TabsContent value="ai-quality">
+            <AILabQualityCenter />
+          </TabsContent>
+
+          <TabsContent value="iot-dashboard">
+            <SmartLabIoTDashboard />
+          </TabsContent>
+
+          <TabsContent value="blockchain">
+            <LabBlockchainTracker />
+          </TabsContent>
+
+          <TabsContent value="voice-assistant">
+            <VoiceLabAssistant />
+          </TabsContent>
+        </Tabs>
+
       </div>
     </div>
   );
