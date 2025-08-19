@@ -166,8 +166,7 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
             title: 'Initial Medical History',
             description: data.medicalHistory,
             visit_date: new Date().toISOString().split('T')[0],
-            status: 'active',
-            tenant_id: currentTenant?.id || null
+            status: 'active'
           });
 
         if (medicalRecordError) {
