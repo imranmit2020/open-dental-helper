@@ -403,21 +403,10 @@ export default function PatientProfile() {
             {/* Treatment Summary */}
             <Card className="bg-card/60 backdrop-blur-sm border-border/50 shadow-xl">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-primary" />
-                    Treatment History
-                  </CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => window.open(`/medical-history?patientId=${id}`, '_blank')}
-                    className="hover:bg-primary/10"
-                    title="Add new medical record"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5 text-primary" />
+                  Treatment History
+                </CardTitle>
               </CardHeader>
                <CardContent className="space-y-4">
                  {getRecentTreatments().map((treatment) => (
