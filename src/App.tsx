@@ -89,6 +89,7 @@ const DentalModeling3D = lazy(() => import("./pages/DentalModeling3D"));
 const PatientJourney = lazy(() => import("./pages/PatientJourney"));
 const RealtimeMonitoring = lazy(() => import("./pages/RealtimeMonitoring"));
 const RealtimeSystemsDashboard = lazy(() => import("./pages/RealtimeSystemsDashboard"));
+const AdvancedSecurityDashboard = lazy(() => import("./pages/AdvancedSecurityDashboard"));
 const ARTreatmentPreview = lazy(() => import("./pages/ARTreatmentPreview"));
 const MicroscopicAnalysis = lazy(() => import("./pages/MicroscopicAnalysis"));
 const ModuleAnalysisReport = lazy(() => import("./pages/ModuleAnalysisReport"));
@@ -330,6 +331,11 @@ function App() {
              <Route path="realtime-systems" element={
                <ProtectedRoute requiredRoles={['admin', 'dentist']}>
                  <Suspense fallback={<PageLoader />}><RealtimeSystemsDashboard /></Suspense>
+               </ProtectedRoute>
+             } />
+             <Route path="advanced-security" element={
+               <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                 <Suspense fallback={<PageLoader />}><AdvancedSecurityDashboard /></Suspense>
                </ProtectedRoute>
              } />
             <Route path="ar-treatment-preview" element={
