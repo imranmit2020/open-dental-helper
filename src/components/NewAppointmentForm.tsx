@@ -639,9 +639,9 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger, defaul
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No insurance</SelectItem>
+                          <SelectItem value="none">No insurance</SelectItem>
                           {insurancePlansLoading ? (
-                            <SelectItem value="" disabled>Loading insurance plans...</SelectItem>
+                            <SelectItem value="loading" disabled>Loading insurance plans...</SelectItem>
                           ) : (
                             insurancePlans.map((plan) => (
                               <SelectItem key={plan.id} value={plan.id}>
