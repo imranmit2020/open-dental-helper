@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, User, Phone, Mail, Calendar, Shield, Building, AlertTriangle } from "lucide-react";
+import { Plus, User, Phone, Mail, Calendar, Shield, Building, AlertTriangle, Brain, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,6 +45,10 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
   const [open, setOpen] = useState(false);
   const [duplicateAlertOpen, setDuplicateAlertOpen] = useState(false);
   const [existingPatient, setExistingPatient] = useState<any>(null);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState("");
+  const [aiTimeoutRef, setAiTimeoutRef] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { currentTenant } = useTenant();
@@ -64,6 +69,40 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
       medicalHistory: "",
     },
   });
+
+  const analyzeWithAI = async (medicalHistory: string) => {
+    if (!medicalHistory.trim() || !aiEnabled) return;
+    
+    setAiAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-medical-analysis', {
+        body: {
+          medicalHistory,
+          analysisType: 'comprehensive',
+          patientAge: form.getValues('dateOfBirth') ? 
+            Math.floor((Date.now() - new Date(form.getValues('dateOfBirth')).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 
+            null
+        }
+      });
+
+      if (error) throw error;
+
+      setAiSuggestions(data.analysis);
+      toast({
+        title: "AI Analysis Complete",
+        description: "Medical history has been analyzed. Review the suggestions below.",
+      });
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast({
+        title: "AI Analysis Error",
+        description: "Unable to analyze medical history. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setAiAnalyzing(false);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -392,9 +431,24 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
                   Medical History
+                  <div className="ml-auto flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-normal">AI Assistant</span>
+                    <Switch
+                      checked={aiEnabled}
+                      onCheckedChange={setAiEnabled}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
                 </CardTitle>
+                <CardDescription>
+                  {aiEnabled 
+                    ? "AI analysis is enabled. Enter medical history to get intelligent suggestions and risk assessments."
+                    : "Enable AI assistant to get intelligent analysis of medical history and risk factors."
+                  }
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
                   name="medicalHistory"
@@ -402,11 +456,48 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
                     <FormItem>
                       <FormLabel>Medical History & Notes</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Enter any relevant medical history, allergies, or notes..."
-                          className="min-h-[100px]"
-                          {...field} 
-                        />
+                        <div className="space-y-2">
+                          <Textarea 
+                            placeholder="Enter any relevant medical history, allergies, or notes..."
+                            className="min-h-[100px]"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              if (aiEnabled && e.target.value.length > 50) {
+                                // Debounce AI analysis
+                                if (aiTimeoutRef) {
+                                  clearTimeout(aiTimeoutRef);
+                                }
+                                const timeout = setTimeout(() => {
+                                  analyzeWithAI(e.target.value);
+                                }, 2000);
+                                setAiTimeoutRef(timeout);
+                              }
+                            }}
+                          />
+                          {aiEnabled && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => analyzeWithAI(field.value)}
+                              disabled={!field.value?.trim() || aiAnalyzing}
+                              className="w-full"
+                            >
+                              {aiAnalyzing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Analyzing with AI...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-4 w-4 mr-2" />
+                                  Analyze with AI
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </FormControl>
                       <FormDescription>
                         Include any allergies, current medications, or important medical conditions.
@@ -415,6 +506,29 @@ export default function NewPatientForm({ onPatientAdded }: NewPatientFormProps) 
                     </FormItem>
                   )}
                 />
+                
+                {aiEnabled && aiSuggestions && (
+                  <div className="border rounded-lg p-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold text-primary">AI Analysis & Suggestions</h4>
+                    </div>
+                    <div className="prose prose-sm max-w-none">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {aiSuggestions}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAiSuggestions("")}
+                      className="mt-2"
+                    >
+                      Clear Suggestions
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
