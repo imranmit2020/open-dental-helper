@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Clock, User, MapPin, FileText, Phone, Mail, Search } from "lucide-react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { usePatients, type Patient } from "@/hooks/usePatients";
+import { useInsurancePlans } from "@/hooks/useInsurancePlans";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -93,6 +94,7 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger, defaul
   const { toast } = useToast();
   const { createAppointment } = useAppointments();
   const { createPatient, searchPatients } = usePatients();
+  const { plans: insurancePlans, loading: insurancePlansLoading } = useInsurancePlans();
 
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
@@ -630,9 +632,25 @@ export default function NewAppointmentForm({ onAppointmentAdded, trigger, defaul
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Insurance Provider</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Insurance company name" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select insurance provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">No insurance</SelectItem>
+                          {insurancePlansLoading ? (
+                            <SelectItem value="" disabled>Loading insurance plans...</SelectItem>
+                          ) : (
+                            insurancePlans.map((plan) => (
+                              <SelectItem key={plan.id} value={plan.id}>
+                                {plan.provider_name} - {plan.plan_name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
