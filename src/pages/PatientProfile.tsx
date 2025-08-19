@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useInsurancePlanResolver } from "@/hooks/useInsurancePlanResolver";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ export default function PatientProfile() {
   const { id } = useParams();
   const { user } = useAuth();
   const { logPatientView } = useAuditLog();
+  const { getInsuranceDisplayName } = useInsurancePlanResolver();
   
   const [patient, setPatient] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -519,7 +521,7 @@ export default function PatientProfile() {
                    <div className="p-4 bg-success/5 border border-success/20 rounded-lg">
                      <div className="flex items-center justify-between">
                        <div className="space-y-1">
-                         <p className="font-semibold">{patient.insurance_info.provider || 'Insurance Provider'}</p>
+                         <p className="font-semibold">{getInsuranceDisplayName(patient.insurance_info.provider)}</p>
                          <p className="text-sm text-muted-foreground">Member ID: {patient.insurance_info.member_id || 'N/A'}</p>
                          <p className="text-sm text-muted-foreground">Group: {patient.insurance_info.group || 'N/A'}</p>
                        </div>

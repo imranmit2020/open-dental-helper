@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useInsurancePlanResolver } from "@/hooks/useInsurancePlanResolver";
 import { useOptimizedPatients } from "@/hooks/useOptimizedPatients";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ function Patients() {
   const { logPatientView } = useAuditLog();
   const { user } = useAuth();
   const { patients, loading, refetch } = useOptimizedPatients();
+  const { getInsuranceDisplayName } = useInsurancePlanResolver();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -645,9 +647,13 @@ function Patients() {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-xs text-muted-foreground font-medium">Insurance</p>
-                  <p className="text-sm font-semibold">
-                    {(patient.insurance_info && typeof patient.insurance_info === 'object' && 'provider' in patient.insurance_info) ? String(patient.insurance_info.provider) : 'No insurance'}
-                  </p>
+                   <p className="text-sm font-semibold">
+                     {getInsuranceDisplayName(
+                       (patient.insurance_info && typeof patient.insurance_info === 'object' && 'provider' in patient.insurance_info) 
+                         ? String(patient.insurance_info.provider)
+                         : null
+                     )}
+                   </p>
                 </div>
                 <Button 
                   variant="ghost" 
