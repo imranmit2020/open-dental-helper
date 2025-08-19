@@ -411,8 +411,9 @@ export default function PatientProfile() {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => window.open(`/patients/${id}/medical-history`, '_blank')}
+                    onClick={() => window.open(`/medical-history?patientId=${id}`, '_blank')}
                     className="hover:bg-primary/10"
+                    title="Add new medical record"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
