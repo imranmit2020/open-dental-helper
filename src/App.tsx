@@ -90,6 +90,7 @@ const PatientJourney = lazy(() => import("./pages/PatientJourney"));
 const RealtimeMonitoring = lazy(() => import("./pages/RealtimeMonitoring"));
 const RealtimeSystemsDashboard = lazy(() => import("./pages/RealtimeSystemsDashboard"));
 const AdvancedSecurityDashboard = lazy(() => import("./pages/AdvancedSecurityDashboard"));
+const IoTHardwareDashboard = lazy(() => import("./pages/IoTHardwareDashboard"));
 const ARTreatmentPreview = lazy(() => import("./pages/ARTreatmentPreview"));
 const MicroscopicAnalysis = lazy(() => import("./pages/MicroscopicAnalysis"));
 const ModuleAnalysisReport = lazy(() => import("./pages/ModuleAnalysisReport"));
@@ -336,6 +337,11 @@ function App() {
              <Route path="advanced-security" element={
                <ProtectedRoute requiredRoles={['admin', 'dentist']}>
                  <Suspense fallback={<PageLoader />}><AdvancedSecurityDashboard /></Suspense>
+               </ProtectedRoute>
+             } />
+             <Route path="iot-hardware" element={
+               <ProtectedRoute requiredRoles={['admin', 'dentist']}>
+                 <Suspense fallback={<PageLoader />}><IoTHardwareDashboard /></Suspense>
                </ProtectedRoute>
              } />
             <Route path="ar-treatment-preview" element={
