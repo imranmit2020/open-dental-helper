@@ -67,79 +67,103 @@ export default function PatientProfile() {
     try {
       setLoading(true);
       
-      // Fetch patient details
-      const { data: patientData, error: patientError } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Run all queries in parallel for better performance
+      const [
+        patientResponse,
+        appointmentsResponse,
+        recordsResponse,
+        consentResponse,
+        treatmentResponse,
+        medicationsResponse,
+        allergiesResponse,
+        conditionsResponse,
+        invoicesResponse
+      ] = await Promise.all([
+        // Fetch patient details
+        supabase
+          .from('patients')
+          .select('*')
+          .eq('id', id)
+          .single(),
 
-      if (patientError) throw patientError;
-      setPatient(patientData);
+        // Fetch appointments
+        supabase
+          .from('appointments')
+          .select('*')
+          .eq('patient_id', id)
+          .order('appointment_date', { ascending: false }),
 
-      // Fetch appointments
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', id)
-        .order('appointment_date', { ascending: false });
+        // Fetch medical records
+        supabase
+          .from('medical_records')
+          .select('*')
+          .eq('patient_id', id)
+          .order('visit_date', { ascending: false }),
 
-      setAppointments(appointmentsData || []);
+        // Fetch consent forms
+        supabase
+          .from('consent_forms')
+          .select('*')
+          .eq('patient_id', id)
+          .order('created_at', { ascending: false }),
 
-      // Fetch medical records
-      const { data: recordsData } = await supabase
-        .from('medical_records')
-        .select('*')
-        .eq('patient_id', id)
-        .order('visit_date', { ascending: false });
+        // Fetch treatment plans
+        supabase
+          .from('treatment_plans')
+          .select('*')
+          .eq('patient_id', id)
+          .order('created_at', { ascending: false }),
 
-      setMedicalRecords(recordsData || []);
+        // Fetch medications
+        supabase
+          .from('medications')
+          .select('*')
+          .eq('patient_id', id)
+          .order('created_at', { ascending: false }),
 
-      // Fetch consent forms
-      const { data: consentData } = await supabase
-        .from('consent_forms')
-        .select('*')
-        .eq('patient_id', id)
-        .order('created_at', { ascending: false });
+        // Fetch allergies
+        supabase
+          .from('allergies')
+          .select('*')
+          .eq('patient_id', id),
 
-      setConsentForms(consentData || []);
+        // Fetch medical conditions
+        supabase
+          .from('medical_conditions')
+          .select('*')
+          .eq('patient_id', id),
 
-      // Fetch treatment plans
-      const { data: treatmentData } = await supabase
-        .from('treatment_plans')
-        .select('*')
-        .eq('patient_id', id)
-        .order('created_at', { ascending: false });
+        // Fetch invoices for totals
+        supabase
+          .from('invoices')
+          .select('issued_at,total')
+          .eq('patient_id', id)
+      ]);
 
-      setTreatmentPlans(treatmentData || []);
+      // Handle patient data (critical)
+      if (patientResponse.error) throw patientResponse.error;
+      setPatient(patientResponse.data);
 
-      // Fetch medications
-      const { data: medicationsData } = await supabase
-        .from('medications')
-        .select('*')
-        .eq('patient_id', id)
-        .order('created_at', { ascending: false });
+      // Set all other data (non-blocking)
+      setAppointments(appointmentsResponse.data || []);
+      setMedicalRecords(recordsResponse.data || []);
+      setConsentForms(consentResponse.data || []);
+      setTreatmentPlans(treatmentResponse.data || []);
+      setMedications(medicationsResponse.data || []);
+      setAllergies(allergiesResponse.data || []);
+      setMedicalConditions(conditionsResponse.data || []);
 
-      setMedications(medicationsData || []);
+      // Process invoice totals
+      const invoiceMap: Record<string, number> = {};
+      (invoicesResponse.data || []).forEach((inv: any) => {
+        if (inv.issued_at) {
+          const dateKey = inv.issued_at.split('T')[0];
+          invoiceMap[dateKey] = (invoiceMap[dateKey] || 0) + (inv.total || 0);
+        }
+      });
+      setInvoiceTotalsByDate(invoiceMap);
 
-      // Fetch allergies
-      const { data: allergiesData } = await supabase
-        .from('allergies')
-        .select('*')
-        .eq('patient_id', id);
-
-      setAllergies(allergiesData || []);
-
-      // Fetch medical conditions
-      const { data: conditionsData } = await supabase
-        .from('medical_conditions')
-        .select('*')
-        .eq('patient_id', id);
-
-      setMedicalConditions(conditionsData || []);
-
-      // Initialize invoices map and first page of treatments
-      await fetchInvoiceTotals();
+      // Fetch first page of treatments separately (less critical)
       await fetchTreatmentPage(1);
 
     } catch (error) {
@@ -149,25 +173,7 @@ export default function PatientProfile() {
     }
   };
 
-  const fetchInvoiceTotals = async () => {
-    try {
-      const { data: invoices, error } = await supabase
-        .from('invoices')
-        .select('issued_at,total')
-        .eq('patient_id', id);
-      if (error) throw error;
-      const map: Record<string, number> = {};
-      (invoices || []).forEach((inv: any) => {
-        if (!inv.issued_at) return;
-        const dateKey = new Date(inv.issued_at).toISOString().slice(0,10);
-        const amt = Number(inv.total || 0);
-        map[dateKey] = (map[dateKey] || 0) + amt;
-      });
-      setInvoiceTotalsByDate(map);
-    } catch (err) {
-      console.error('Error fetching invoice totals:', err);
-    }
-  };
+  // fetchInvoiceTotals function removed - now integrated into fetchPatientData for better performance
 
   const fetchTreatmentPage = async (page: number) => {
     if (!id) return;
