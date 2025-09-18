@@ -68,15 +68,18 @@
     --shadow-glow: 0 0 40px hsl(210 100% 60% / 0.25);
     --shadow-card: 0 2px 8px hsl(210 100% 45% / 0.06);
     
-    /* Sidebar Variables */
-    --sidebar-background: 210 33% 98%;
-    --sidebar-foreground: 215 25% 22%;
-    --sidebar-primary: 215 90% 55%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 213 100% 96%;
-    --sidebar-accent-foreground: 215 25% 22%;
-    --sidebar-border: 215 22% 85%;
-    --sidebar-ring: 215 90% 55%;
+    /* Sidebar Variables - Corporate Professional */
+    --sidebar-background: 215 25% 15%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 210 100% 60%;
+    --sidebar-primary-foreground: 215 25% 15%;
+    --sidebar-accent: 212 25% 18%;
+    --sidebar-accent-foreground: 210 15% 85%;
+    --sidebar-border: 212 20% 25%;
+    --sidebar-ring: 210 100% 60%;
+    --sidebar-glass: 215 25% 15% / 0.9;
+    --sidebar-hover: 212 25% 22%;
+    --sidebar-active: 210 100% 60% / 0.1;
   }
 
   .dark {
@@ -139,15 +142,18 @@
     --shadow-glow: 0 0 40px hsl(210 100% 65% / 0.3);
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.15);
     
-    /* Sidebar Variables */
-    --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 215 90% 60%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 20% 20%;
-    --sidebar-accent-foreground: 220 15% 85%;
-    --sidebar-border: 220 15% 22%;
-    --sidebar-ring: 215 90% 60%;
+    /* Sidebar Variables - Corporate Dark Mode */
+    --sidebar-background: 215 25% 10%;
+    --sidebar-foreground: 200 20% 90%;
+    --sidebar-primary: 210 100% 65%;
+    --sidebar-primary-foreground: 215 25% 10%;
+    --sidebar-accent: 210 20% 15%;
+    --sidebar-accent-foreground: 200 20% 90%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 210 100% 65%;
+    --sidebar-glass: 215 25% 10% / 0.95;
+    --sidebar-hover: 210 20% 18%;
+    --sidebar-active: 210 100% 65% / 0.15;
   }
 }
 
