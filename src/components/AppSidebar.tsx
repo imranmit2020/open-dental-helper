@@ -274,7 +274,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={isCollapsed ? "w-16" : "w-64"}
+      className={isCollapsed ? "w-20" : "w-80"}
       collapsible="icon"
     >
       <SidebarContent className="bg-gradient-sidebar backdrop-blur-md border-r border-sidebar-border shadow-lg animate-fade-in">
