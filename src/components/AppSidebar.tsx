@@ -277,27 +277,27 @@ export function AppSidebar() {
       className={isCollapsed ? "w-20" : "w-80"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-sidebar-background backdrop-blur-xl border-r border-sidebar-border/50 shadow-2xl animate-fade-in">
+      <SidebarContent className="bg-sidebar-background/95 backdrop-blur-xl border-r border-sidebar-border shadow-xl animate-fade-in">
         {/* Corporate Header */}
-        <div className="p-6 border-b border-sidebar-border/30 bg-gradient-to-r from-sidebar-accent/20 to-transparent">
+        <div className="p-6 border-b border-sidebar-border/50 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/20">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-sidebar-primary/20">
-                <Stethoscope className="w-7 h-7 text-sidebar-primary-foreground drop-shadow-md" />
+              <div className="w-12 h-12 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/90 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-sidebar-primary/20">
+                <Stethoscope className="w-7 h-7 text-sidebar-primary-foreground drop-shadow-sm" />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse shadow-sm"></div>
             </div>
             {!isCollapsed && (
               <div className="flex-1">
-                <h1 className="font-bold text-xl bg-gradient-to-r from-sidebar-primary to-sidebar-primary/80 bg-clip-text text-transparent">
+                <h1 className="font-bold text-xl bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
                   DentalAI Pro
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="px-2.5 py-0.5 bg-sidebar-primary/10 text-sidebar-primary text-xs font-semibold rounded-full border border-sidebar-primary/20">
+                  <div className="px-2.5 py-0.5 bg-sidebar-primary/15 text-sidebar-primary text-xs font-semibold rounded-full border border-sidebar-primary/30">
                     {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
                   </div>
                   {subscribed && (
-                    <div className="px-2.5 py-0.5 bg-success/10 text-success text-xs font-semibold rounded-full border border-success/20">
+                    <div className="px-2.5 py-0.5 bg-success/15 text-success text-xs font-semibold rounded-full border border-success/30">
                       Premium
                     </div>
                   )}
