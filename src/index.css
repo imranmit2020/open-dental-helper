@@ -69,16 +69,16 @@
     --shadow-glow: 0 0 40px hsl(210 100% 60% / 0.25);
     --shadow-card: 0 2px 8px hsl(210 100% 45% / 0.06);
     
-    /* Sidebar Variables - Clean Professional Theme */
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 30 41 59;
+    /* Sidebar Variables - Corporate Blue-Gray Theme */
+    --sidebar-background: 248 250 252;
+    --sidebar-foreground: 51 65 85;
     --sidebar-primary: 37 99 235;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 248 250 252; 
-    --sidebar-accent-foreground: 30 41 59;
+    --sidebar-accent: 241 245 249; 
+    --sidebar-accent-foreground: 51 65 85;
     --sidebar-border: 226 232 240;
     --sidebar-ring: 37 99 235;
-    --sidebar-glass: 255 255 255;  
+    --sidebar-glass: 248 250 252;  
     --sidebar-hover: 241 245 249;
     --sidebar-active: 239 246 255;
     --sidebar-muted: 100 116 139;
