@@ -38,9 +38,10 @@
     --success: 145 70% 40%;
     --success-foreground: 0 0% 98%;
     --success-light: 145 70% 90%;
-    --warning: 40 95% 50%;
-    --warning-foreground: 30 95% 15%;
-    --warning-light: 40 95% 90%;
+    /* Warning Colors - Softer Orange Tones */
+    --warning: 25 85% 55%;
+    --warning-foreground: 0 0% 98%;
+    --warning-light: 25 85% 92%;
     --info: 210 100% 50%;
     --info-foreground: 0 0% 98%;
     --info-light: 210 100% 90%;
@@ -68,20 +69,20 @@
     --shadow-glow: 0 0 40px hsl(210 100% 60% / 0.25);
     --shadow-card: 0 2px 8px hsl(210 100% 45% / 0.06);
     
-    /* Sidebar Variables - Professional Light Theme */
+    /* Sidebar Variables - Clean Professional Theme */
     --sidebar-background: 255 255 255;
-    --sidebar-foreground: 51 65 85;
+    --sidebar-foreground: 30 41 59;
     --sidebar-primary: 37 99 235;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 248 250 252;
+    --sidebar-accent: 248 250 252; 
     --sidebar-accent-foreground: 30 41 59;
-    --sidebar-border: 241 245 249;
+    --sidebar-border: 226 232 240;
     --sidebar-ring: 37 99 235;
-    --sidebar-glass: 255 255 255 / 0.95;
-    --sidebar-hover: 248 250 252;
+    --sidebar-glass: 255 255 255;  
+    --sidebar-hover: 241 245 249;
     --sidebar-active: 239 246 255;
-    --sidebar-muted: 148 163 184;
-    --sidebar-muted-foreground: 100 116 139;
+    --sidebar-muted: 100 116 139;
+    --sidebar-muted-foreground: 71 85 105;
   }
 
   .dark {
@@ -117,9 +118,10 @@
     --success: 142 76% 45%;
     --success-foreground: 0 0% 98%;
     --success-light: 142 76% 25%;
-    --warning: 38 92% 55%;
-    --warning-foreground: 25 95% 12%;
-    --warning-light: 38 92% 25%;
+    /* Warning Colors - Softer Orange Dark Mode */
+    --warning: 25 85% 60%;
+    --warning-foreground: 25 85% 10%;
+    --warning-light: 25 85% 20%;
     --info: 210 85% 60%;
     --info-foreground: 0 0% 98%;
     --info-light: 210 85% 25%;
