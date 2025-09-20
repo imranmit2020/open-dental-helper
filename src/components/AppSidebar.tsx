@@ -254,10 +254,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-2xl px-5 py-4 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent backdrop-blur-sm overflow-hidden",
+      "group relative rounded-2xl px-5 py-4 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold border border-transparent backdrop-blur-sm overflow-hidden",
       isActive
-        ? "bg-gradient-to-r from-sidebar-primary/10 via-sidebar-primary/5 to-transparent text-sidebar-primary shadow-elegant ring-1 ring-sidebar-primary/30 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-sidebar-primary/60 before:via-sidebar-primary before:to-sidebar-primary/60 before:shadow-glow"
-        : "text-sidebar-muted hover:bg-gradient-to-r hover:from-sidebar-hover/80 hover:via-sidebar-hover hover:to-sidebar-hover/60 hover:text-sidebar-foreground hover:shadow-soft hover:scale-[1.01] hover:translate-x-1 hover:border-sidebar-border/30"
+        ? "bg-gradient-to-r from-blue-100 via-blue-50 to-transparent text-blue-700 shadow-lg ring-1 ring-blue-200 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-blue-400 before:via-blue-600 before:to-blue-400"
+        : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100 hover:via-slate-50 hover:to-slate-100/60 hover:text-slate-700 hover:shadow-sm hover:scale-[1.01] hover:translate-x-1 hover:border-slate-200"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -277,26 +277,26 @@ export function AppSidebar() {
       className={isCollapsed ? "w-20" : "w-80"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-gradient-to-b from-sidebar-background via-sidebar-background to-sidebar-accent/30 backdrop-blur-xl border-r border-sidebar-border/60 shadow-2xl animate-fade-in">
+      <SidebarContent className="bg-slate-50 backdrop-blur-xl border-r border-slate-200 shadow-2xl animate-fade-in">
         {/* Professional Header */}
-        <div className="relative p-8 border-b border-sidebar-border/40 bg-gradient-to-br from-sidebar-primary/5 via-sidebar-background to-sidebar-accent/20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-sidebar-primary/5 to-transparent opacity-50"></div>
+        <div className="relative p-8 border-b border-slate-200 bg-gradient-to-br from-blue-50 via-slate-50 to-slate-100 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-transparent opacity-50"></div>
           <div className="relative flex items-center gap-5">
             <div className="relative group">
-              <div className="w-14 h-14 bg-gradient-to-br from-sidebar-primary via-sidebar-primary/90 to-sidebar-primary/80 rounded-3xl flex items-center justify-center shadow-elegant ring-1 ring-sidebar-primary/20 transition-all duration-300 group-hover:shadow-glow group-hover:scale-105">
-                <Stethoscope className="w-8 h-8 text-sidebar-primary-foreground drop-shadow-lg" />
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg ring-1 ring-blue-200 transition-all duration-300 group-hover:shadow-blue-200 group-hover:scale-105">
+                <Stethoscope className="w-8 h-8 text-white drop-shadow-lg" />
               </div>
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-3 border-sidebar-background animate-pulse shadow-medium flex items-center justify-center">
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-3 border-slate-50 animate-pulse shadow-md flex items-center justify-center">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
               </div>
             </div>
             {!isCollapsed && (
               <div className="flex-1 space-y-2">
-                <h1 className="font-bold text-2xl bg-gradient-to-r from-sidebar-foreground via-sidebar-primary to-sidebar-foreground bg-clip-text text-transparent tracking-tight">
+                <h1 className="font-bold text-2xl bg-gradient-to-r from-slate-700 via-blue-600 to-slate-700 bg-clip-text text-transparent tracking-tight">
                   DentalAI Pro
                 </h1>
                 <div className="flex items-center gap-3">
-                  <div className="px-3 py-1.5 bg-gradient-to-r from-sidebar-primary/10 to-sidebar-primary/5 text-sidebar-primary text-xs font-bold rounded-xl border border-sidebar-primary/20 shadow-soft backdrop-blur-sm">
+                  <div className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 shadow-sm backdrop-blur-sm">
                     {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
                   </div>
                   {subscribed && (
@@ -316,8 +316,8 @@ export function AppSidebar() {
         {/* Patient Portal - Only show for patients */}
         {isPatient && visiblePatientMenuItems.length > 0 && (
           <SidebarGroup className="px-4 pt-8">
-            <SidebarGroupLabel className="text-sidebar-muted-foreground uppercase tracking-wide text-sm font-bold px-4 py-3 flex items-center gap-3 bg-gradient-to-r from-sidebar-accent/50 to-transparent rounded-xl mb-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+            <SidebarGroupLabel className="text-slate-600 uppercase tracking-wide text-sm font-bold px-4 py-3 flex items-center gap-3 bg-gradient-to-r from-slate-100 to-transparent rounded-xl mb-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
               My Dental Care
             </SidebarGroupLabel>
             <SidebarGroupContent className="space-y-1">
