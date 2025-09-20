@@ -254,10 +254,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-2xl px-5 py-4 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold border border-transparent backdrop-blur-sm overflow-hidden",
+      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-medium border border-transparent backdrop-blur-sm",
       isActive
-        ? "bg-gradient-to-r from-blue-100 via-blue-50 to-transparent text-blue-700 shadow-lg ring-1 ring-blue-200 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gradient-to-b before:from-blue-400 before:via-blue-600 before:to-blue-400"
-        : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100 hover:via-slate-50 hover:to-slate-100/60 hover:text-slate-700 hover:shadow-sm hover:scale-[1.01] hover:translate-x-1 hover:border-slate-200"
+        ? "bg-sidebar-active text-sidebar-primary shadow-lg ring-1 ring-sidebar-primary/40 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-sidebar-primary before:shadow-glow"
+        : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-foreground hover:shadow-md hover:scale-[1.02] hover:translate-x-1"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -277,34 +277,28 @@ export function AppSidebar() {
       className={isCollapsed ? "w-20" : "w-80"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-slate-50 backdrop-blur-xl border-r border-slate-200 shadow-2xl animate-fade-in">
-        {/* Professional Header */}
-        <div className="relative p-8 border-b border-slate-200 bg-gradient-to-br from-blue-50 via-slate-50 to-slate-100 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-transparent opacity-50"></div>
-          <div className="relative flex items-center gap-5">
-            <div className="relative group">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-lg ring-1 ring-blue-200 transition-all duration-300 group-hover:shadow-blue-200 group-hover:scale-105">
-                <Stethoscope className="w-8 h-8 text-white drop-shadow-lg" />
+      <SidebarContent className="bg-sidebar-background/95 backdrop-blur-xl border-r border-sidebar-border shadow-xl animate-fade-in">
+        {/* Corporate Header */}
+        <div className="p-6 border-b border-sidebar-border/50 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/20">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/90 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-sidebar-primary/20">
+                <Stethoscope className="w-7 h-7 text-sidebar-primary-foreground drop-shadow-sm" />
               </div>
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-3 border-slate-50 animate-pulse shadow-md flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse shadow-sm"></div>
             </div>
             {!isCollapsed && (
-              <div className="flex-1 space-y-2">
-                <h1 className="font-bold text-2xl bg-gradient-to-r from-slate-700 via-blue-600 to-slate-700 bg-clip-text text-transparent tracking-tight">
+              <div className="flex-1">
+                <h1 className="font-bold text-xl bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
                   DentalAI Pro
                 </h1>
-                <div className="flex items-center gap-3">
-                  <div className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="px-2.5 py-0.5 bg-sidebar-primary/15 text-sidebar-primary text-xs font-semibold rounded-full border border-sidebar-primary/30">
                     {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
                   </div>
                   {subscribed && (
-                    <div className="px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-emerald-400/5 text-emerald-600 text-xs font-bold rounded-xl border border-emerald-500/20 shadow-soft backdrop-blur-sm">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        Premium
-                      </span>
+                    <div className="px-2.5 py-0.5 bg-success/15 text-success text-xs font-semibold rounded-full border border-success/30">
+                      Premium
                     </div>
                   )}
                 </div>
@@ -315,27 +309,25 @@ export function AppSidebar() {
 
         {/* Patient Portal - Only show for patients */}
         {isPatient && visiblePatientMenuItems.length > 0 && (
-          <SidebarGroup className="px-4 pt-8">
-            <SidebarGroupLabel className="text-slate-600 uppercase tracking-wide text-sm font-bold px-4 py-3 flex items-center gap-3 bg-gradient-to-r from-slate-100 to-transparent rounded-xl mb-2">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+          <SidebarGroup className="px-3 pt-6">
+            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
+              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
               My Dental Care
             </SidebarGroupLabel>
             <SidebarGroupContent className="space-y-1">
               <SidebarMenu>
                 {visiblePatientMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                     <SidebarMenuButton asChild tooltip={item.title}>
-                       <NavLink to={item.url} className={getNavCls({ isActive: currentPath === item.url })}>
-                         <div className="flex items-center gap-4 w-full relative">
-                           <div className={`p-2.5 rounded-xl transition-all duration-300 ${currentPath === item.url ? 'bg-sidebar-primary/15 shadow-soft' : 'bg-sidebar-accent/40 group-hover:bg-sidebar-primary/10'}`}>
-                             <item.icon className={`w-5 h-5 transition-all duration-300 ${currentPath === item.url ? 'text-sidebar-primary' : 'text-sidebar-muted group-hover:text-sidebar-primary'}`} />
-                           </div>
-                           {!isCollapsed && (
-                             <span className="font-semibold text-sm tracking-wide truncate">{item.title}</span>
-                           )}
-                         </div>
-                       </NavLink>
-                     </SidebarMenuButton>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <div className="flex items-center gap-4">
+                          <item.icon className="h-5 w-5 text-current shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium text-sm tracking-wide">{item.title}</span>
+                          )}
+                        </div>
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -345,8 +337,8 @@ export function AppSidebar() {
 
         {/* Practice Management - Only show for staff */}
         {isStaffMember && visiblePracticeDashboards.length > 0 && (
-          <SidebarGroup className="px-4 pt-6">
-            <SidebarGroupLabel className="text-sidebar-muted-foreground uppercase tracking-wide text-sm font-bold px-4 py-3 flex items-center gap-3 bg-gradient-to-r from-sidebar-accent/50 to-transparent rounded-xl mb-2">
+          <SidebarGroup className="px-3">
+            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
               <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
               Practice Management
             </SidebarGroupLabel>
@@ -355,13 +347,11 @@ export function AppSidebar() {
                 {visiblePracticeDashboards.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={getNavCls({ isActive: currentPath === item.url })}>
-                        <div className="flex items-center gap-4 w-full relative">
-                          <div className={`p-2.5 rounded-xl transition-all duration-300 ${currentPath === item.url ? 'bg-sidebar-primary/15 shadow-soft' : 'bg-sidebar-accent/40 group-hover:bg-sidebar-primary/10'}`}>
-                            <item.icon className={`w-5 h-5 transition-all duration-300 ${currentPath === item.url ? 'text-sidebar-primary' : 'text-sidebar-muted group-hover:text-sidebar-primary'}`} />
-                          </div>
+                      <NavLink to={item.url} className={getNavCls}>
+                        <div className="flex items-center gap-4">
+                          <item.icon className="h-5 w-5 text-current shrink-0" />
                           {!isCollapsed && (
-                            <span className="font-semibold text-sm tracking-wide truncate">{item.title}</span>
+                            <span className="font-medium text-sm tracking-wide">{item.title}</span>
                           )}
                         </div>
                       </NavLink>

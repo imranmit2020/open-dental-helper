@@ -38,10 +38,9 @@
     --success: 145 70% 40%;
     --success-foreground: 0 0% 98%;
     --success-light: 145 70% 90%;
-    /* Warning Colors - Softer Orange Tones */
-    --warning: 25 85% 55%;
-    --warning-foreground: 0 0% 98%;
-    --warning-light: 25 85% 92%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 30 95% 15%;
+    --warning-light: 40 95% 90%;
     --info: 210 100% 50%;
     --info-foreground: 0 0% 98%;
     --info-light: 210 100% 90%;
@@ -69,20 +68,18 @@
     --shadow-glow: 0 0 40px hsl(210 100% 60% / 0.25);
     --shadow-card: 0 2px 8px hsl(210 100% 45% / 0.06);
     
-    /* Sidebar Variables - Corporate Blue-Gray Theme */
-    --sidebar-background: 248 250 252;
-    --sidebar-foreground: 51 65 85;
-    --sidebar-primary: 37 99 235;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 241 245 249; 
-    --sidebar-accent-foreground: 51 65 85;
-    --sidebar-border: 226 232 240;
-    --sidebar-ring: 37 99 235;
-    --sidebar-glass: 248 250 252;  
-    --sidebar-hover: 241 245 249;
-    --sidebar-active: 239 246 255;
-    --sidebar-muted: 100 116 139;
-    --sidebar-muted-foreground: 71 85 105;
+    /* Sidebar Variables - Corporate Professional Light */
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 215 25% 20%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 210 15% 95%;
+    --sidebar-accent-foreground: 215 25% 20%;
+    --sidebar-border: 210 20% 88%;
+    --sidebar-ring: 210 100% 50%;
+    --sidebar-glass: 210 20% 98% / 0.95;
+    --sidebar-hover: 210 15% 92%;
+    --sidebar-active: 210 100% 50% / 0.08;
   }
 
   .dark {
@@ -118,10 +115,9 @@
     --success: 142 76% 45%;
     --success-foreground: 0 0% 98%;
     --success-light: 142 76% 25%;
-    /* Warning Colors - Softer Orange Dark Mode */
-    --warning: 25 85% 60%;
-    --warning-foreground: 25 85% 10%;
-    --warning-light: 25 85% 20%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 25 95% 12%;
+    --warning-light: 38 92% 25%;
     --info: 210 85% 60%;
     --info-foreground: 0 0% 98%;
     --info-light: 210 85% 25%;
@@ -223,16 +219,9 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Professional gradients and shadows */
-  --gradient-primary: linear-gradient(135deg, hsl(var(--sidebar-primary)), hsl(221 83% 45%));
-  --gradient-accent: linear-gradient(135deg, hsl(var(--sidebar-accent)), hsl(218 27% 94%));
-  --gradient-subtle: linear-gradient(180deg, hsl(var(--sidebar-background)), hsl(220 13% 98%));
-  
-  /* Professional shadows */
-  --shadow-elegant: 0 4px 20px -4px hsl(var(--sidebar-primary) / 0.15);
-  --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-  --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
-  --shadow-glow: 0 0 20px hsl(var(--sidebar-primary) / 0.3);
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
 
   .hover-lift {
     @apply transition-all duration-300 ease-out;
