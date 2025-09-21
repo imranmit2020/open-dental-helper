@@ -254,10 +254,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-medium border border-transparent backdrop-blur-sm",
+      "group relative rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale font-medium border border-transparent",
       isActive
-        ? "bg-sidebar-active text-sidebar-primary shadow-lg ring-1 ring-sidebar-primary/40 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-sidebar-primary before:shadow-glow"
-        : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-foreground hover:shadow-md hover:scale-[1.02] hover:translate-x-1"
+        ? "bg-sidebar-accent text-sidebar-primary ring-1 ring-sidebar-primary/30 shadow-elegant before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1.5 before:rounded-r-full before:bg-sidebar-primary"
+        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-elegant"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -277,30 +277,20 @@ export function AppSidebar() {
       className={isCollapsed ? "w-20" : "w-80"}
       collapsible="icon"
     >
-      <SidebarContent className="bg-sidebar-background/95 backdrop-blur-xl border-r border-sidebar-border shadow-xl animate-fade-in">
-        {/* Corporate Header */}
-        <div className="p-6 border-b border-sidebar-border/50 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/20">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-sidebar-primary to-sidebar-primary/90 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-sidebar-primary/20">
-                <Stethoscope className="w-7 h-7 text-sidebar-primary-foreground drop-shadow-sm" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse shadow-sm"></div>
+      <SidebarContent className="bg-gradient-sidebar backdrop-blur-md border-r border-sidebar-border shadow-lg animate-fade-in">
+        {/* Header */}
+        <div className="p-4 border-b border-transparent bg-sidebar-accent/40 backdrop-blur-sm shadow-elegant">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow">
+              <Stethoscope className="w-6 h-6 text-white" />
             </div>
             {!isCollapsed && (
-              <div className="flex-1">
-                <h1 className="font-bold text-xl bg-gradient-to-r from-sidebar-primary to-sidebar-primary/70 bg-clip-text text-transparent">
-                  DentalAI Pro
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="px-2.5 py-0.5 bg-sidebar-primary/15 text-sidebar-primary text-xs font-semibold rounded-full border border-sidebar-primary/30">
-                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
-                  </div>
-                  {subscribed && (
-                    <div className="px-2.5 py-0.5 bg-success/15 text-success text-xs font-semibold rounded-full border border-success/30">
-                      Premium
-                    </div>
-                  )}
+              <div>
+                <h1 className="font-bold text-lg gradient-text">DentalAI Pro</h1>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-sidebar-foreground/70">
+                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)} {subscribed && '• Premium'}
+                  </p>
                 </div>
               </div>
             )}
@@ -309,23 +299,18 @@ export function AppSidebar() {
 
         {/* Patient Portal - Only show for patients */}
         {isPatient && visiblePatientMenuItems.length > 0 && (
-          <SidebarGroup className="px-3 pt-6">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               My Dental Care
             </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent>
               <SidebarMenu>
                 {visiblePatientMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
-                        <div className="flex items-center gap-4">
-                          <item.icon className="h-5 w-5 text-current shrink-0" />
-                          {!isCollapsed && (
-                            <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                          )}
-                        </div>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -337,23 +322,18 @@ export function AppSidebar() {
 
         {/* Practice Management - Only show for staff */}
         {isStaffMember && visiblePracticeDashboards.length > 0 && (
-          <SidebarGroup className="px-3">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               Practice Management
             </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent>
               <SidebarMenu>
                 {visiblePracticeDashboards.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
-                        <div className="flex items-center gap-4">
-                          <item.icon className="h-5 w-5 text-current shrink-0" />
-                          {!isCollapsed && (
-                            <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                          )}
-                        </div>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -365,23 +345,18 @@ export function AppSidebar() {
 
         {/* Patient Management - Only show for staff */}
         {isStaffMember && visiblePatientItems.length > 0 && (
-          <SidebarGroup className="px-3">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               Patient Management
             </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent>
               <SidebarMenu>
                 {visiblePatientItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
-                        <div className="flex items-center gap-4">
-                          <item.icon className="h-5 w-5 text-current shrink-0" />
-                          {!isCollapsed && (
-                            <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                          )}
-                        </div>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -396,35 +371,32 @@ export function AppSidebar() {
           <>
             {/* Scheduling */}
             {visibleSchedulingItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   Scheduling
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                      {visibleSchedulingItems.map((item) => (
                        <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                            <NavLink to={item.url} className={getNavCls}>
-                             <div className="flex items-center gap-4 w-full">
-                               <item.icon className="h-5 w-5 text-current shrink-0" />
-                               {!isCollapsed && (
-                                 <div className="flex items-center justify-between w-full">
-                                   <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                                   {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                                     <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-2 text-xs bg-sidebar-primary/20 text-sidebar-primary border-sidebar-primary/30">
-                                       {upcomingAppointments}
-                                     </Badge>
-                                   )}
-                                 </div>
-                               )}
-                               {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                                 <span className="absolute -top-1 -right-1 bg-sidebar-primary text-sidebar-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px] shadow-lg">
-                                   {upcomingAppointments}
-                                 </span>
-                               )}
-                             </div>
+                             <item.icon className="h-4 w-4 text-current" />
+                             {!isCollapsed && (
+                               <div className="flex items-center justify-between w-full">
+                                 <span className="font-medium">{item.title}</span>
+                                 {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                                   <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-1 text-xs">
+                                     {upcomingAppointments}
+                                   </Badge>
+                                 )}
+                               </div>
+                             )}
+                             {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
+                               <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                                 {upcomingAppointments}
+                               </span>
+                             )}
                            </NavLink>
                          </SidebarMenuButton>
                        </SidebarMenuItem>
@@ -436,23 +408,18 @@ export function AppSidebar() {
 
             {/* Clinical AI Tools */}
             {visibleClinicalItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   Clinical AI
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleClinicalItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
-                            <div className="flex items-center gap-4">
-                              <item.icon className="h-5 w-5 text-current shrink-0" />
-                              {!isCollapsed && (
-                                <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              )}
-                            </div>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -464,23 +431,18 @@ export function AppSidebar() {
 
             {/* AI Features */}
             {visibleAiItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   AI Features
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleAiItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
-                            <div className="flex items-center gap-4">
-                              <item.icon className="h-5 w-5 text-current shrink-0" />
-                              {!isCollapsed && (
-                                <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              )}
-                            </div>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -492,23 +454,18 @@ export function AppSidebar() {
 
             {/* Reports */}
             {visibleReportsItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   Analytics
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleReportsItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
-                            <div className="flex items-center gap-4">
-                              <item.icon className="h-5 w-5 text-current shrink-0" />
-                              {!isCollapsed && (
-                                <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              )}
-                            </div>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -520,23 +477,18 @@ export function AppSidebar() {
 
             {/* Enterprise Features */}
             {visibleEnterpriseItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   Enterprise & Operations
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleEnterpriseItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
-                            <div className="flex items-center gap-4">
-                              <item.icon className="h-5 w-5 text-current shrink-0" />
-                              {!isCollapsed && (
-                                <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              )}
-                            </div>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -548,23 +500,18 @@ export function AppSidebar() {
 
             {/* Patient Experience & Compliance */}
             {visibleComplianceItems.length > 0 && (
-              <SidebarGroup className="px-3">
-                <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+              <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
                   Patient & Compliance
                 </SidebarGroupLabel>
-                <SidebarGroupContent className="space-y-1">
+                <SidebarGroupContent>
                   <SidebarMenu>
                     {visibleComplianceItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                          <SidebarMenuButton asChild tooltip={item.title}>
                           <NavLink to={item.url} className={getNavCls}>
-                            <div className="flex items-center gap-4">
-                              <item.icon className="h-5 w-5 text-current shrink-0" />
-                              {!isCollapsed && (
-                                <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              )}
-                            </div>
+                            <item.icon className="h-4 w-4 text-current" />
+                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -578,35 +525,32 @@ export function AppSidebar() {
 
         {/* Admin Tools - Show for clinic admins and corporate admins */}
         {visibleAdminItems.length > 0 && (
-          <SidebarGroup className="px-3">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               Administration
             </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent>
               <SidebarMenu>
                 {visibleAdminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <NavLink to={item.url} className={getNavCls}>
-                        <div className="flex items-center gap-4 w-full">
-                          <item.icon className="h-5 w-5 text-current shrink-0" />
-                          {!isCollapsed && (
-                            <div className="flex items-center justify-between w-full">
-                              <span className="font-medium text-sm tracking-wide">{item.title}</span>
-                              {item.title === "User Approvals" && pendingApprovalsCount > 0 && (
-                                <span className="bg-destructive/20 text-destructive text-xs rounded-full px-2.5 py-1 min-w-[20px] text-center font-semibold border border-destructive/30">
-                                  {pendingApprovalsCount}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          {isCollapsed && item.title === "User Approvals" && pendingApprovalsCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px] shadow-lg">
-                              {pendingApprovalsCount}
-                            </span>
-                          )}
-                        </div>
+                        <item.icon className="h-4 w-4 text-current" />
+                        {!isCollapsed && (
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-medium">{item.title}</span>
+                            {item.title === "User Approvals" && pendingApprovalsCount > 0 && (
+                              <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                {pendingApprovalsCount}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isCollapsed && item.title === "User Approvals" && pendingApprovalsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
+                            {pendingApprovalsCount}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -618,34 +562,25 @@ export function AppSidebar() {
 
         {/* Support - Show for all staff */}
         {isStaffMember && (
-          <SidebarGroup className="mt-auto px-3">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-3 py-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-sidebar-primary rounded-full animate-pulse"></div>
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
               Support & Collaboration
             </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Team Collaboration">
                     <NavLink to="/collaboration" className={getNavCls}>
-                      <div className="flex items-center gap-4">
-                        <Users className="h-5 w-5 text-current shrink-0" />
-                        {!isCollapsed && (
-                          <span className="font-medium text-sm tracking-wide">Team Collaboration</span>
-                        )}
-                      </div>
+                      <Users className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Team Collaboration</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Tech Support">
                     <NavLink to="/tech-support" className={getNavCls}>
-                      <div className="flex items-center gap-4">
-                        <Headphones className="h-5 w-5 text-current shrink-0" />
-                        {!isCollapsed && (
-                          <span className="font-medium text-sm tracking-wide">Tech Support</span>
-                        )}
-                      </div>
+                      <Headphones className="h-4 w-4 text-current" />
+                      {!isCollapsed && <span className="font-medium">Tech Support</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -655,18 +590,14 @@ export function AppSidebar() {
         )}
 
         {/* Settings */}
-        <SidebarGroup className="mt-auto px-3 pb-6">
-          <SidebarGroupContent className="space-y-1">
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Settings">
                   <NavLink to="/settings" className={getNavCls}>
-                    <div className="flex items-center gap-4">
-                      <Settings className="h-5 w-5 text-current shrink-0" />
-                      {!isCollapsed && (
-                        <span className="font-medium text-sm tracking-wide">Settings</span>
-                      )}
-                    </div>
+                    <Settings className="h-4 w-4 text-current" />
+                    {!isCollapsed && <span className="font-medium">Settings</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
