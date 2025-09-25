@@ -30,7 +30,7 @@ const ConsentForms = () => {
   }, [user, logAction, logUIError]);
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-4">
       <ConsentFormsManager />
     </div>
   );
