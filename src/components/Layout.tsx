@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { ClinicSwitcher } from "@/components/ClinicSwitcher";
@@ -26,6 +26,8 @@ const Layout = () => {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [signingOut, setSigningOut] = React.useState(false);
   const { isPatient } = useRoleAccess();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   const getBreadcrumbItems = (path: string) => {
     const segments = path.split('/').filter(Boolean)
@@ -78,7 +80,7 @@ const Layout = () => {
 
   return (
     <>
-      <SidebarInset>
+      <SidebarInset className={`${isCollapsed ? "mr-20" : "mr-80"} transition-all duration-300`}>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
