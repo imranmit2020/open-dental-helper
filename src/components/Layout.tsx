@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar } from "./AppSidebar";
-import RightNavigation from "./RightNavigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -81,7 +80,7 @@ const Layout = () => {
 
   return (
     <>
-      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-72"} transition-all duration-300`} style={{ marginRight: isCollapsed ? "384px" : "392px" }}>
+      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-72"} transition-all duration-300`}>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-6 flex-1">
             <SidebarTrigger className="-ml-1" />
@@ -196,7 +195,6 @@ const Layout = () => {
         </div>
       </SidebarInset>
       <AppSidebar />
-      <RightNavigation />
     </>
   );
 };
