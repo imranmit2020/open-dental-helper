@@ -80,9 +80,9 @@ const Layout = () => {
 
   return (
     <>
-      <SidebarInset className={`${isCollapsed ? "mr-20" : "mr-80"} transition-all duration-300`}>
+      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-72"} transition-all duration-300`}>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex items-center gap-2 px-6 flex-1">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb aria-label="Breadcrumbs" className="max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
@@ -122,7 +122,7 @@ const Layout = () => {
             <ClinicSwitcher />
           </div>
           
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-6">
             <LanguageSelector variant="minimal" />
             <CurrencySelector variant="minimal" showRefreshButton={false} />
 
@@ -190,7 +190,7 @@ const Layout = () => {
             </AlertDialog>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 px-6 py-4">
           <Outlet />
         </div>
       </SidebarInset>
