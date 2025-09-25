@@ -80,7 +80,7 @@ const Layout = () => {
 
   return (
     <>
-      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-64"} transition-all duration-300`}>
+      <SidebarInset className={`${isCollapsed ? "mr-20" : "mr-80"} transition-all duration-300`}>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
@@ -190,7 +190,7 @@ const Layout = () => {
             </AlertDialog>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-2 p-2 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <Outlet />
         </div>
       </SidebarInset>
