@@ -70,11 +70,11 @@
     
     /* Sidebar Variables */
     --sidebar-background: 210 33% 98%;
-    --sidebar-foreground: 215 25% 22%;
+    --sidebar-foreground: 215 25% 15%;
     --sidebar-primary: 215 90% 55%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 213 100% 96%;
-    --sidebar-accent-foreground: 215 25% 22%;
+    --sidebar-accent-foreground: 215 25% 15%;
     --sidebar-border: 215 22% 85%;
     --sidebar-ring: 215 90% 55%;
   }
@@ -141,11 +141,11 @@
     
     /* Sidebar Variables */
     --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 220 15% 85%;
+    --sidebar-foreground: 220 15% 90%;
     --sidebar-primary: 215 90% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 220 20% 20%;
-    --sidebar-accent-foreground: 220 15% 85%;
+    --sidebar-accent-foreground: 220 15% 90%;
     --sidebar-border: 220 15% 22%;
     --sidebar-ring: 215 90% 60%;
   }

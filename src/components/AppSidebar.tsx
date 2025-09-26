@@ -256,7 +256,7 @@ export function AppSidebar() {
       "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent mx-2 my-1",
       isActive
         ? "bg-gradient-primary text-white shadow-glow scale-105 border-primary/20 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-white/30"
-        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-105 hover:border-sidebar-border/50"
+        : "text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-105 hover:border-sidebar-border/50"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -321,7 +321,7 @@ export function AppSidebar() {
     className?: string
   }) => (
     <SidebarGroup className={`px-2 py-2 ${className}`}>
-      <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
+            <SidebarGroupLabel className="text-sidebar-foreground/90 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
         <Icon className="h-3 w-3 inline mr-2" />
         {title}
       </SidebarGroupLabel>
