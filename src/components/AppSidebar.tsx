@@ -38,7 +38,8 @@ import {
   Sparkles,
   FlaskConical,
   Headphones,
-  Package
+  Package,
+  ChevronDown
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -172,6 +173,29 @@ export function AppSidebar() {
   // Track pending approvals for notification badge
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
+  
+  // Track expanded/collapsed state for each section
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'practice-management': false,
+    'patient-management': true,
+    'scheduling': true,
+    'ai-tools': false,
+    'clinical-ai': false,
+    'reports-analytics': false,
+    'enterprise': false,
+    'compliance-care': false,
+    'administration': false,
+    'my-dental-care': true,
+    'quick-access': true,
+    'support': true
+  });
+
+  const toggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
 
   useEffect(() => {
     const fetchPendingCount = async () => {
@@ -256,7 +280,7 @@ export function AppSidebar() {
       "group relative rounded-2xl px-4 py-4 transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 font-semibold border border-transparent mx-2 my-1 overflow-hidden",
       isActive
         ? "bg-gradient-to-r from-primary via-primary-glow to-secondary text-white shadow-glow scale-[1.02] border-primary/30 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-pulse"
-        : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-sidebar-accent/60 hover:to-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-[1.02] hover:border-sidebar-border/30 backdrop-blur-sm"
+        : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-blue-500/10 hover:to-cyan-500/10 hover:text-sidebar-foreground hover:shadow-lg hover:scale-[1.02] hover:border-purple-300/20 backdrop-blur-sm hover:backdrop-blur-md"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -285,7 +309,7 @@ export function AppSidebar() {
             <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 ${
               isActive 
                 ? 'bg-white/20 shadow-lg' 
-                : 'bg-sidebar-accent/40 group-hover:bg-sidebar-accent/60 group-hover:scale-110'
+                : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20 group-hover:scale-110'
             }`}>
               <item.icon className={`h-5 w-5 transition-all duration-300 ${
                 isActive ? 'text-white' : 'text-sidebar-foreground'
@@ -325,56 +349,81 @@ export function AppSidebar() {
             )}
           </div>
           {/* Animated background overlay */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-purple-300/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
 
-  const SectionGroup = ({ title, icon: Icon, items, className = "" }: {
+  const SectionGroup = ({ title, icon: Icon, items, className = "", sectionKey }: {
     title: string,
     icon: any,
     items: NavigationItem[],
-    className?: string
-  }) => (
-    <div className={`relative px-3 py-4 ${className}`}>
-      {/* Section Header */}
-      <div className="relative mb-4 px-3">
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-sidebar-accent/40 to-sidebar-accent/20 backdrop-blur-sm border border-sidebar-border/20 shadow-sm">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-            <Icon className="h-4 w-4 text-primary" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex-1">
-              <h3 className="text-sidebar-foreground font-bold text-sm uppercase tracking-wider">
-                {title}
-              </h3>
+    className?: string,
+    sectionKey: string
+  }) => {
+    const isExpanded = expandedSections[sectionKey];
+    
+    return (
+      <div className={`relative px-3 py-4 ${className}`}>
+        {/* Section Header */}
+        <div className="relative mb-4 px-3">
+          <button
+            onClick={() => toggleSection(sectionKey)}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-sidebar-accent/40 to-sidebar-accent/20 backdrop-blur-sm border border-sidebar-border/20 shadow-sm hover:from-purple-500/10 hover:via-blue-500/10 hover:to-cyan-500/10 hover:border-purple-300/30 transition-all duration-300 hover:scale-[1.01]"
+          >
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <Icon className="h-4 w-4 text-primary" />
             </div>
-          )}
+            {!isCollapsed && (
+              <>
+                <div className="flex-1 text-left">
+                  <h3 className="text-sidebar-foreground font-bold text-sm uppercase tracking-wider">
+                    {title}
+                  </h3>
+                </div>
+                <div className={`w-6 h-6 rounded-lg bg-sidebar-accent/20 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                  <ChevronDown className="h-3 w-3 text-sidebar-foreground/60" />
+                </div>
+              </>
+            )}
+          </button>
+          {/* Decorative line */}
+          <div className="absolute left-6 right-6 bottom-0 h-px bg-gradient-to-r from-transparent via-sidebar-border/30 to-transparent" />
         </div>
-        {/* Decorative line */}
-        <div className="absolute left-6 right-6 bottom-0 h-px bg-gradient-to-r from-transparent via-sidebar-border/30 to-transparent" />
+        
+        {/* Menu Items with Collapsible Animation */}
+        <div className={`overflow-hidden transition-all duration-500 ease-out ${
+          isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <SidebarGroup className="space-y-1">
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {items.map((item, index) => (
+                  <div
+                    key={item.title}
+                    className="animate-fade-in"
+                    style={{ 
+                      animationDelay: isExpanded ? `${index * 50}ms` : '0ms',
+                      animationFillMode: 'both'
+                    }}
+                  >
+                    <MenuItem 
+                      item={item}
+                      isActive={currentPath === item.url}
+                      showBadge={item.title === "Appointment Calendar" || item.title === "User Approvals"}
+                      badgeCount={item.title === "Appointment Calendar" ? upcomingAppointments : pendingApprovalsCount}
+                      badgeType={item.title === "User Approvals" ? "destructive" : "secondary"}
+                    />
+                  </div>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </div>
-      
-      {/* Menu Items */}
-      <SidebarGroup className="space-y-1">
-        <SidebarGroupContent>
-          <SidebarMenu className="space-y-1">
-            {items.map((item) => (
-              <MenuItem 
-                key={item.title} 
-                item={item}
-                isActive={currentPath === item.url}
-                showBadge={item.title === "Appointment Calendar" || item.title === "User Approvals"}
-                badgeCount={item.title === "Appointment Calendar" ? upcomingAppointments : pendingApprovalsCount}
-                badgeType={item.title === "User Approvals" ? "destructive" : "secondary"}
-              />
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </div>
-  );
+    );
+  };
 
   return (
     <Sidebar
@@ -431,49 +480,49 @@ export function AppSidebar() {
         <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
           {/* Patient Portal - Only show for patients */}
           {isPatient && visiblePatientMenuItems.length > 0 && (
-            <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="pt-2" />
+            <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="pt-2" sectionKey="my-dental-care" />
           )}
 
           {/* Staff Sections - Only show for staff */}
           {isStaffMember && (
             <>
               {visiblePracticeDashboards.length > 0 && (
-                <SectionGroup title="Practice Management" icon={Building} items={visiblePracticeDashboards} />
+                <SectionGroup title="Practice Management" icon={Building} items={visiblePracticeDashboards} sectionKey="practice-management" />
               )}
 
               {visiblePatientItems.length > 0 && (
-                <SectionGroup title="Patient Management" icon={Users} items={visiblePatientItems} />
+                <SectionGroup title="Patient Management" icon={Users} items={visiblePatientItems} sectionKey="patient-management" />
               )}
 
               {visibleSchedulingItems.length > 0 && (
-                <SectionGroup title="Scheduling" icon={Calendar} items={visibleSchedulingItems} />
+                <SectionGroup title="Scheduling" icon={Calendar} items={visibleSchedulingItems} sectionKey="scheduling" />
               )}
 
               {visibleAiItems.length > 0 && (
-                <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} />
+                <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} sectionKey="ai-tools" />
               )}
 
               {visibleClinicalItems.length > 0 && (
-                <SectionGroup title="Clinical AI" icon={Stethoscope} items={visibleClinicalItems} />
+                <SectionGroup title="Clinical AI" icon={Stethoscope} items={visibleClinicalItems} sectionKey="clinical-ai" />
               )}
 
               {visibleReportsItems.length > 0 && (
-                <SectionGroup title="Reports & Analytics" icon={BarChart3} items={visibleReportsItems} />
+                <SectionGroup title="Reports & Analytics" icon={BarChart3} items={visibleReportsItems} sectionKey="reports-analytics" />
               )}
 
               {visibleEnterpriseItems.length > 0 && (
-                <SectionGroup title="Enterprise" icon={TrendingUp} items={visibleEnterpriseItems} />
+                <SectionGroup title="Enterprise" icon={TrendingUp} items={visibleEnterpriseItems} sectionKey="enterprise" />
               )}
 
               {visibleComplianceItems.length > 0 && (
-                <SectionGroup title="Compliance & Care" icon={Shield} items={visibleComplianceItems} />
+                <SectionGroup title="Compliance & Care" icon={Shield} items={visibleComplianceItems} sectionKey="compliance-care" />
               )}
             </>
           )}
 
           {/* Admin Tools - Show for clinic admins */}
           {visibleAdminItems.length > 0 && (
-            <SectionGroup title="Administration" icon={Settings} items={visibleAdminItems} />
+            <SectionGroup title="Administration" icon={Settings} items={visibleAdminItems} sectionKey="administration" />
           )}
 
           {/* Fallback Quick Access - if no items visible */}
@@ -487,6 +536,7 @@ export function AppSidebar() {
                   { title: "Patients", url: "/patients", icon: Users },
                   { title: "Schedule", url: "/schedule", icon: Calendar }
                 ]} 
+                sectionKey="quick-access"
               />
             )
           )}
@@ -496,19 +546,31 @@ export function AppSidebar() {
         {isStaffMember && (
           <div className="relative z-10 mt-auto p-3 border-t border-gradient-to-r from-transparent via-sidebar-border/20 to-transparent">
             <div className="relative p-3 rounded-2xl bg-gradient-to-r from-sidebar-accent/20 to-sidebar-accent/10 backdrop-blur-sm border border-sidebar-border/10">
-              <div className="flex items-center gap-3 mb-3">
+              <button
+                onClick={() => toggleSection('support')}
+                className="w-full flex items-center gap-3 mb-3 p-2 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-blue-500/10 hover:to-cyan-500/10 transition-all duration-300"
+              >
                 <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                   <Headphones className="h-3 w-3 text-primary" />
                 </div>
                 {!isCollapsed && (
-                  <span className="text-xs font-bold text-sidebar-foreground/80 uppercase tracking-wider">
-                    Support
-                  </span>
+                  <>
+                    <span className="text-xs font-bold text-sidebar-foreground/80 uppercase tracking-wider flex-1 text-left">
+                      Support
+                    </span>
+                    <div className={`w-5 h-5 rounded-lg bg-sidebar-accent/20 flex items-center justify-center transition-transform duration-300 ${expandedSections.support ? 'rotate-180' : 'rotate-0'}`}>
+                      <ChevronDown className="h-2 w-2 text-sidebar-foreground/60" />
+                    </div>
+                  </>
                 )}
-              </div>
-              <div className="space-y-1">
-                <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} isActive={currentPath === "/collaboration"} />
-                <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} isActive={currentPath === "/tech-support"} />
+              </button>
+              <div className={`overflow-hidden transition-all duration-500 ease-out ${
+                expandedSections.support ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-1">
+                  <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} isActive={currentPath === "/collaboration"} />
+                  <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} isActive={currentPath === "/tech-support"} />
+                </div>
               </div>
             </div>
           </div>
