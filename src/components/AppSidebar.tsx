@@ -271,22 +271,23 @@ export function AppSidebar() {
   const visibleComplianceItems = filterNavigationItems(complianceItems);
   const visibleAdminItems = filterNavigationItems(adminItems);
 
-  const MenuItem = ({ item, showBadge = false, badgeCount = 0, badgeType = "secondary" }: { 
-    item: NavigationItem, 
+  const MenuItem = ({ item, isActive = false, showBadge = false, badgeCount = 0, badgeType = "secondary" }: { 
+    item: NavigationItem,
+    isActive?: boolean,
     showBadge?: boolean, 
     badgeCount?: number,
     badgeType?: "secondary" | "destructive" 
   }) => (
     <SidebarMenuItem>
       <SidebarMenuButton asChild tooltip={item.title} className="!text-sidebar-foreground">
-        <NavLink to={item.url} className={getNavCls}>
+        <NavLink to={item.url} className={getNavCls({ isActive })}>
           <div className="flex items-center gap-3 w-full relative">
-            <div className="w-5 h-5 flex items-center justify-center">
-              <item.icon className="h-5 w-5 text-current" />
+            <div className={`w-5 h-5 flex items-center justify-center ${isActive ? 'text-white' : 'text-sidebar-foreground'}`}>
+              <item.icon className="h-5 w-5" />
             </div>
             {!isCollapsed && (
               <div className="flex items-center justify-between w-full">
-                <span className="text-sm">{item.title}</span>
+                <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm`}>{item.title}</span>
                 {showBadge && badgeCount > 0 && (
                   <Badge 
                     variant={badgeType} 
@@ -331,6 +332,7 @@ export function AppSidebar() {
             <MenuItem 
               key={item.title} 
               item={item}
+              isActive={currentPath === item.url}
               showBadge={item.title === "Appointment Calendar"}
               badgeCount={upcomingAppointments}
               badgeType="secondary"
