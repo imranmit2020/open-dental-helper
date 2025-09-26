@@ -16,7 +16,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
-import RightNavigation from "./RightNavigation";
 
 const Layout = () => {
   const location = useLocation();
@@ -81,7 +80,7 @@ const Layout = () => {
 
   return (
     <>
-      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-72"} pr-80 transition-all duration-300`}>
+      <SidebarInset className={`${isCollapsed ? "mr-16" : "mr-72"} transition-all duration-300`}>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-6 flex-1">
             <SidebarTrigger className="-ml-1" />
@@ -196,7 +195,6 @@ const Layout = () => {
         </div>
       </SidebarInset>
       <AppSidebar />
-      <RightNavigation />
     </>
   );
 };
