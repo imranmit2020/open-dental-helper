@@ -343,7 +343,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-20" : "w-80"} fixed right-0 top-0 h-full z-40`}
+      className={`${isCollapsed ? "w-20" : "w-80"} fixed right-0 top-0 h-full z-50`}
       collapsible="icon"
       side="right"
     >
@@ -438,6 +438,24 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+        )}
+
+        {/* Fallback Quick Access - if no items visible */}
+        {isStaffMember && (
+          (visiblePracticeDashboards.length + visiblePatientItems.length + visibleSchedulingItems.length + visibleAiItems.length + visibleClinicalItems.length + visibleReportsItems.length + visibleEnterpriseItems.length + visibleComplianceItems.length) === 0 && (
+            <SidebarGroup className="px-2 py-2">
+              <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
+                Quick Access
+              </SidebarGroupLabel>
+              <SidebarGroupContent className="space-y-1">
+                <SidebarMenu>
+                  <MenuItem item={{ title: "Dashboard", url: "/dashboard", icon: TrendingUp }} />
+                  <MenuItem item={{ title: "Patients", url: "/patients", icon: Users }} />
+                  <MenuItem item={{ title: "Schedule", url: "/schedule", icon: Calendar }} />
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )
         )}
 
         {/* Support - Show for all staff */}
