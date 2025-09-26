@@ -107,7 +107,6 @@ const aiItems: NavigationItem[] = [
 
 const clinicalItems: NavigationItem[] = [
   { title: "X-Ray Diagnostics", url: "/xray-diagnostics", icon: Scan, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'xray_diagnostics' },
-  { title: "Treatment Plans", url: "/treatment-plans", icon: ClipboardList, requiredRoles: ['admin', 'dentist'], moduleKey: 'treatment_plans' },
   { title: "Voice-to-Chart", url: "/voice-to-chart", icon: MicVocal, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'voice_to_chart' },
   { title: "Chairside Assistant", url: "/chairside-assistant", icon: HeartHandshake, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'chairside_assistant' },
   { title: "Referral Network", url: "/referral-network", icon: Users, requiredRoles: ['admin', 'dentist'] },
@@ -254,10 +253,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-lg px-3 py-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring hover-scale font-medium border border-transparent",
+      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent mx-2 my-1",
       isActive
-        ? "bg-sidebar-accent text-sidebar-primary ring-1 ring-sidebar-primary/30 shadow-elegant before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-1.5 before:rounded-r-full before:bg-sidebar-primary"
-        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:shadow-elegant"
+        ? "bg-gradient-primary text-white shadow-glow scale-105 border-primary/20 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-white/30"
+        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-105 hover:border-sidebar-border/50"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -272,26 +271,104 @@ export function AppSidebar() {
   const visibleComplianceItems = filterNavigationItems(complianceItems);
   const visibleAdminItems = filterNavigationItems(adminItems);
 
+  const MenuItem = ({ item, showBadge = false, badgeCount = 0, badgeType = "secondary" }: { 
+    item: NavigationItem, 
+    showBadge?: boolean, 
+    badgeCount?: number,
+    badgeType?: "secondary" | "destructive" 
+  }) => (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={item.title}>
+        <NavLink to={item.url} className={getNavCls}>
+          <div className="flex items-center gap-3 w-full relative">
+            <div className="w-5 h-5 flex items-center justify-center">
+              <item.icon className="h-5 w-5 text-current" />
+            </div>
+            {!isCollapsed && (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-sm">{item.title}</span>
+                {showBadge && badgeCount > 0 && (
+                  <Badge 
+                    variant={badgeType} 
+                    className={`ml-auto min-w-[1.25rem] h-5 px-1 text-xs ${
+                      badgeType === "destructive" ? "bg-destructive text-destructive-foreground" : ""
+                    }`}
+                  >
+                    {badgeCount}
+                  </Badge>
+                )}
+              </div>
+            )}
+            {isCollapsed && showBadge && badgeCount > 0 && (
+              <span className={`absolute -top-1 -right-1 text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px] ${
+                badgeType === "destructive" 
+                  ? "bg-destructive text-destructive-foreground" 
+                  : "bg-primary text-primary-foreground"
+              }`}>
+                {badgeCount}
+              </span>
+            )}
+          </div>
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+
+  const SectionGroup = ({ title, icon: Icon, items, className = "" }: {
+    title: string,
+    icon: any,
+    items: NavigationItem[],
+    className?: string
+  }) => (
+    <SidebarGroup className={`px-2 py-2 ${className}`}>
+      <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
+        <Icon className="h-3 w-3 inline mr-2" />
+        {title}
+      </SidebarGroupLabel>
+      <SidebarGroupContent className="space-y-1">
+        <SidebarMenu>
+          {items.map((item) => (
+            <MenuItem 
+              key={item.title} 
+              item={item}
+              showBadge={item.title === "Appointment Calendar"}
+              badgeCount={upcomingAppointments}
+              badgeType="secondary"
+            />
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   return (
     <Sidebar
       className={`${isCollapsed ? "w-20" : "w-80"} fixed right-0 top-0 h-full z-40`}
       collapsible="icon"
       side="right"
     >
-      <SidebarContent className="bg-gradient-sidebar backdrop-blur-md border-r border-sidebar-border shadow-lg animate-fade-in">
+      <SidebarContent className="bg-gradient-sidebar backdrop-blur-xl border-l border-sidebar-border/50 shadow-glow animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-transparent bg-sidebar-accent/40 backdrop-blur-sm shadow-elegant">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow">
-              <Stethoscope className="w-6 h-6 text-white" />
+        <div className="p-6 border-b border-sidebar-border/30 bg-gradient-to-br from-sidebar-accent/60 to-sidebar-accent/20 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow hover-scale">
+                <Stethoscope className="w-7 h-7 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse"></div>
             </div>
             {!isCollapsed && (
-              <div>
-                <h1 className="font-bold text-lg gradient-text">DentalAI Pro</h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-sidebar-foreground/70">
-                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)} {subscribed && '• Premium'}
+              <div className="flex-1">
+                <h1 className="font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">DentalAI Pro</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-sm font-medium text-sidebar-foreground/80">
+                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
                   </p>
+                  {subscribed && (
+                    <div className="px-2 py-0.5 bg-gradient-primary rounded-full">
+                      <span className="text-xs font-semibold text-white">Premium</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -300,261 +377,63 @@ export function AppSidebar() {
 
         {/* Patient Portal - Only show for patients */}
         {isPatient && visiblePatientMenuItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-              My Dental Care
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visiblePatientMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="py-4" />
         )}
 
-        {/* Practice Management - Only show for staff */}
-        {isStaffMember && visiblePracticeDashboards.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-              Practice Management
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visiblePracticeDashboards.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Patient Management - Only show for staff */}
-        {isStaffMember && visiblePatientItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-              Patient Management
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visiblePatientItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* All other sections - Only show for staff */}
+        {/* Staff Sections - Only show for staff */}
         {isStaffMember && (
           <>
-            {/* Scheduling */}
+            {visiblePracticeDashboards.length > 0 && (
+              <SectionGroup title="Practice Management" icon={Building} items={visiblePracticeDashboards} />
+            )}
+
+            {visiblePatientItems.length > 0 && (
+              <SectionGroup title="Patient Management" icon={Users} items={visiblePatientItems} />
+            )}
+
             {visibleSchedulingItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  Scheduling
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                     {visibleSchedulingItems.map((item) => (
-                       <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                           <NavLink to={item.url} className={getNavCls}>
-                             <item.icon className="h-4 w-4 text-current" />
-                             {!isCollapsed && (
-                               <div className="flex items-center justify-between w-full">
-                                 <span className="font-medium">{item.title}</span>
-                                 {item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                                   <Badge variant="secondary" className="ml-auto min-w-[1.25rem] h-5 px-1 text-xs">
-                                     {upcomingAppointments}
-                                   </Badge>
-                                 )}
-                               </div>
-                             )}
-                             {isCollapsed && item.title === "Appointment Calendar" && upcomingAppointments > 0 && (
-                               <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                                 {upcomingAppointments}
-                               </span>
-                             )}
-                           </NavLink>
-                         </SidebarMenuButton>
-                       </SidebarMenuItem>
-                     ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SectionGroup title="Scheduling" icon={Calendar} items={visibleSchedulingItems} />
             )}
 
-            {/* Clinical AI Tools */}
-            {visibleClinicalItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  Clinical AI
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleClinicalItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
-
-            {/* AI Features */}
             {visibleAiItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  AI Features
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleAiItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} />
             )}
 
-            {/* Reports */}
+            {visibleClinicalItems.length > 0 && (
+              <SectionGroup title="Clinical AI" icon={Stethoscope} items={visibleClinicalItems} />
+            )}
+
             {visibleReportsItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  Analytics
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleReportsItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SectionGroup title="Reports & Analytics" icon={BarChart3} items={visibleReportsItems} />
             )}
 
-            {/* Enterprise Features */}
             {visibleEnterpriseItems.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  Enterprise & Operations
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleEnterpriseItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SectionGroup title="Enterprise" icon={TrendingUp} items={visibleEnterpriseItems} />
             )}
 
-            {/* Patient Experience & Compliance */}
             {visibleComplianceItems.length > 0 && (
-              <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
-                  Patient & Compliance
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleComplianceItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                         <SidebarMenuButton asChild tooltip={item.title}>
-                          <NavLink to={item.url} className={getNavCls}>
-                            <item.icon className="h-4 w-4 text-current" />
-                            {!isCollapsed && <span className="font-medium">{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+              <SectionGroup title="Compliance & Care" icon={Shield} items={visibleComplianceItems} />
             )}
           </>
         )}
 
-        {/* Admin Tools - Show for clinic admins and corporate admins */}
+        {/* Admin Tools - Show for clinic admins */}
         {visibleAdminItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
+          <SidebarGroup className="px-2 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
+              <Settings className="h-3 w-3 inline mr-2" />
               Administration
             </SidebarGroupLabel>
-            <SidebarGroupContent>
+            <SidebarGroupContent className="space-y-1">
               <SidebarMenu>
                 {visibleAdminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="h-4 w-4 text-current" />
-                        {!isCollapsed && (
-                          <div className="flex items-center justify-between w-full">
-                            <span className="font-medium">{item.title}</span>
-                            {item.title === "User Approvals" && pendingApprovalsCount > 0 && (
-                              <span className="bg-destructive text-destructive-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                                {pendingApprovalsCount}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {isCollapsed && item.title === "User Approvals" && pendingApprovalsCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px]">
-                            {pendingApprovalsCount}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <MenuItem 
+                    key={item.title} 
+                    item={item}
+                    showBadge={item.title === "User Approvals"}
+                    badgeCount={pendingApprovalsCount}
+                    badgeType="destructive"
+                  />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -563,48 +442,19 @@ export function AppSidebar() {
 
         {/* Support - Show for all staff */}
         {isStaffMember && (
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupLabel className="text-muted-foreground/80 uppercase tracking-wider text-xs font-semibold px-3 py-2 mx-2">
+          <SidebarGroup className="mt-auto px-2 py-2">
+            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
+              <Headphones className="h-3 w-3 inline mr-2" />
               Support & Collaboration
             </SidebarGroupLabel>
-            <SidebarGroupContent>
+            <SidebarGroupContent className="space-y-1">
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Team Collaboration">
-                    <NavLink to="/collaboration" className={getNavCls}>
-                      <Users className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Team Collaboration</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Tech Support">
-                    <NavLink to="/tech-support" className={getNavCls}>
-                      <Headphones className="h-4 w-4 text-current" />
-                      {!isCollapsed && <span className="font-medium">Tech Support</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} />
+                <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
-        {/* Settings */}
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Settings">
-                  <NavLink to="/settings" className={getNavCls}>
-                    <Settings className="h-4 w-4 text-current" />
-                    {!isCollapsed && <span className="font-medium">Settings</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
