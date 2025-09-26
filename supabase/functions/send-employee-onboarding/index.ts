@@ -133,7 +133,7 @@ serve(async (req: Request) => {
                 <a href="https://www.youtube.com/playlist?list=PLbVHz4urQBZkJiAWdG8HWoJTdgEysigIO" style="display: inline-block; color: #dc2626; text-decoration: none; font-weight: 500; margin-right: 20px;">
                   🎥 Video Tutorials
                 </a>
-                <a href="https://docs.lovable.dev/" style="display: inline-block; color: #dc2626; text-decoration: none; font-weight: 500;">
+                <a href="#" style="display: inline-block; color: #dc2626; text-decoration: none; font-weight: 500; opacity: 0.5; cursor: not-allowed;">
                   📖 Documentation
                 </a>
               </div>

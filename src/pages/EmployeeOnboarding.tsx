@@ -193,7 +193,7 @@ export default function EmployeeOnboarding() {
                 </a>
               </Button>
               <Button variant="outline" asChild className="w-full justify-start">
-                <a href="https://docs.lovable.dev/" target="_blank" rel="noopener noreferrer">
+                <a href="#" onClick={(e) => e.preventDefault()} className="opacity-50 cursor-not-allowed">
                   <FileText className="h-4 w-4 mr-2" />
                   System Documentation
                 </a>
