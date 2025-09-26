@@ -478,9 +478,6 @@ export function AppSidebar() {
                   <Stethoscope className="w-8 h-8 text-white" />
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-success to-success-light rounded-full border-2 border-sidebar-background animate-bounce shadow-lg">
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/30 to-transparent" />
-                </div>
               </div>
               {!isCollapsed && (
                 <div className="flex-1">
