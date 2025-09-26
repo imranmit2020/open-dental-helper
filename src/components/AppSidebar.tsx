@@ -2,7 +2,7 @@ import {
   Users, 
   Calendar, 
   FileText, 
-  Brain, 
+  Lightbulb, 
   Mic, 
   Camera, 
   BarChart3,
@@ -13,7 +13,7 @@ import {
   User,
   Target,
   CreditCard,
-  Bot,
+  CalendarHeart,
   Video,
   TrendingUp,
   Mail,
@@ -30,12 +30,12 @@ import {
   VideoIcon,
   Database,
   TrendingUp as TrendIcon,
-  Cpu,
-  Zap,
+  Layers3,
+  PenTool,
   Activity,
   Eye,
   Microscope,
-  Sparkles,
+  Compass,
   FlaskConical,
   Headphones,
   Package,
@@ -64,7 +64,12 @@ import {
   FolderOpen,
   Terminal,
   Workflow,
-  CheckSquare
+  CheckSquare,
+  MessageCircle,
+  BookOpen,
+  Users2,
+  FileEdit,
+  Clock
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -113,7 +118,7 @@ const patientItems: NavigationItem[] = [
 const schedulingItems: NavigationItem[] = [
   { title: "Appointment Calendar", url: "/schedule", icon: Calendar, requiredRoles: ['admin', 'dentist', 'staff'], moduleKey: 'schedule' },
   { title: "Schedule Management", url: "/schedule-management", icon: Calendar, requiredRoles: ['admin', 'dentist', 'staff'], moduleKey: 'schedule_management' },
-  { title: "AI Smart Scheduling", url: "/ai-scheduling", icon: Bot, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'ai_scheduling' },
+  { title: "AI Smart Scheduling", url: "/ai-scheduling", icon: CalendarHeart, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'ai_scheduling' },
   { title: "Teledentistry", url: "/teledentistry", icon: Video, requiredRoles: ['admin', 'dentist'], requiredFeature: 'teledentistry', moduleKey: 'teledentistry' },
   { title: "Enhanced Teledentistry", url: "/teledentistry-enhanced", icon: VideoIcon, requiredRoles: ['admin', 'dentist'], requiredFeature: 'teledentistry', moduleKey: 'teledentistry_enhanced' },
 ];
@@ -121,14 +126,14 @@ const schedulingItems: NavigationItem[] = [
 const aiItems: NavigationItem[] = [
   { title: "Voice Transcription", url: "/ai/voice", icon: Mic, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'voice_transcription' },
   { title: "Image Analysis", url: "/ai/image", icon: Camera, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'image_analysis' },
-  { title: "Voice Agent", url: "/ai/agent", icon: Brain, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'voice_agent' },
-  { title: "Translation", url: "/ai/translation", icon: Brain, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'translation' },
+  { title: "Voice Agent", url: "/ai/agent", icon: MessageCircle, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'voice_agent' },
+  { title: "Translation", url: "/ai/translation", icon: Languages, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features', moduleKey: 'translation' },
   { title: "Predictive Analytics", url: "/ai/analytics", icon: BarChart3, requiredRoles: ['admin', 'dentist'], requiredFeature: 'analytics', moduleKey: 'analytics' },
   { title: "AI Marketing", url: "/ai-marketing", icon: Target, requiredRoles: ['admin'], requiredFeature: 'ai_features', moduleKey: 'ai_marketing' },
-  { title: "AI Assistant", url: "/ai-assistant", icon: MessageSquare, requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'], moduleKey: 'ai_assistant' },
-  { title: "AI Patient Analytics", url: "/ai/patient-analytics", icon: Brain, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
-  { title: "Smart Documentation", url: "/smart-documentation", icon: Zap, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features' },
-  { title: "Predictive Treatment", url: "/predictive-treatment", icon: Sparkles, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
+  { title: "AI Assistant", url: "/ai-assistant", icon: Users2, requiredRoles: ['admin', 'dentist', 'hygienist', 'staff'], moduleKey: 'ai_assistant' },
+  { title: "AI Patient Analytics", url: "/ai/patient-analytics", icon: Lightbulb, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
+  { title: "Smart Documentation", url: "/smart-documentation", icon: PenTool, requiredRoles: ['admin', 'dentist', 'staff'], requiredFeature: 'ai_features' },
+  { title: "Predictive Treatment", url: "/predictive-treatment", icon: Compass, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
 ];
 
 const clinicalItems: NavigationItem[] = [
@@ -136,13 +141,13 @@ const clinicalItems: NavigationItem[] = [
   { title: "Voice-to-Chart", url: "/voice-to-chart", icon: MicVocal, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'voice_to_chart' },
   { title: "Chairside Assistant", url: "/chairside-assistant", icon: HeartHandshake, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features', moduleKey: 'chairside_assistant' },
   { title: "Referral Network", url: "/referral-network", icon: Users, requiredRoles: ['admin', 'dentist'] },
-  { title: "3D Dental Modeling", url: "/3d-dental-modeling", icon: Cpu, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
+  { title: "3D Dental Modeling", url: "/3d-dental-modeling", icon: Layers3, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Patient Journey", url: "/patient-journey", icon: TrendingUp, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Real-time Monitoring", url: "/real-time-monitoring", icon: Activity, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Real-Time Systems", url: "/realtime-systems", icon: Activity, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Advanced Security", url: "/advanced-security", icon: Shield, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "IoT & Hardware", url: "/iot-hardware", icon: Settings, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
-  { title: "Next-Gen AI Features", url: "/next-gen-ai", icon: Brain, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
+  { title: "Next-Gen AI Features", url: "/next-gen-ai", icon: BookOpen, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "AR Treatment Preview", url: "/ar-treatment-preview", icon: Eye, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Microscopic Analysis", url: "/microscopic-analysis", icon: Microscope, requiredRoles: ['admin', 'dentist'], requiredFeature: 'ai_features' },
   { title: "Lab Management", url: "/lab-management", icon: FlaskConical, requiredRoles: ['admin', 'dentist', 'hygienist'], moduleKey: 'lab_management' },
@@ -524,7 +529,7 @@ export function AppSidebar() {
               )}
 
               {visibleAiItems.length > 0 && (
-                <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} sectionKey="ai-tools" />
+                <SectionGroup title="AI Tools" icon={Lightbulb} items={visibleAiItems} sectionKey="ai-tools" />
               )}
 
               {visibleClinicalItems.length > 0 && (
