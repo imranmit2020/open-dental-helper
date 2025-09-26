@@ -336,12 +336,12 @@ export function AppSidebar() {
       <SidebarMenuButton asChild tooltip={item.title} className="!p-0 !bg-transparent hover:!bg-transparent">
         <NavLink to={item.url} className={getNavCls({ isActive })}>
           <div className="flex items-center gap-4 w-full relative z-10">
-            <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 ${
+            <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors duration-300 ${
               isActive 
                 ? 'bg-white/20 shadow-lg' 
-                : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20 group-hover:scale-110'
+                : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20'
             }`}>
-              <item.icon className={`h-5 w-5 transition-all duration-300 ${
+              <item.icon className={`h-5 w-5 transition-colors duration-300 ${
                 isActive ? 'text-white' : 'text-sidebar-foreground'
               }`} />
               {isActive && (
@@ -412,7 +412,7 @@ export function AppSidebar() {
                     {title}
                   </h3>
                 </div>
-                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-gradient-to-br hover:from-primary/40 hover:to-secondary/40 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 hover:bg-gradient-to-br hover:from-primary/40 hover:to-secondary/40 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
                   <ChevronDown className="h-4 w-4 text-primary font-bold drop-shadow-sm" />
                 </div>
               </>
@@ -588,7 +588,7 @@ export function AppSidebar() {
                     <span className="text-xs font-bold text-sidebar-foreground/80 uppercase tracking-wider flex-1 text-left">
                       Support
                     </span>
-                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 hover:scale-110 ${expandedSections.support ? 'rotate-180' : 'rotate-0'}`}>
+                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 ${expandedSections.support ? 'rotate-180' : 'rotate-0'}`}>
                       <ChevronDown className="h-3 w-3 text-primary font-bold drop-shadow-sm" />
                     </div>
                   </>
