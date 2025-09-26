@@ -253,10 +253,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent mx-2 my-1 opacity-100",
+      "group relative rounded-2xl px-4 py-4 transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 font-semibold border border-transparent mx-2 my-1 overflow-hidden",
       isActive
-        ? "bg-gradient-primary text-white shadow-glow scale-105 border-primary/20 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-white/30"
-        : "text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-105 hover:border-sidebar-border/50"
+        ? "bg-gradient-to-r from-primary via-primary-glow to-secondary text-white shadow-glow scale-[1.02] border-primary/30 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-pulse"
+        : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-sidebar-accent/60 hover:to-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-[1.02] hover:border-sidebar-border/30 backdrop-blur-sm"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -278,38 +278,54 @@ export function AppSidebar() {
     badgeCount?: number,
     badgeType?: "secondary" | "destructive" 
   }) => (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={item.title} className="!text-sidebar-foreground">
+    <SidebarMenuItem className="group">
+      <SidebarMenuButton asChild tooltip={item.title} className="!p-0 !bg-transparent hover:!bg-transparent">
         <NavLink to={item.url} className={getNavCls({ isActive })}>
-          <div className="flex items-center gap-3 w-full relative">
-            <div className={`w-5 h-5 flex items-center justify-center ${isActive ? 'text-white' : 'text-sidebar-foreground'}`}>
-              <item.icon className="h-5 w-5" />
+          <div className="flex items-center gap-4 w-full relative z-10">
+            <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-300 ${
+              isActive 
+                ? 'bg-white/20 shadow-lg' 
+                : 'bg-sidebar-accent/40 group-hover:bg-sidebar-accent/60 group-hover:scale-110'
+            }`}>
+              <item.icon className={`h-5 w-5 transition-all duration-300 ${
+                isActive ? 'text-white' : 'text-sidebar-foreground'
+              }`} />
+              {isActive && (
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+              )}
             </div>
             {!isCollapsed && (
               <div className="flex items-center justify-between w-full">
-                <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm`}>{item.title}</span>
+                <div className="flex flex-col">
+                  <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm font-semibold transition-all duration-300`}>
+                    {item.title}
+                  </span>
+                </div>
                 {showBadge && badgeCount > 0 && (
-                  <Badge 
-                    variant={badgeType} 
-                    className={`ml-auto min-w-[1.25rem] h-5 px-1 text-xs ${
-                      badgeType === "destructive" ? "bg-destructive text-destructive-foreground" : ""
-                    }`}
-                  >
-                    {badgeCount}
-                  </Badge>
+                  <div className={`relative flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full transition-all duration-300 ${
+                    badgeType === "destructive" 
+                      ? "bg-destructive/90 text-destructive-foreground shadow-lg" 
+                      : "bg-primary/90 text-primary-foreground shadow-lg"
+                  }`}>
+                    <span className="text-xs font-bold">{badgeCount}</span>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+                  </div>
                 )}
               </div>
             )}
             {isCollapsed && showBadge && badgeCount > 0 && (
-              <span className={`absolute -top-1 -right-1 text-xs rounded-full px-1.5 py-0.5 min-w-[16px] text-center text-[10px] ${
+              <div className={`absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-lg ${
                 badgeType === "destructive" 
                   ? "bg-destructive text-destructive-foreground" 
                   : "bg-primary text-primary-foreground"
               }`}>
                 {badgeCount}
-              </span>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+              </div>
             )}
           </div>
+          {/* Animated background overlay */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -321,26 +337,43 @@ export function AppSidebar() {
     items: NavigationItem[],
     className?: string
   }) => (
-    <SidebarGroup className={`px-2 py-2 ${className}`}>
-            <SidebarGroupLabel className="text-sidebar-foreground/90 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
-        <Icon className="h-3 w-3 inline mr-2" />
-        {title}
-      </SidebarGroupLabel>
-      <SidebarGroupContent className="space-y-1">
-        <SidebarMenu>
-          {items.map((item) => (
-            <MenuItem 
-              key={item.title} 
-              item={item}
-              isActive={currentPath === item.url}
-              showBadge={item.title === "Appointment Calendar"}
-              badgeCount={upcomingAppointments}
-              badgeType="secondary"
-            />
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <div className={`relative px-3 py-4 ${className}`}>
+      {/* Section Header */}
+      <div className="relative mb-4 px-3">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-sidebar-accent/40 to-sidebar-accent/20 backdrop-blur-sm border border-sidebar-border/20 shadow-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+            <Icon className="h-4 w-4 text-primary" />
+          </div>
+          {!isCollapsed && (
+            <div className="flex-1">
+              <h3 className="text-sidebar-foreground font-bold text-sm uppercase tracking-wider">
+                {title}
+              </h3>
+            </div>
+          )}
+        </div>
+        {/* Decorative line */}
+        <div className="absolute left-6 right-6 bottom-0 h-px bg-gradient-to-r from-transparent via-sidebar-border/30 to-transparent" />
+      </div>
+      
+      {/* Menu Items */}
+      <SidebarGroup className="space-y-1">
+        <SidebarGroupContent>
+          <SidebarMenu className="space-y-1">
+            {items.map((item) => (
+              <MenuItem 
+                key={item.title} 
+                item={item}
+                isActive={currentPath === item.url}
+                showBadge={item.title === "Appointment Calendar" || item.title === "User Approvals"}
+                badgeCount={item.title === "Appointment Calendar" ? upcomingAppointments : pendingApprovalsCount}
+                badgeType={item.title === "User Approvals" ? "destructive" : "secondary"}
+              />
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </div>
   );
 
   return (
@@ -349,131 +382,136 @@ export function AppSidebar() {
       collapsible="icon"
       side="right"
     >
-      <SidebarContent className="bg-gradient-sidebar backdrop-blur-xl border-l border-sidebar-border/50 shadow-glow animate-fade-in text-sidebar-foreground">
+      <SidebarContent className="relative bg-gradient-to-b from-sidebar-background/95 via-sidebar-background/98 to-sidebar-background backdrop-blur-2xl border-l border-sidebar-border/30 shadow-2xl animate-fade-in overflow-hidden">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-radial from-secondary/20 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+        
         {/* Header */}
-        <div className="p-6 border-b border-sidebar-border/30 bg-gradient-to-br from-sidebar-accent/60 to-sidebar-accent/20 backdrop-blur-sm">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow hover-scale">
-                <Stethoscope className="w-7 h-7 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-sidebar-background animate-pulse"></div>
-            </div>
-            {!isCollapsed && (
-              <div className="flex-1">
-                <h1 className="font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">DentalAI Pro</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-sm font-medium text-sidebar-foreground/80">
-                    {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
-                  </p>
-                  {subscribed && (
-                    <div className="px-2 py-0.5 bg-gradient-primary rounded-full">
-                      <span className="text-xs font-semibold text-white">Premium</span>
-                    </div>
-                  )}
+        <div className="relative z-10 p-6 border-b border-gradient-to-r from-transparent via-sidebar-border/20 to-transparent">
+          <div className="relative p-4 rounded-2xl bg-gradient-to-br from-sidebar-accent/30 to-sidebar-accent/10 backdrop-blur-sm border border-sidebar-border/20 shadow-lg">
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary via-primary-glow to-secondary rounded-2xl flex items-center justify-center shadow-glow transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                  <Stethoscope className="w-8 h-8 text-white" />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-success to-success-light rounded-full border-2 border-sidebar-background animate-bounce shadow-lg">
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/30 to-transparent" />
                 </div>
               </div>
-            )}
+              {!isCollapsed && (
+                <div className="flex-1">
+                  <h1 className="font-bold text-2xl bg-gradient-to-r from-primary via-primary-glow to-secondary bg-clip-text text-transparent">
+                    DentalAI Pro
+                  </h1>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="px-3 py-1 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/40 rounded-full border border-sidebar-border/20">
+                      <span className="text-xs font-semibold text-sidebar-foreground">
+                        {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
+                      </span>
+                    </div>
+                    {subscribed && (
+                      <div className="relative px-3 py-1 bg-gradient-to-r from-primary to-secondary rounded-full shadow-glow">
+                        <span className="text-xs font-bold text-white">Premium</span>
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Patient Portal - Only show for patients */}
-        {isPatient && visiblePatientMenuItems.length > 0 && (
-          <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="py-4" />
-        )}
+        {/* Content Container */}
+        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
+          {/* Patient Portal - Only show for patients */}
+          {isPatient && visiblePatientMenuItems.length > 0 && (
+            <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="pt-2" />
+          )}
 
-        {/* Staff Sections - Only show for staff */}
+          {/* Staff Sections - Only show for staff */}
+          {isStaffMember && (
+            <>
+              {visiblePracticeDashboards.length > 0 && (
+                <SectionGroup title="Practice Management" icon={Building} items={visiblePracticeDashboards} />
+              )}
+
+              {visiblePatientItems.length > 0 && (
+                <SectionGroup title="Patient Management" icon={Users} items={visiblePatientItems} />
+              )}
+
+              {visibleSchedulingItems.length > 0 && (
+                <SectionGroup title="Scheduling" icon={Calendar} items={visibleSchedulingItems} />
+              )}
+
+              {visibleAiItems.length > 0 && (
+                <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} />
+              )}
+
+              {visibleClinicalItems.length > 0 && (
+                <SectionGroup title="Clinical AI" icon={Stethoscope} items={visibleClinicalItems} />
+              )}
+
+              {visibleReportsItems.length > 0 && (
+                <SectionGroup title="Reports & Analytics" icon={BarChart3} items={visibleReportsItems} />
+              )}
+
+              {visibleEnterpriseItems.length > 0 && (
+                <SectionGroup title="Enterprise" icon={TrendingUp} items={visibleEnterpriseItems} />
+              )}
+
+              {visibleComplianceItems.length > 0 && (
+                <SectionGroup title="Compliance & Care" icon={Shield} items={visibleComplianceItems} />
+              )}
+            </>
+          )}
+
+          {/* Admin Tools - Show for clinic admins */}
+          {visibleAdminItems.length > 0 && (
+            <SectionGroup title="Administration" icon={Settings} items={visibleAdminItems} />
+          )}
+
+          {/* Fallback Quick Access - if no items visible */}
+          {isStaffMember && (
+            (visiblePracticeDashboards.length + visiblePatientItems.length + visibleSchedulingItems.length + visibleAiItems.length + visibleClinicalItems.length + visibleReportsItems.length + visibleEnterpriseItems.length + visibleComplianceItems.length) === 0 && (
+              <SectionGroup 
+                title="Quick Access" 
+                icon={TrendingUp} 
+                items={[
+                  { title: "Dashboard", url: "/dashboard", icon: TrendingUp },
+                  { title: "Patients", url: "/patients", icon: Users },
+                  { title: "Schedule", url: "/schedule", icon: Calendar }
+                ]} 
+              />
+            )
+          )}
+        </div>
+
+        {/* Footer - Support & Collaboration */}
         {isStaffMember && (
-          <>
-            {visiblePracticeDashboards.length > 0 && (
-              <SectionGroup title="Practice Management" icon={Building} items={visiblePracticeDashboards} />
-            )}
-
-            {visiblePatientItems.length > 0 && (
-              <SectionGroup title="Patient Management" icon={Users} items={visiblePatientItems} />
-            )}
-
-            {visibleSchedulingItems.length > 0 && (
-              <SectionGroup title="Scheduling" icon={Calendar} items={visibleSchedulingItems} />
-            )}
-
-            {visibleAiItems.length > 0 && (
-              <SectionGroup title="AI Tools" icon={Brain} items={visibleAiItems} />
-            )}
-
-            {visibleClinicalItems.length > 0 && (
-              <SectionGroup title="Clinical AI" icon={Stethoscope} items={visibleClinicalItems} />
-            )}
-
-            {visibleReportsItems.length > 0 && (
-              <SectionGroup title="Reports & Analytics" icon={BarChart3} items={visibleReportsItems} />
-            )}
-
-            {visibleEnterpriseItems.length > 0 && (
-              <SectionGroup title="Enterprise" icon={TrendingUp} items={visibleEnterpriseItems} />
-            )}
-
-            {visibleComplianceItems.length > 0 && (
-              <SectionGroup title="Compliance & Care" icon={Shield} items={visibleComplianceItems} />
-            )}
-          </>
-        )}
-
-        {/* Admin Tools - Show for clinic admins */}
-        {visibleAdminItems.length > 0 && (
-          <SidebarGroup className="px-2 py-2">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
-              <Settings className="h-3 w-3 inline mr-2" />
-              Administration
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
-              <SidebarMenu>
-                {visibleAdminItems.map((item) => (
-                  <MenuItem 
-                    key={item.title} 
-                    item={item}
-                    showBadge={item.title === "User Approvals"}
-                    badgeCount={pendingApprovalsCount}
-                    badgeType="destructive"
-                  />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Fallback Quick Access - if no items visible */}
-        {isStaffMember && (
-          (visiblePracticeDashboards.length + visiblePatientItems.length + visibleSchedulingItems.length + visibleAiItems.length + visibleClinicalItems.length + visibleReportsItems.length + visibleEnterpriseItems.length + visibleComplianceItems.length) === 0 && (
-            <SidebarGroup className="px-2 py-2">
-              <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
-                Quick Access
-              </SidebarGroupLabel>
-              <SidebarGroupContent className="space-y-1">
-                <SidebarMenu>
-                  <MenuItem item={{ title: "Dashboard", url: "/dashboard", icon: TrendingUp }} />
-                  <MenuItem item={{ title: "Patients", url: "/patients", icon: Users }} />
-                  <MenuItem item={{ title: "Schedule", url: "/schedule", icon: Calendar }} />
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )
-        )}
-
-        {/* Support - Show for all staff */}
-        {isStaffMember && (
-          <SidebarGroup className="mt-auto px-2 py-2">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 uppercase tracking-widest text-xs font-bold px-4 py-3 mb-2 bg-sidebar-accent/30 rounded-lg">
-              <Headphones className="h-3 w-3 inline mr-2" />
-              Support & Collaboration
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
-              <SidebarMenu>
-                <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} />
-                <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <div className="relative z-10 mt-auto p-3 border-t border-gradient-to-r from-transparent via-sidebar-border/20 to-transparent">
+            <div className="relative p-3 rounded-2xl bg-gradient-to-r from-sidebar-accent/20 to-sidebar-accent/10 backdrop-blur-sm border border-sidebar-border/10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <Headphones className="h-3 w-3 text-primary" />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-xs font-bold text-sidebar-foreground/80 uppercase tracking-wider">
+                    Support
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1">
+                <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} isActive={currentPath === "/collaboration"} />
+                <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} isActive={currentPath === "/tech-support"} />
+              </div>
+            </div>
+          </div>
         )}
       </SidebarContent>
     </Sidebar>
