@@ -101,91 +101,125 @@ export default function PatientSignUp() {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="p-3 rounded-full bg-gradient-to-r from-primary to-secondary">
-              <UserPlus className="h-6 w-6 text-white" />
+    <div className="min-h-screen w-full bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-secondary/5 animate-pulse"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}}></div>
+      
+      <Card className="w-full max-w-lg glass-card relative z-10 animate-fade-in border-0">
+        <CardHeader className="text-center space-y-6 pb-8">
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-lg opacity-60 animate-glow"></div>
+              <div className="relative p-4 rounded-full bg-gradient-to-r from-primary to-secondary shadow-elegant">
+                <UserPlus className="h-8 w-8 text-primary-foreground" />
+              </div>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Join Patient Portal
-          </CardTitle>
-          <CardDescription>
-            Create your account to access dental records and book appointments
-          </CardDescription>
+          
+          <div className="space-y-3">
+            <CardTitle className="text-3xl font-bold gradient-text tracking-tight">
+              Join Patient Portal
+            </CardTitle>
+            <CardDescription className="text-base text-muted-foreground max-w-sm mx-auto leading-relaxed">
+              Create your account to access dental records, book appointments, and manage your healthcare
+            </CardDescription>
+          </div>
         </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleSignUp} className="space-y-4">
+        <CardContent className="space-y-6 px-8 pb-8">
+          <form onSubmit={handleSignUp} className="space-y-6">
+            {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name">First Name</Label>
+              <div className="space-y-3">
+                <Label htmlFor="first-name" className="text-sm font-semibold text-foreground/80">
+                  First Name
+                </Label>
                 <Input
                   id="first-name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="First name"
+                  placeholder="Enter first name"
+                  className="h-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name">Last Name</Label>
+              <div className="space-y-3">
+                <Label htmlFor="last-name" className="text-sm font-semibold text-foreground/80">
+                  Last Name
+                </Label>
                 <Input
                   id="last-name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Last name"
+                  placeholder="Enter last name"
+                  className="h-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
+            {/* Email Field */}
+            <div className="space-y-3">
+              <Label htmlFor="signup-email" className="text-sm font-semibold text-foreground/80">
+                Email Address
+              </Label>
               <Input
                 id="signup-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Enter your email address"
+                className="h-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+            {/* Phone Field */}
+            <div className="space-y-3">
+              <Label htmlFor="phone" className="text-sm font-semibold text-foreground/80">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your phone number"
+                className="h-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date-of-birth">Date of Birth</Label>
+            {/* Date of Birth Field */}
+            <div className="space-y-3">
+              <Label htmlFor="date-of-birth" className="text-sm font-semibold text-foreground/80">
+                Date of Birth
+              </Label>
               <Input
                 id="date-of-birth"
                 type="date"
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
+                className="h-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
+            {/* Password Field */}
+            <div className="space-y-3">
+              <Label htmlFor="signup-password" className="text-sm font-semibold text-foreground/80">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="signup-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
+                  placeholder="Create a secure password"
+                  className="h-12 pr-12 border-border/50 bg-background/50 backdrop-blur-sm focus:bg-background focus:border-primary/50 transition-all duration-300"
                   required
                   minLength={6}
                 />
@@ -193,7 +227,7 @@ export default function PatientSignUp() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-12 w-12 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -203,24 +237,47 @@ export default function PatientSignUp() {
                   )}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Password must be at least 6 characters long
+              </p>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-secondary text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating account..." : "Create Patient Account"}
-            </Button>
+            {/* Submit Button */}
+            <div className="pt-4">
+              <Button
+                type="submit"
+                className="w-full h-12 btn-gradient text-lg font-semibold hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Creating account...
+                  </div>
+                ) : (
+                  "Create Patient Account"
+                )}
+              </Button>
+            </div>
             
-            <div className="text-center mt-4">
-              <div className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+            {/* Sign In Link */}
+            <div className="text-center pt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/30"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-background/80 text-muted-foreground">
+                    Already have an account?
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4">
                 <Link 
                   to="/patient-signin" 
-                  className="text-primary hover:underline font-medium"
+                  className="text-primary hover:text-primary-hover font-semibold hover:underline transition-all duration-200 text-sm"
                 >
-                  Sign in here
+                  Sign in to your account
                 </Link>
               </div>
             </div>
