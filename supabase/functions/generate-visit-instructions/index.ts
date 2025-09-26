@@ -113,7 +113,7 @@ Format the response in clear, patient-friendly language with bullet points and s
       JSON.stringify({ 
         error: error.message,
         fallbackInstructions: `
-## Post-Visit Care Instructions for ${patientName || 'Patient'}
+## Post-Visit Care Instructions for ${(req as any).patientName || 'Patient'}
 
 ### Immediate Care (First 24-48 Hours)
 • Apply ice pack to face for 15-20 minutes if experiencing swelling

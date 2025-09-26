@@ -37,7 +37,7 @@ serve(async (req) => {
          Translate the following text accurately while preserving medical terms and adding cultural context when appropriate.
          Maintain the original meaning and tone while ensuring cultural sensitivity.
          If translating to Spanish, consider regional variations and formal medical language.
-         Medical terms to preserve: ${medicalTerms[targetLanguage] ? medicalTerms[targetLanguage].join(', ') : 'general medical terminology'}`
+         Medical terms to preserve: ${(medicalTerms as any)[targetLanguage] ? (medicalTerms as any)[targetLanguage].join(', ') : 'general medical terminology'}`
       : `You are a professional translator. Translate the following text accurately while maintaining the original meaning and tone.
          Be culturally sensitive and use appropriate language for the target region.`;
 
@@ -96,7 +96,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Translation error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       translatedText: '',
       confidence: 0,
       detectedLanguage: 'unknown',
@@ -132,11 +132,11 @@ function detectLanguage(text: string): string {
 }
 
 function checkMedicalTerms(original: string, translated: string, targetLanguage: string): boolean {
-  const targetMedicalTerms = medicalTerms[targetLanguage] || [];
+  const targetMedicalTerms = (medicalTerms as any)[targetLanguage] || [];
   if (targetMedicalTerms.length === 0) return true;
 
   // Simple check if medical terms are present in translation
-  const foundTerms = targetMedicalTerms.filter(term => 
+  const foundTerms = targetMedicalTerms.filter((term: any) => 
     translated.toLowerCase().includes(term.toLowerCase())
   );
 

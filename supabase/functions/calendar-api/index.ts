@@ -76,7 +76,7 @@ serve(async (req) => {
     const requestSize = parseInt(req.headers.get('content-length') || '0')
     const startTime = Date.now()
 
-    let response: Response
+    let response: Response | undefined
     let responseData: any = null
 
     // Route to appropriate handler

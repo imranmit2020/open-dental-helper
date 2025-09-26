@@ -170,7 +170,7 @@ Keep responses professional, well-organized, and focused on dental practice mana
       JSON.stringify({ 
         response: "I apologize, but I'm experiencing technical difficulties. Please try again later.",
         data_sources: [],
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }),
       { 
         status: 500,

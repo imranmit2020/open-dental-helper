@@ -234,7 +234,7 @@ async function generateJSONExport(supabaseClient: any, tables: string[], type: s
       }
     } catch (error) {
       console.error(`Error exporting table ${table}:`, error);
-      exportData.data[table] = { error: error.message };
+      exportData.data[table] = { error: error instanceof Error ? error.message : String(error) };
     }
   }
 
@@ -273,7 +273,7 @@ async function generateCSVExport(supabaseClient: any, tables: string[], type: st
       }
     } catch (error) {
       console.error(`Error exporting table ${table}:`, error);
-      csvFiles[`${table}_error.txt`] = `Error: ${error.message}`;
+      csvFiles[`${table}_error.txt`] = `Error: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 
