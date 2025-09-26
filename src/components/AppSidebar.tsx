@@ -39,7 +39,32 @@ import {
   FlaskConical,
   Headphones,
   Package,
-  ChevronDown
+  ChevronDown,
+  Home,
+  Building2,
+  NotebookPen,
+  Clipboard,
+  CalendarClock,
+  CalendarCheck,
+  MonitorSpeaker,
+  ScanEye,
+  Languages,
+  ChartNoAxesGantt,
+  FileCheck,
+  Network,
+  Box,
+  Route,
+  MonitorDot,
+  ShieldCheck,
+  UserCheck,
+  Gamepad2,
+  Heart,
+  Key,
+  ScrollText,
+  FolderOpen,
+  Terminal,
+  Workflow,
+  CheckSquare
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -382,8 +407,8 @@ export function AppSidebar() {
                     {title}
                   </h3>
                 </div>
-                <div className={`w-6 h-6 rounded-lg bg-sidebar-accent/20 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                  <ChevronDown className="h-3 w-3 text-sidebar-foreground/60" />
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-gradient-to-br hover:from-primary/40 hover:to-secondary/40 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                  <ChevronDown className="h-4 w-4 text-primary font-bold drop-shadow-sm" />
                 </div>
               </>
             )}
@@ -558,8 +583,8 @@ export function AppSidebar() {
                     <span className="text-xs font-bold text-sidebar-foreground/80 uppercase tracking-wider flex-1 text-left">
                       Support
                     </span>
-                    <div className={`w-5 h-5 rounded-lg bg-sidebar-accent/20 flex items-center justify-center transition-transform duration-300 ${expandedSections.support ? 'rotate-180' : 'rotate-0'}`}>
-                      <ChevronDown className="h-2 w-2 text-sidebar-foreground/60" />
+                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center transition-all duration-300 hover:scale-110 ${expandedSections.support ? 'rotate-180' : 'rotate-0'}`}>
+                      <ChevronDown className="h-3 w-3 text-primary font-bold drop-shadow-sm" />
                     </div>
                   </>
                 )}
