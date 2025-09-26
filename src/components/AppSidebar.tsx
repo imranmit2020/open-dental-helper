@@ -278,7 +278,7 @@ export function AppSidebar() {
     badgeType?: "secondary" | "destructive" 
   }) => (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={item.title}>
+      <SidebarMenuButton asChild tooltip={item.title} className="!text-sidebar-foreground">
         <NavLink to={item.url} className={getNavCls}>
           <div className="flex items-center gap-3 w-full relative">
             <div className="w-5 h-5 flex items-center justify-center">
