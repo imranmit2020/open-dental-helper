@@ -253,7 +253,7 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent mx-2 my-1",
+      "group relative rounded-xl px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring font-semibold border border-transparent mx-2 my-1 opacity-100",
       isActive
         ? "bg-gradient-primary text-white shadow-glow scale-105 border-primary/20 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-white/30"
         : "text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground hover:shadow-elegant hover:scale-105 hover:border-sidebar-border/50"
@@ -347,7 +347,7 @@ export function AppSidebar() {
       collapsible="icon"
       side="right"
     >
-      <SidebarContent className="bg-gradient-sidebar backdrop-blur-xl border-l border-sidebar-border/50 shadow-glow animate-fade-in">
+      <SidebarContent className="bg-gradient-sidebar backdrop-blur-xl border-l border-sidebar-border/50 shadow-glow animate-fade-in text-sidebar-foreground">
         {/* Header */}
         <div className="p-6 border-b border-sidebar-border/30 bg-gradient-to-br from-sidebar-accent/60 to-sidebar-accent/20 backdrop-blur-sm">
           <div className="flex items-center gap-4">
