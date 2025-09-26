@@ -197,6 +197,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { filterNavigationItems, userRole, subscribed, isStaffMember, isPatient, isAdmin } = useNavigationPermissions();
   const { canAccessAdminApprovals } = useRoleAccess();
+  const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
   
   // Track pending approvals for notification badge
@@ -304,7 +305,7 @@ export function AppSidebar() {
     };
   }, [canAccessAdminApprovals, isStaffMember]);
 
-  const getNavCls = (isActive: boolean) =>
+  const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
       "group relative rounded-2xl px-4 py-4 transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 font-semibold border border-transparent mx-2 my-1 overflow-hidden",
       isActive
@@ -324,67 +325,61 @@ export function AppSidebar() {
   const visibleComplianceItems = filterNavigationItems(complianceItems);
   const visibleAdminItems = filterNavigationItems(adminItems);
 
-  const MenuItem = ({ item, showBadge = false, badgeCount = 0, badgeType = "secondary" }: { 
+  const MenuItem = ({ item, isActive = false, showBadge = false, badgeCount = 0, badgeType = "secondary" }: { 
     item: NavigationItem,
+    isActive?: boolean,
     showBadge?: boolean, 
     badgeCount?: number,
     badgeType?: "secondary" | "destructive" 
   }) => (
     <SidebarMenuItem className="group">
       <SidebarMenuButton asChild tooltip={item.title} className="!p-0 !bg-transparent hover:!bg-transparent">
-        <NavLink 
-          to={item.url} 
-          className={({ isActive }) => getNavCls(isActive)}
-        >
-          {({ isActive }) => (
-            <>
-              <div className="flex items-center gap-4 w-full relative z-10">
-                <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors duration-300 ${
-                  isActive 
-                    ? 'bg-white/20 shadow-lg' 
-                    : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20'
-                }`}>
-                  <item.icon className={`h-5 w-5 transition-colors duration-300 ${
-                    isActive ? 'text-white' : 'text-sidebar-foreground'
-                  }`} />
-                  {isActive && (
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
-                  )}
+        <NavLink to={item.url} className={getNavCls({ isActive })}>
+          <div className="flex items-center gap-4 w-full relative z-10">
+            <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors duration-300 ${
+              isActive 
+                ? 'bg-white/20 shadow-lg' 
+                : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20'
+            }`}>
+              <item.icon className={`h-5 w-5 transition-colors duration-300 ${
+                isActive ? 'text-white' : 'text-sidebar-foreground'
+              }`} />
+              {isActive && (
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+              )}
+            </div>
+            {!isCollapsed && (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col">
+                  <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm font-semibold transition-all duration-300`}>
+                    {item.title}
+                  </span>
                 </div>
-                {!isCollapsed && (
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col">
-                      <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm font-semibold transition-all duration-300`}>
-                        {item.title}
-                      </span>
-                    </div>
-                    {showBadge && badgeCount > 0 && (
-                      <div className={`relative flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full transition-all duration-300 ${
-                        badgeType === "destructive" 
-                          ? "bg-destructive/90 text-destructive-foreground shadow-lg" 
-                          : "bg-primary/90 text-primary-foreground shadow-lg"
-                      }`}>
-                        <span className="text-xs font-bold">{badgeCount}</span>
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
-                      </div>
-                    )}
-                  </div>
-                )}
-                {isCollapsed && showBadge && badgeCount > 0 && (
-                  <div className={`absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-lg ${
+                {showBadge && badgeCount > 0 && (
+                  <div className={`relative flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full transition-all duration-300 ${
                     badgeType === "destructive" 
-                      ? "bg-destructive text-destructive-foreground" 
-                      : "bg-primary text-primary-foreground"
+                      ? "bg-destructive/90 text-destructive-foreground shadow-lg" 
+                      : "bg-primary/90 text-primary-foreground shadow-lg"
                   }`}>
-                    {badgeCount}
+                    <span className="text-xs font-bold">{badgeCount}</span>
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
                   </div>
                 )}
               </div>
-              {/* Animated background overlay */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-purple-300/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </>
-          )}
+            )}
+            {isCollapsed && showBadge && badgeCount > 0 && (
+              <div className={`absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-lg ${
+                badgeType === "destructive" 
+                  ? "bg-destructive text-destructive-foreground" 
+                  : "bg-primary text-primary-foreground"
+              }`}>
+                {badgeCount}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
+              </div>
+            )}
+          </div>
+          {/* Animated background overlay */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-purple-300/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -445,6 +440,7 @@ export function AppSidebar() {
                   >
                     <MenuItem 
                       item={item}
+                      isActive={currentPath === item.url}
                       showBadge={item.title === "Appointment Calendar" || item.title === "User Approvals"}
                       badgeCount={item.title === "Appointment Calendar" ? upcomingAppointments : pendingApprovalsCount}
                       badgeType={item.title === "User Approvals" ? "destructive" : "secondary"}
@@ -599,8 +595,8 @@ export function AppSidebar() {
                 expandedSections.support ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'
               }`}>
                 <div className="space-y-1">
-                  <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} />
-                  <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} />
+                  <MenuItem item={{ title: "Team Collaboration", url: "/collaboration", icon: Users }} isActive={currentPath === "/collaboration"} />
+                  <MenuItem item={{ title: "Tech Support", url: "/tech-support", icon: Headphones }} isActive={currentPath === "/tech-support"} />
                 </div>
               </div>
             </div>
