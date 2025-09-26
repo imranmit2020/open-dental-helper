@@ -307,10 +307,10 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     [
-      "group relative rounded-2xl px-4 py-4 transition-all duration-500 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 font-semibold border border-transparent mx-2 my-1 overflow-hidden",
+      "group relative rounded-xl px-3 py-3 transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 font-medium border mx-1 my-0.5 overflow-hidden backdrop-blur-sm",
       isActive
-        ? "bg-gradient-to-r from-primary via-primary-glow to-secondary text-white shadow-glow scale-[1.02] border-primary/30 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-pulse"
-        : "text-sidebar-foreground hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-blue-500/10 hover:to-cyan-500/10 hover:text-sidebar-foreground hover:shadow-lg hover:scale-[1.02] hover:border-purple-300/20 backdrop-blur-sm hover:backdrop-blur-md"
+        ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-elegant border-primary/20 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/10 before:via-white/5 before:to-transparent"
+        : "text-sidebar-foreground/90 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 hover:shadow-md hover:border-sidebar-border/50 border-transparent hover:backdrop-blur-md"
     ].join(" ");
 
   // Filter navigation items based on user permissions
@@ -335,37 +335,35 @@ export function AppSidebar() {
     <SidebarMenuItem className="group">
       <SidebarMenuButton asChild tooltip={item.title} className="!p-0 !bg-transparent hover:!bg-transparent">
         <NavLink to={item.url} className={getNavCls({ isActive })}>
-          <div className="flex items-center gap-4 w-full relative z-10">
-            <div className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors duration-300 ${
+          <div className="flex items-center gap-3 w-full relative z-10">
+            <div className={`relative w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-300 ${
               isActive 
-                ? 'bg-white/20 shadow-lg' 
-                : 'bg-sidebar-accent/40 group-hover:bg-gradient-to-r group-hover:from-purple-500/20 group-hover:to-cyan-500/20'
+                ? 'bg-white/20 shadow-sm' 
+                : 'bg-sidebar-accent/30 group-hover:bg-sidebar-accent/50'
             }`}>
-              <item.icon className={`h-5 w-5 transition-colors duration-300 ${
-                isActive ? 'text-white' : 'text-sidebar-foreground'
+              <item.icon className={`h-4 w-4 transition-all duration-300 ${
+                isActive ? 'text-primary-foreground' : 'text-sidebar-foreground/80 group-hover:text-sidebar-foreground'
               }`} />
               {isActive && (
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
               )}
             </div>
             {!isCollapsed && (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col">
-                  <span className={`${isActive ? 'text-white' : 'text-sidebar-foreground'} text-sm font-semibold transition-all duration-300`}>
-                    {item.title}
-                  </span>
-                </div>
-                {showBadge && badgeCount > 0 && (
-                  <div className={`relative flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full transition-all duration-300 ${
-                    badgeType === "destructive" 
-                      ? "bg-destructive/90 text-destructive-foreground shadow-lg" 
-                      : "bg-primary/90 text-primary-foreground shadow-lg"
-                  }`}>
-                    <span className="text-xs font-bold">{badgeCount}</span>
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
-                  </div>
-                )}
-              </div>
+              <span className={`flex-1 text-left transition-all duration-300 text-sm font-medium ${
+                isActive ? 'text-primary-foreground' : 'text-sidebar-foreground/90 group-hover:text-sidebar-foreground'
+              }`}>
+                {item.title}
+              </span>
+            )}
+            {!isCollapsed && showBadge && badgeCount > 0 && (
+              <Badge 
+                variant={badgeType} 
+                className={`ml-auto text-xs px-2 py-1 min-w-[22px] h-6 flex items-center justify-center rounded-lg font-semibold shadow-sm ${
+                  badgeType === "destructive" ? "bg-destructive text-destructive-foreground shadow-destructive/20" : "bg-primary text-primary-foreground shadow-primary/20"
+                }`}
+              >
+                {badgeCount}
+              </Badge>
             )}
             {isCollapsed && showBadge && badgeCount > 0 && (
               <div className={`absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-lg ${
@@ -457,54 +455,33 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${isCollapsed ? "w-20" : "w-80"} fixed right-0 top-0 h-full z-50`}
+      className={`${isCollapsed ? "w-16" : "w-80"} transition-all duration-300 ease-out glass-sidebar border-r border-sidebar-border/30 shadow-xl`}
       collapsible="icon"
-      side="right"
+      side="left"
     >
-      <SidebarContent className="relative bg-gradient-to-b from-sidebar-background/95 via-sidebar-background/98 to-sidebar-background backdrop-blur-2xl border-l border-sidebar-border/30 shadow-2xl animate-fade-in overflow-hidden">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-gradient-radial from-secondary/20 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <SidebarContent className="relative bg-gradient-to-b from-sidebar-background via-sidebar-background/98 to-sidebar-background backdrop-blur-xl overflow-hidden">
+        {/* Subtle animated background pattern */}
+        <div className="absolute inset-0 opacity-3">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
         </div>
         
-        {/* Header */}
-        <div className="relative z-10 p-6 border-b border-gradient-to-r from-transparent via-sidebar-border/20 to-transparent">
-          <div className="relative p-4 rounded-2xl bg-gradient-to-br from-sidebar-accent/30 to-sidebar-accent/10 backdrop-blur-sm border border-sidebar-border/20 shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="relative group">
-                <div className="w-14 h-14 bg-gradient-to-br from-primary via-primary-glow to-secondary rounded-2xl flex items-center justify-center shadow-glow transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
-                  <Stethoscope className="w-8 h-8 text-white" />
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
-                </div>
-              </div>
-              {!isCollapsed && (
-                <div className="flex-1">
-                  <h1 className="font-bold text-2xl bg-gradient-to-r from-primary via-primary-glow to-secondary bg-clip-text text-transparent">
-                    DentalAI Pro
-                  </h1>
-                  <div className="flex items-center gap-3 mt-2">
-                    <div className="px-3 py-1 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/40 rounded-full border border-sidebar-border/20">
-                      <span className="text-xs font-semibold text-sidebar-foreground">
-                        {userRole?.charAt(0).toUpperCase() + userRole?.slice(1)}
-                      </span>
-                    </div>
-                    {subscribed && (
-                      <div className="relative px-3 py-1 bg-gradient-to-r from-primary to-secondary rounded-full shadow-glow">
-                        <span className="text-xs font-bold text-white">Premium</span>
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent animate-pulse" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+        {/* Enhanced professional header */}
+        <div className="relative z-10 px-6 py-6 border-b border-sidebar-border/20">
+          <div className={`flex items-center gap-4 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-primary-glow to-secondary rounded-xl flex items-center justify-center shadow-lg ring-2 ring-primary/20">
+              <Stethoscope className="h-5 w-5 text-white" />
             </div>
+            {!isCollapsed && (
+              <div>
+                <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">Dental Practice</h2>
+                <p className="text-sm text-sidebar-foreground/70 font-medium">Management Suite</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Content Container */}
-        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden py-4">
           {/* Patient Portal - Only show for patients */}
           {isPatient && visiblePatientMenuItems.length > 0 && (
             <SectionGroup title="My Dental Care" icon={Star} items={visiblePatientMenuItems} className="pt-2" sectionKey="my-dental-care" />
