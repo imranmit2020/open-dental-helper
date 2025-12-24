@@ -78,8 +78,6 @@ serve(async (req) => {
     const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
     const dataRows = lines.slice(1);
 
-    console.log(`Processing ${dataRows.length} records for table: ${targetTable}`);
-
     // Get current tenant ID
     const { data: tenantData, error: tenantError } = await supabaseClient.rpc('get_current_tenant_id');
     if (tenantError || !tenantData) {
@@ -213,8 +211,6 @@ serve(async (req) => {
         }
       }
     }
-
-    console.log(`Migration completed: ${recordsImported} records imported, ${errors.length} errors`);
 
     return new Response(
       JSON.stringify({

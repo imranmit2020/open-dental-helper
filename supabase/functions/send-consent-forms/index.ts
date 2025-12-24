@@ -19,8 +19,6 @@ interface ConsentFormsRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log('Send consent forms function called');
-
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,8 +33,6 @@ const handler = async (req: Request): Promise<Response> => {
       appointment_id,
       appointment_type
     }: ConsentFormsRequest = await req.json();
-
-    console.log('Processing consent forms for:', { patient_name, patient_email, appointment_type });
 
     // Generate secure consent form link
     const consentFormUrl = `https://4bf4f92b-b56c-461b-915a-4455c65e42dd.lovableproject.com/consent-forms?patient_id=${patient_id}&appointment_id=${appointment_id}`;
@@ -96,13 +92,10 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `,
       });
-
-      console.log("Consent forms email sent successfully:", emailResponse);
     }
 
     // You could also implement SMS sending here if patient_phone is provided
     if (patient_phone && !patient_email) {
-      console.log(`SMS consent forms would be sent to: ${patient_phone}`);
       // Implement SMS functionality here if needed
     }
 
