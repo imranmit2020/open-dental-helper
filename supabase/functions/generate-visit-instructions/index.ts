@@ -16,8 +16,6 @@ interface InstructionsRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  console.log('Generate visit instructions function called');
-
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -30,8 +28,6 @@ const handler = async (req: Request): Promise<Response> => {
       patientName,
       visitNotes
     }: InstructionsRequest = await req.json();
-
-    console.log('Generating instructions for treatments:', treatmentCodes);
 
     // Create context for AI
     const treatmentContext = treatmentCodes.map(code => {
@@ -94,8 +90,6 @@ Format the response in clear, patient-friendly language with bullet points and s
 
     const data = await response.json();
     const instructions = data.choices[0].message.content;
-
-    console.log('Instructions generated successfully');
 
     return new Response(
       JSON.stringify({ 

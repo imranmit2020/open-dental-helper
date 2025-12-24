@@ -3508,18 +3508,9 @@ export type Database = {
         }
         Returns: undefined
       }
-      exec_sql: {
-        Args: { sql: string }
-        Returns: Json
-      }
-      generate_api_key: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_employee_id: {
-        Args: { _tenant_id: string }
-        Returns: string
-      }
+      exec_sql: { Args: { sql: string }; Returns: Json }
+      generate_api_key: { Args: never; Returns: string }
+      generate_employee_id: { Args: { _tenant_id: string }; Returns: string }
       generate_employee_id_for_corporation: {
         Args: { _corp_id: string }
         Returns: string
@@ -3541,10 +3532,7 @@ export type Database = {
           total_revenue: number
         }[]
       }
-      get_current_tenant_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_tenant_id: { Args: never; Returns: string }
       get_dentist_availability_for_date: {
         Args: { _date: string; _dentist_id: string; _tenant_id: string }
         Returns: {
@@ -3560,7 +3548,7 @@ export type Database = {
         Returns: Json
       }
       get_user_accessible_channels: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           corporation_id: string
           created_by: string
@@ -3579,18 +3567,12 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
-      get_user_role: {
-        Args: { _user_id: string }
-        Returns: string
-      }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_tenant_role: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: string
       }
-      is_super_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       profile_role_unchanged: {
         Args: { _new_role: string; _user_id: string }
         Returns: boolean

@@ -10,8 +10,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  console.log('Generate prescription function called');
-  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

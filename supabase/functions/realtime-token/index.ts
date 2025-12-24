@@ -55,7 +55,6 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Session created:", data);
     
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -48,8 +48,6 @@ Deno.serve(async (req) => {
 
     const { type, format, tables = [], compression = true, encryption = false, cloudStorage = false }: BackupRequest = await req.json();
 
-    console.log('Starting backup:', { type, format, tables, compression, encryption, cloudStorage });
-
     // Get available tables
     const { data: availableTables, error: tablesError } = await supabaseClient
       .rpc('exec_sql', { 
@@ -62,8 +60,6 @@ Deno.serve(async (req) => {
 
     const tableNames = availableTables?.map((t: any) => t.table_name) || [];
     let targetTables = type === 'selective' ? tables : tableNames;
-
-    console.log('Target tables:', targetTables);
 
     let backupData: any = {};
     let totalSize = 0;
@@ -91,7 +87,6 @@ Deno.serve(async (req) => {
 
     // Simulate cloud storage upload
     if (cloudStorage) {
-      console.log('Uploading to cloud storage...');
       // In real implementation, upload to AWS S3, Google Cloud, etc.
     }
 

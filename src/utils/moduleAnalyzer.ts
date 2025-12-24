@@ -414,7 +414,7 @@ export class ModuleAnalyzer {
 
   downloadReport(): void {
     const excelBuffer = this.generateExcelReport();
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([excelBuffer as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     
     const link = document.createElement('a');

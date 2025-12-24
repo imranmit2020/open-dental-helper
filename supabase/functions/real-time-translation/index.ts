@@ -81,8 +81,6 @@ serve(async (req) => {
     // Confidence score based on text length and complexity
     const confidence = calculateConfidence(text, translatedText);
 
-    console.log(`Translation completed: ${text.substring(0, 50)}... -> ${translatedText.substring(0, 50)}...`);
-
     return new Response(JSON.stringify({
       translatedText,
       confidence,
