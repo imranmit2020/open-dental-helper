@@ -45,10 +45,10 @@ export default function MyProfile() {
   useEffect(() => {
     // SEO basics
     const prevTitle = document.title;
-    document.title = "My Profile | DentalAI-auth";
+    document.title = "My Profile | DentalAI";
     const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     metaDesc.setAttribute('name', 'description');
-    metaDesc.setAttribute('content', 'View and update your profile and password in DentalAI-auth.');
+    metaDesc.setAttribute('content', 'View and update your profile and password in DentalAI.');
     document.head.appendChild(metaDesc);
 
     const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');

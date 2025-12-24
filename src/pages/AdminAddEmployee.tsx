@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 function setSEO() {
-  document.title = "Add Employee | DentalAI-auth";
+  document.title = "Add Employee | DentalAI";
   const desc = "Admin: Add new employee to clinic or corporation";
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {

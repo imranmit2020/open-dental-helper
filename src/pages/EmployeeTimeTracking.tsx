@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 
 function setSEO() {
-  document.title = "Employee Time Tracking | DentalAI-auth";
+  document.title = "Employee Time Tracking | DentalAI";
   const desc = "Advanced biometric time tracking with location verification and AI insights";
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {
