@@ -7,7 +7,7 @@ import { StaffAvailabilityManager } from "@/components/StaffAvailabilityManager"
 import ScheduleManagementSkeleton from "@/components/ScheduleManagementSkeleton";
 
 function setSEO() {
-  document.title = "Schedule Management | DentalAI-auth";
+  document.title = "Schedule Management | DentalAI";
   const desc = "Manage dentist and staff schedules across clinics";
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) {

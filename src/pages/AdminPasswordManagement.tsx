@@ -28,7 +28,7 @@ export default function AdminPasswordManagement() {
 
   // SEO
   useEffect(() => {
-    const title = "Admin Password Management | DentalAI-auth";
+    const title = "Admin Password Management | DentalAI";
     const desc = "Admin screen to change passwords for employees and staff.";
     document.title = title;
     let meta = document.querySelector('meta[name="description"]');

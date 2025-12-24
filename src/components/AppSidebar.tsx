@@ -482,7 +482,7 @@ export function AppSidebar() {
               {!isCollapsed && (
                 <div className="flex-1">
                   <h1 className="font-bold text-2xl bg-gradient-to-r from-primary via-primary-glow to-secondary bg-clip-text text-transparent">
-                    DentalAI-auth
+                    DentalAI
                   </h1>
                   <div className="flex items-center gap-3 mt-2">
                     <div className="px-3 py-1 bg-gradient-to-r from-sidebar-accent/60 to-sidebar-accent/40 rounded-full border border-sidebar-border/20">

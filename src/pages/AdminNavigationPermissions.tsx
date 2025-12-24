@@ -76,7 +76,7 @@ export default function AdminNavigationPermissions() {
   });
 
   useEffect(() => {
-    document.title = 'Module Access Control | DentalAI-auth';
+    document.title = 'Module Access Control | DentalAI';
   }, []);
 
   // Initialize selection from current tenant when available
