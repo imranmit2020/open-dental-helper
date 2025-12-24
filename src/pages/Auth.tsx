@@ -206,7 +206,7 @@ export default function Auth() {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            DentalAI Pro
+            DentalAI-auth
           </CardTitle>
           <CardDescription>
             Access your dental practice management system

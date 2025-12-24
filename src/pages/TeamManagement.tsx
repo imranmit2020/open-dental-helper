@@ -31,7 +31,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function setSEO() {
-  document.title = "Team Management | DentalAI Pro";
+  document.title = "Team Management | DentalAI-auth";
   const desc = "Invite dentists, hygienists, and staff to your clinic";
   let meta = document.querySelector('meta[name="description"]');
   if (!meta) { meta = document.createElement("meta"); meta.setAttribute("name", "description"); document.head.appendChild(meta); }

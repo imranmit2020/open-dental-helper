@@ -89,7 +89,7 @@ const Layout = () => {
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink asChild className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium transition-colors hover:bg-muted hover:text-foreground">
-                    <Link to="/"><Home className="h-4 w-4" aria-hidden="true" /><span>DentalAI Pro</span></Link>
+                    <Link to="/"><Home className="h-4 w-4" aria-hidden="true" /><span>DentalAI-auth</span></Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {getBreadcrumbItems(location.pathname).length > 0 && (

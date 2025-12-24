@@ -150,7 +150,7 @@ export default function QAChecklist() {
   });
 
   useEffect(() => {
-    document.title = "QA Checklist | DentalAI Pro";
+    document.title = "QA Checklist | DentalAI-auth";
     const desc = "Run end-to-end QA checks across modules: auth, patients, appointments, billing, and more.";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
