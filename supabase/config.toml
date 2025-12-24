@@ -10,13 +10,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.admin-auth]
-# Requires caller to be authenticated; role checked inside function
 verify_jwt = true
 
 [functions.xray-stream]
-# Public streaming endpoint for AI X-ray analysis
 verify_jwt = false
 
 [functions.xray-analyze]
-# Make analysis function callable from the client without auth issues
+verify_jwt = false
+
+[functions.bulk-password-reset]
 verify_jwt = false
