@@ -16,8 +16,8 @@ export default function ResetPassword() {
 
   // SEO
   useEffect(() => {
-    const title = "Reset Password | DentalAI Pro";
-    const desc = "Securely reset your DentalAI Pro account password.";
+    const title = "Reset Password | DentalAI-auth";
+    const desc = "Securely reset your DentalAI-auth account password.";
     document.title = title;
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {

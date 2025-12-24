@@ -107,7 +107,7 @@ export default function ProfessionalProfile() {
 
   useEffect(() => {
     // SEO
-    document.title = "Professional Profile | DentalAI Pro";
+    document.title = "Professional Profile | DentalAI-auth";
     const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     metaDesc.setAttribute('name', 'description');
     metaDesc.setAttribute('content', 'Manage your professional qualifications, experience, and continuing education.');

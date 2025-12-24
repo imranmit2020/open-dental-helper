@@ -95,7 +95,7 @@ export default function AdminApprovalDashboard() {
   }, []);
 
   useEffect(() => {
-    document.title = 'User Approval Dashboard | DentalAI Pro';
+    document.title = 'User Approval Dashboard | DentalAI-auth';
   }, []);
 
   useEffect(() => {
