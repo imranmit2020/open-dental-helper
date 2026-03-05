@@ -68,7 +68,7 @@ const QuantumScheduling = lazy(() => import("./pages/QuantumScheduling"));
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const AdminApprovalDashboard = lazy(() => import("./pages/AdminApprovalDashboard"));
 const AdminUserManagement = lazy(() => import("./pages/AdminUserManagement"));
-const AdminPasswordManagement = lazy(() => import("./pages/AdminPasswordManagement"));
+
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmployeeAccessFlow = lazy(() => import("./pages/EmployeeAccessFlow"));
 const AdminNavigationPermissions = lazy(() => import("./pages/AdminNavigationPermissions"));
@@ -236,9 +236,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="admin/passwords" element={
-              <ProtectedRoute requiredRoles={['admin']}>
-                <Suspense fallback={<PageLoader />}><AdminPasswordManagement /></Suspense>
-              </ProtectedRoute>
+              <Navigate to="/admin/user-management" replace />
             } />
             <Route path="admin/employee-flow" element={
               <ProtectedRoute requiredRoles={['admin']}>
