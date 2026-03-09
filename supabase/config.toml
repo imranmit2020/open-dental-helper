@@ -20,6 +20,3 @@ verify_jwt = false
 
 [functions.bulk-password-reset]
 verify_jwt = false
-
-[functions.create-demo-user]
-verify_jwt = false
