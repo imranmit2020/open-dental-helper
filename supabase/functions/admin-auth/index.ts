@@ -7,11 +7,14 @@ const corsHeaders = {
 };
 
 interface AdminAuthRequest {
-  action: "invite" | "set_password" | "send_reset";
+  action: "invite" | "set_password" | "send_reset" | "create_user";
   email?: string;
   user_id?: string;
   new_password?: string;
   redirectTo?: string;
+  role?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 serve(async (req: Request) => {
@@ -34,31 +37,38 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization") ?? "";
 
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const supabaseAuth = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
 
-    // Verify caller is authenticated and has admin privileges
-    const { data: userData, error: getUserErr } = await supabaseAuth.auth.getUser();
-    if (getUserErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    // Check if caller is using the service role key (internal/tooling calls)
+    const apikeyHeader = req.headers.get("apikey") ?? "";
+    const isServiceRole = authHeader === `Bearer ${SERVICE_ROLE_KEY}` || apikeyHeader === SERVICE_ROLE_KEY;
+
+    if (!isServiceRole) {
+      const supabaseAuth = createClient(SUPABASE_URL, ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
       });
-    }
 
-    const { data: profile } = await supabaseAuth
-      .from("profiles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .single();
+      // Verify caller is authenticated and has admin privileges
+      const { data: userData, error: getUserErr } = await supabaseAuth.auth.getUser();
+      if (getUserErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
 
-    const callerRole = profile?.role ?? "user";
-    if (!["admin", "super_admin"].includes(callerRole)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      const { data: profile } = await supabaseAuth
+        .from("profiles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .single();
+
+      const callerRole = profile?.role ?? "user";
+      if (!["admin", "super_admin"].includes(callerRole)) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
     }
 
     const body = (await req.json()) as AdminAuthRequest;
@@ -110,6 +120,39 @@ serve(async (req: Request) => {
       });
       if (error) throw error;
       return new Response(JSON.stringify({ success: true, data }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (body.action === "create_user") {
+      if (!body.email || !body.new_password) {
+        return new Response(JSON.stringify({ error: "email and new_password required" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: body.email,
+        password: body.new_password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: body.first_name || "",
+          last_name: body.last_name || "",
+          role: body.role || "staff",
+        },
+      });
+      if (createErr) throw createErr;
+
+      // Update profile role if specified
+      if (body.role && newUser?.user?.id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ role: body.role, first_name: body.first_name || "", last_name: body.last_name || "" })
+          .eq("user_id", newUser.user.id);
+      }
+
+      return new Response(JSON.stringify({ success: true, data: newUser }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
