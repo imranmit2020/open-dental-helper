@@ -18,26 +18,52 @@ serve(async (req: Request) => {
 
     const { email, password, role, first_name, last_name } = await req.json();
 
-    const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { first_name, last_name, role },
-    });
+    // Find user by email
+    const { data: { users }, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (listErr) throw listErr;
 
-    if (createErr) throw createErr;
+    const existingUser = users?.find((u: any) => u.email === email);
 
-    if (newUser?.user?.id) {
+    if (existingUser) {
+      // Update password
+      const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+        password,
+        email_confirm: true,
+      });
+      if (updateErr) throw updateErr;
+
+      // Update profile
       await supabaseAdmin
         .from("profiles")
         .update({ role, first_name, last_name })
-        .eq("user_id", newUser.user.id);
-    }
+        .eq("user_id", existingUser.id);
 
-    return new Response(JSON.stringify({ success: true, user_id: newUser?.user?.id }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
+      return new Response(JSON.stringify({ success: true, action: "updated", user_id: existingUser.id }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    } else {
+      // Create new user
+      const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { first_name, last_name, role },
+      });
+      if (createErr) throw createErr;
+
+      if (newUser?.user?.id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ role, first_name, last_name })
+          .eq("user_id", newUser.user.id);
+      }
+
+      return new Response(JSON.stringify({ success: true, action: "created", user_id: newUser?.user?.id }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
   } catch (error: any) {
     console.error("create-demo-user error:", error);
     return new Response(JSON.stringify({ error: error?.message }), {
