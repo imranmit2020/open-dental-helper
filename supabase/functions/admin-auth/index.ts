@@ -118,6 +118,39 @@ serve(async (req: Request) => {
       });
     }
 
+    if (body.action === "create_user") {
+      if (!body.email || !body.new_password) {
+        return new Response(JSON.stringify({ error: "email and new_password required" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const { data: newUser, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: body.email,
+        password: body.new_password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: body.first_name || "",
+          last_name: body.last_name || "",
+          role: body.role || "staff",
+        },
+      });
+      if (createErr) throw createErr;
+
+      // Update profile role if specified
+      if (body.role && newUser?.user?.id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ role: body.role, first_name: body.first_name || "", last_name: body.last_name || "" })
+          .eq("user_id", newUser.user.id);
+      }
+
+      return new Response(JSON.stringify({ success: true, data: newUser }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Invalid action" }), {
       status: 400,
       headers: { "Content-Type": "application/json", ...corsHeaders },
