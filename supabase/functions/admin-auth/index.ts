@@ -39,7 +39,8 @@ serve(async (req: Request) => {
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     // Check if caller is using the service role key (internal/tooling calls)
-    const isServiceRole = authHeader === `Bearer ${SERVICE_ROLE_KEY}`;
+    const apikeyHeader = req.headers.get("apikey") ?? "";
+    const isServiceRole = authHeader === `Bearer ${SERVICE_ROLE_KEY}` || apikeyHeader === SERVICE_ROLE_KEY;
 
     if (!isServiceRole) {
       const supabaseAuth = createClient(SUPABASE_URL, ANON_KEY, {
