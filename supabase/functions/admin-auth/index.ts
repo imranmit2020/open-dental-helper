@@ -7,11 +7,14 @@ const corsHeaders = {
 };
 
 interface AdminAuthRequest {
-  action: "invite" | "set_password" | "send_reset";
+  action: "invite" | "set_password" | "send_reset" | "create_user";
   email?: string;
   user_id?: string;
   new_password?: string;
   redirectTo?: string;
+  role?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 serve(async (req: Request) => {
