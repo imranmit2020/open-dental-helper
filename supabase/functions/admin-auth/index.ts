@@ -37,31 +37,37 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization") ?? "";
 
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-    const supabaseAuth = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
 
-    // Verify caller is authenticated and has admin privileges
-    const { data: userData, error: getUserErr } = await supabaseAuth.auth.getUser();
-    if (getUserErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    // Check if caller is using the service role key (internal/tooling calls)
+    const isServiceRole = authHeader === `Bearer ${SERVICE_ROLE_KEY}`;
+
+    if (!isServiceRole) {
+      const supabaseAuth = createClient(SUPABASE_URL, ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
       });
-    }
 
-    const { data: profile } = await supabaseAuth
-      .from("profiles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .single();
+      // Verify caller is authenticated and has admin privileges
+      const { data: userData, error: getUserErr } = await supabaseAuth.auth.getUser();
+      if (getUserErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
 
-    const callerRole = profile?.role ?? "user";
-    if (!["admin", "super_admin"].includes(callerRole)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      const { data: profile } = await supabaseAuth
+        .from("profiles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .single();
+
+      const callerRole = profile?.role ?? "user";
+      if (!["admin", "super_admin"].includes(callerRole)) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
     }
 
     const body = (await req.json()) as AdminAuthRequest;
